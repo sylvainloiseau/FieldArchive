@@ -1,0 +1,57 @@
+{
+  "name": "projet-rdf-electron",
+  "version": "1.0.0",
+  "description": "Application desktop RDF — Angular + Spring Boot + Electron",
+  "main": "electron/main.js",
+  "scripts": {
+    "electron": "electron .",
+    "electron:dev": "NODE_ENV=development electron .",
+    "build:frontend": "cd Frontend && ng build --output-path ../electron/dist/frontend",
+    "build:backend": "cd RDF_Back && mvn clean package -DskipTests",
+    "build:all": "npm run build:frontend && npm run build:backend",
+    "start": "npm run build:all && electron .",
+    "package": "npm run build:all && electron-builder --dir",
+    "dist": "npm run build:all && electron-builder"
+  },
+  "build": {
+    "appId": "com.uspn.projet-rdf",
+    "productName": "Gestionnaire RDF",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "RDF_Back/target/RDF_Back-0.0.1-SNAPSHOT.jar",
+        "to": "RDF_Back/target/RDF_Back-0.0.1-SNAPSHOT.jar"
+      },
+      {
+        "from": "data",
+        "to": "data"
+      },
+      {
+        "from": "projects",
+        "to": "projects"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "electron/assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "electron/assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "electron/assets/icon.png"
+    }
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  }
+}
