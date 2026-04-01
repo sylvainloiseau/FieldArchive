@@ -99,6 +99,10 @@ export class GestionRessourcesService {
     return this.http.get<any>(`${this.rdfUrl}/entity`, { params });
   }
 
+  createEntity(entity: any): Observable<any> {
+    return this.http.post<any>(`${this.rdfUrl}/entities`, entity);
+  }
+
   /**
    * Supprimer une entité
    */
@@ -115,4 +119,21 @@ export class GestionRessourcesService {
     return this.http.put<any>(`${this.rdfUrl}/entity`, newEntity, { params });
   }
 
+  getPredicatesByType(type: string): Observable<any[]> {
+    const query = `
+      SELECT DISTINCT ?p
+      WHERE {
+        ?s rdf:type <${type}> .
+        ?s ?p ?o .
+      }
+    `;
+
+    return this.http.post<any[]>(`${this.apiUrl}/select`, {
+      query: query
+    });
+  }
+
 }
+
+
+

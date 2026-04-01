@@ -276,7 +276,6 @@ get ontologyEntries(): { label: string; url: string }[] {
   return Object.entries(ONTOLOGY_LABELS).map(([url, label]) => ({ url, label: label as string }));
 }
 
-// Replace your existing addAssociation()
 addAssociation() {
   this.newAssociation = {
     mode: null,
@@ -288,7 +287,6 @@ addAssociation() {
   };
 }
 
-// Replace your existing confirmAddAssociation()
 confirmAddAssociation() {
   if (!this.newAssociation || !this.newAssociation.value) return;
 
@@ -318,7 +316,6 @@ confirmAddAssociation() {
   this.newAssociation = null;
 }
 
-// Keep your existing cancelAddAssociation()
 cancelAddAssociation() {
   this.newAssociation = null;
 }

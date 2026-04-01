@@ -4,6 +4,9 @@ import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
 import { EntityDetailsComponent } from '../entity-details/entity-details.component';
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
+import { debounceTime } from 'rxjs';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
 
 export type OntologyLabels = Record<string, string>;
 
@@ -17,7 +20,7 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
 
 @Component({
   selector: 'app-create-ressource',
-  imports: [FormsModule, ReactiveFormsModule, CommonModule, EntityDetailsComponent],
+  imports: [FormsModule, ReactiveFormsModule, CommonModule, EntityDetailsComponent, MatSnackBarModule],
   templateUrl: './create-ressource.component.html',
   styleUrl: './create-ressource.component.scss'
 })
@@ -27,13 +30,29 @@ export class CreateRessourceComponent implements OnInit {
 
   selectedEntity: Entity | null = null;
 
+  properties: { key: string; value: string; kind: 'literal' | 'iri'; predicate: string }[] = [];
+
+  // entityPropertiesDict : any[] = [];
+
+
+  allPredicatesByType: string[] = [];
+
   typeMode: 'existing' | 'custom' = 'existing';
   customSource: 'url' | 'full' = 'url';
   availableTypes: string[] = [];
 
+  newAssociation: {
+    mode: 'existing' | 'new' | null;  
+    predicate: string;                 
+    ontologyUrl: string;               
+    customPredicate: string;          
+    kind: 'literal' | 'iri';
+    value: string;
+  } | null = null;
+
   ontologyList: { name: string; iri: string }[] = [];
 
-  constructor(private fb: FormBuilder, private ontologyService: GestionRessourcesService) {
+  constructor(private fb: FormBuilder, private ontologyService: GestionRessourcesService, private snackBar : MatSnackBar) {
 
     this.personForm = this.fb.group({
       entityType: [''],
@@ -44,7 +63,7 @@ export class CreateRessourceComponent implements OnInit {
       }),
       associatedWith: this.fb.array([]),
       customFields: this.fb.array([]),
-      associations: this.fb.array([])
+      properties: this.fb.array([])
     });
 
     this.ontologyList = this.getOntologyList();
@@ -57,6 +76,19 @@ export class CreateRessourceComponent implements OnInit {
       },
       error: (err) => {
         console.error("Erreur lors du chargement des types d'ontology ", err);
+      }
+    });
+
+    this.personForm.get('entityType')?.valueChanges
+    .pipe(debounceTime(300))
+    .subscribe(value => {
+      if (value) {
+        console.log("VALUEEEEE :",value);
+        this.ontologyService.getPredicatesByType(value)
+          .subscribe(res => {
+            console.log(res);
+            this.allPredicatesByType = res.map(r => r.p);
+          });
       }
     });
   }
@@ -89,42 +121,23 @@ export class CreateRessourceComponent implements OnInit {
 
   // ─── Associations ────────────────────────────────────────────────────────────
 
-  get associationsArray(): FormArray {
-    return this.personForm.get('associations') as FormArray;
-  }
 
-  addAssociationField() {
-    const last = this.associationsArray.at(this.associationsArray.length - 1);
-    if (last && (!last.get('predicate')?.value || !last.get('object')?.value)) {
-      alert('Veuillez remplir les champs de l\'association avant d\'en ajouter une nouvelle.');
-      return;
-    }
-
-    const associationGroup = this.fb.group({
-      predicate: '',
-      object: '',
-      show: false
-    });
-
-    this.associationsArray.push(associationGroup);
-  }
-
-  checkAssociationVisibility(index: number): boolean {
-    const associationGroup = this.associationsArray.at(index);
-    return associationGroup ? associationGroup.get('show')?.value : false;
-  }
+  // checkAssociationVisibility(index: number): boolean {
+  //   const associationGroup = this.associationsArray.at(index);
+  //   return associationGroup ? associationGroup.get('show')?.value : false;
+  // }
  
-  changeAssociationVisibility(index: number) {
-    const associationGroup = this.associationsArray.at(index);
-    if (associationGroup) {
-      const oldValue = associationGroup.get('show')?.value;
-      associationGroup.get('show')?.setValue(!oldValue);
-    }
-  }
+  // changeAssociationVisibility(index: number) {
+  //   const associationGroup = this.associationsArray.at(index);
+  //   if (associationGroup) {
+  //     const oldValue = associationGroup.get('show')?.value;
+  //     associationGroup.get('show')?.setValue(!oldValue);
+  //   }
+  // }
 
-  removeAssociationField(index: number) {
-    this.associationsArray.removeAt(index);
-  }
+  // removeAssociationField(index: number) {
+  //   this.associationsArray.removeAt(index);
+  // }
 
   // ─── Custom fields ───────────────────────────────────────────────────────────
 
@@ -148,8 +161,8 @@ export class CreateRessourceComponent implements OnInit {
 
   addNewPerson() {
     this.personForm.reset();
-    while (this.associationsArray.length !== 0) {
-      this.associationsArray.removeAt(0);
+    while (this.properties.length !== 0) {
+      this.properties.pop();
     }
     while (this.customFieldsArray.length !== 0) {
       this.customFieldsArray.removeAt(0);
@@ -161,7 +174,117 @@ export class CreateRessourceComponent implements OnInit {
   }
 
   saveNewPerson() {
-    console.log("Saving person : ", this.personForm)
-    // implement save logic
+    let type: string = '';
+
+    if (this.typeMode === 'existing') {
+      type = this.personForm.get('entityType')?.value;
+    } 
+    else {
+      type = this.customSource === 'url'
+        ? this.resolvedTypeUri
+        : this.personForm.get('customTypeUri')?.value;
+    }
+
+    // 2. Build properties (remove "key" and add lang if literal)
+    const formattedProperties = this.properties.map(prop => {
+      const base: any = {
+        predicate: prop.predicate,
+        kind: prop.kind,
+        value: prop.value
+      };
+
+      // Add lang only for literals
+      if (prop.kind === 'literal') {
+        base.lang = ''; // you can make this dynamic later
+      }
+
+      return base;
+    });
+
+    // 3. Final payload
+    const payload = {
+      types: [type],
+      properties: formattedProperties
+    };
+
+    console.log('Final payload:', payload);
+
+    this.ontologyService.createEntity(payload).subscribe({
+      next: (res) => {
+        console.log('✅ Entity created:', res);
+
+        this.snackBar.open(
+          "✅ Entity created: was successfully created.",
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['snackbar-success']
+          }
+        );
+        // optional UX improvements
+        this.personForm.reset();
+        this.properties = [];
+      },
+      error: (err) => {
+        this.snackBar.open(
+          "❌ Error creating entity.",
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['snackbar-error']
+          }
+        );      
+      }
+    });
+
+  
+  }
+
+  addAssociation() {
+    this.newAssociation = {
+      mode: null,
+      predicate: '',
+      ontologyUrl: '',
+      customPredicate: '',
+      kind: 'literal',
+      value: ''
+    };
+  }
+
+  confirmAddAssociation() {
+    if (!this.newAssociation || !this.newAssociation.value) return;
+
+    let fullPredicate: string;
+    let propertyName: string;
+
+    if (this.newAssociation.mode === 'existing') {
+      if (!this.newAssociation.predicate) return;
+      fullPredicate = this.newAssociation.predicate;
+      fullPredicate.includes('#')
+        ? propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('#') + 1)
+        : propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('/') + 1);
+    } else {
+      if (!this.newAssociation.ontologyUrl || !this.newAssociation.customPredicate) return;
+      const base = this.newAssociation.ontologyUrl; // already ends with # or /
+      fullPredicate = base + this.newAssociation.customPredicate;
+      propertyName = this.newAssociation.customPredicate;
+    }
+
+    this.properties.push({
+      key: propertyName,
+      value: this.newAssociation.value,
+      kind: this.newAssociation.kind,
+      predicate: fullPredicate
+    });
+
+    this.newAssociation = null;
+  }
+
+  cancelAddAssociation() {
+    this.newAssociation = null;
   }
 }
