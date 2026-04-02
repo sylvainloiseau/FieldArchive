@@ -6,14 +6,20 @@ import com.uspn.rdf_back.services.OntologyService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+import com.uspn.rdf_back.dtos.OntologyClassDto;
+import com.uspn.rdf_back.services.BuiltinOntologyService;
+
 @RestController
 @RequestMapping("/ontology")
 public class OntologyController {
 
     private final OntologyService ontologyService;
+    private final BuiltinOntologyService builtinOntologyService;
 
-    public OntologyController(OntologyService ontologyService) {
+    public OntologyController(OntologyService ontologyService,
+                              BuiltinOntologyService builtinOntologyService) {
         this.ontologyService = ontologyService;
+        this.builtinOntologyService = builtinOntologyService;
     }
 
     // =============================
@@ -73,5 +79,27 @@ public class OntologyController {
         ontologyService.deleteOntologyLabel(url);
     }
 
+    // =============================
+    // CHARGER MANUELLEMENT RIC-O
+    // =============================
+    @PostMapping("/known/rico/load")
+    public void loadRico() {
+        builtinOntologyService.ensureRicoLoaded();
+    }
 
+    // =============================
+    // ONTOLOGIES CONNUES PAR L'APPLICATION
+    // =============================
+    @GetMapping("/known")
+    public List<OntologyLabelDto> getKnownOntologies() {
+        return builtinOntologyService.getKnownOntologies();
+    }
+
+    // =============================
+    // CLASSES D'UNE ONTOLOGIE CONNUE
+    // =============================
+    @GetMapping("/known/classes")
+    public List<OntologyClassDto> getKnownOntologyClasses(@RequestParam String url) {
+        return builtinOntologyService.getKnownOntologyClasses(url);
+    }
 }

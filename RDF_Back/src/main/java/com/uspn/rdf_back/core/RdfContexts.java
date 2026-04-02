@@ -9,4 +9,6 @@ public final class RdfContexts {
 
     // Contexte éditable interne (source interne)
     public static final String CTX_INTERNAL = RdfNamespaces.APP + "context/internal";
+
+    public static final String CTX_ONTO_RICO = RdfNamespaces.APP + "context/ontology/rico";
 }

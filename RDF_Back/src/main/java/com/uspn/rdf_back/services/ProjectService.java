@@ -27,6 +27,10 @@ public class ProjectService {
     private static final IRI TYPE_PROJECT = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance()
             .createIRI(RdfNamespaces.APP, "Project");
 
+    public ProjectService(BuiltinOntologyService builtinOntologyService) {
+        this.builtinOntologyService = builtinOntologyService;
+    }
+
     private IRI projectIri(ValueFactory vf, String projectName) {
         return vf.createIRI(RdfNamespaces.APP + "project/" + projectName);
     }
@@ -35,6 +39,7 @@ public class ProjectService {
         return vf.createIRI(RdfContexts.CTX_META);
     }
 
+    private final BuiltinOntologyService builtinOntologyService;
     /**
      * Ouvre (ou crée) le repository RDF4J du projet et écrit les métadonnées du projet en RDF.
      */
@@ -51,11 +56,19 @@ public class ProjectService {
         repo.init();
         ProjectContext.set(repo, name);
 
-        // 3) Écrire (ou mettre à jour) les métadonnées RDF du projet
-        upsertProjectMetadata(name, description);
+        try {
+            // 3) Écrire (ou mettre à jour) les métadonnées RDF du projet
+            upsertProjectMetadata(name, description);
 
-        // 4) Retour DTO
-        return readCurrentProject();
+            // 4) Charger automatiquement RiC-O dans le projet
+            builtinOntologyService.ensureRicoLoaded();
+
+            // 5) Retour DTO
+            return readCurrentProject();
+        } catch (RuntimeException e) {
+            ProjectContext.close();
+            throw e;
+        }
     }
 
     private Repository createRepository(String projectName, boolean persistent) {
