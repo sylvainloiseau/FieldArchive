@@ -53,6 +53,8 @@ export class GestionRessourcesComponent implements OnInit {
 
   ontologyLabels : any[] = [];
 
+  allRicoClasses : any[] = [];
+
   projectName : string = '';
 
   filteredEntityTypes: EntityType[] = [];
@@ -79,7 +81,34 @@ export class GestionRessourcesComponent implements OnInit {
 
   ngOnInit() {
     
+    this.ontologyService.getAllRicoClasses().subscribe({
+      next: (data) => {
+        try {
+          // Step 1: Map to type strings
+          const allRicoClassesNotFormatted = this.ontologyService.getOntologyLabel(
+            data.map((d: any) => d.type)
+          );
 
+          // Step 2: Extract the RIC-O array
+          let ricOClasses = allRicoClassesNotFormatted[0]['RIC-O'];
+
+          // Step 3: Remove duplicates
+          // Assuming each element is a string; if it's an object, use a key like `type`
+          ricOClasses = Array.from(new Set(ricOClasses));
+
+          this.allRicoClasses = ricOClasses;
+          console.log("Classes RICO (no duplicates) ", this.allRicoClasses);
+
+        } catch (e) {
+          console.error("ERROR in getOntologyLabel:", e);
+        }
+
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error(err);
+      }
+    });
 
     // this.filteredEntities = [...this.allEntities];
     // this.filteredEntityTypes = [...this.entityTypes];
@@ -106,6 +135,8 @@ export class GestionRessourcesComponent implements OnInit {
       }
       }
     );
+
+
   
   }
 
