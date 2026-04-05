@@ -103,7 +103,7 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.projectService.openProject({ name: project.name, persistent: true })
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
-        next:  () => this.router.navigate(['/gestion-sources']),
+        next:  () => this.router.navigate(['/gestion-ressources']),
         error: () => {}
       });
   }

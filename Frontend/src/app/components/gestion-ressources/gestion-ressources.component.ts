@@ -19,6 +19,7 @@ import { GestionProjetsService } from '../../services/gestion-projets.service';
 import { error } from 'console';
 
 import { OntologyManagerDialogComponent } from '../ontology-manager-dialog/ontology-manager-dialog.component';
+import { Router } from '@angular/router';
 @Component({
   selector: 'app-gestion-ressources',
   standalone: true,
@@ -65,7 +66,9 @@ export class GestionRessourcesComponent implements OnInit {
 
   constructor(private dialog: MatDialog, private ontologyService: GestionRessourcesService,
     private projetService: GestionProjetsService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    public  router:         Router
+
   ) {}
 
   openOntologyManagerDialog() {
