@@ -154,7 +154,7 @@
                   [class.text-blue-700]="selectedType === entityType.type"
                   class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-all duration-150 group relative"
                   [attr.aria-pressed]="selectedType === entityType.type"
-                  (click)="getAllEntitiesByPath('RIC-O', entityType)">
+                  (click)="getAllEntitiesByPath('rico', entityType)">
                   
                   <div class="flex items-center justify-between">
                     <span class="text-sm font-medium group-hover:text-gray-900 transition-colors duration-150">
@@ -223,7 +223,7 @@
 
     <div  *ngIf="activeView === 'tableau'" class="p-0! w-[85%]!" [@slideIn]>
       <div class="p-1! flex-1 overflow-y-auto bg-gray-50 ">
-        <app-liste-entites *ngIf="formattedEntities" [allEntities]="formattedEntities" (selectedEntity)="handleChildData($event)"></app-liste-entites>
+        <app-liste-entites *ngIf="formattedEntities" [selectedType]="`${selectedOntology}:${selectedType}`" [allEntities]="formattedEntities" (selectedEntity)="handleChildData($event)"></app-liste-entites>
       </div>    
     </div>
 

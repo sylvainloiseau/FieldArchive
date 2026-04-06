@@ -1,7 +1,7 @@
 export type OntologyLabels = Record<string, string>;
 
 export let ONTOLOGY_LABELS: OntologyLabels = {
-  "https://www.ica.org/standards/RiC/ontology#": "RIC-O",
+  "https://www.ica.org/standards/RiC/ontology#": "rico",
   "http://uspn.fr/app#": "Application",
   "http://www.w3.org/2002/07/owl#": "OWL",
   "http://www.w3.org/2000/01/rdf-schema#": "RDFS",
