@@ -101,10 +101,16 @@ export class CreateRessourceComponent implements OnInit {
         this.ontologyService.getPredicatesByTypeRico(this.data.type)
           .subscribe(res => {
             console.log("All predicates : ",res);
-            this.allPredicatesByType = res;
+            this.allPredicatesByType = Object.values(
+              res.reduce((acc, item) => {
+                if (!acc[item.p]) acc[item.p] = item;
+                return acc;
+              }, {})
+            );            
             //.map(r => r.p);
             
-          });
+          }
+        );
       }
     });
   }
@@ -112,8 +118,23 @@ export class CreateRessourceComponent implements OnInit {
   onPredicateChange(event: any) {
     if (!this.newAssociation) return;
 
+
     this.newAssociation.valueKind =
       this.newAssociation.predicate?.valueKind || 'literal';
+
+    // this.ontologyService.getPredicatesByTypeRico(this.data.type)
+    // .subscribe(res => {
+    //   console.log("All predicates : ",res);
+    //   this.allPredicatesByType = Object.values(
+    //     res.reduce((acc, item) => {
+    //       if (!acc[item.p]) acc[item.p] = item;
+    //       return acc;
+    //     }, {})
+    //   );
+    //   //.map(r => r.p);
+      
+    // });
+    
 
     this.ontologyService.getAllEntitiesByType(this.newAssociation.predicate.range).subscribe({
       next: (res) => {
@@ -297,7 +318,7 @@ export class CreateRessourceComponent implements OnInit {
 
     if (this.newAssociation.mode === 'existing') {
       if (!this.newAssociation.predicate) return;
-      fullPredicate = this.newAssociation.predicate;
+      fullPredicate = this.newAssociation.predicate.p;
       fullPredicate.includes('#')
         ? propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('#') + 1)
         : propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('/') + 1);
