@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, inject, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
 import { allEntities } from '../../models/ressource';
@@ -13,6 +13,7 @@ import { ConfirmDeletePropertyData, ConfirmDeletePropertyComponent } from '../co
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 
+
 @Component({
   selector: 'app-entity-details',
   standalone: true,
@@ -23,6 +24,8 @@ import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 export class EntityDetailsComponent implements OnInit, OnChanges {
 
   @Input() selectedEntityId: string = "";  
+  @Output() close = new EventEmitter<void>();
+
   stack = new Stack<any>();
 
   selectedEntity : any = null ;
@@ -149,7 +152,9 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
   }
 
   closeDetail() {
-    this.selectedEntity = null;
+    console.log("CLOSING Details view ");
+    this.close.emit();
+
   }
 
   deleteEntity() {

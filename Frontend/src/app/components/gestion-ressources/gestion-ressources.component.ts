@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy,ChangeDetectorRef, signal, Component, OnInit } from '@angular/core';
+import {ChangeDetectionStrategy,ChangeDetectorRef, signal, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -20,6 +20,9 @@ import { error } from 'console';
 
 import { OntologyManagerDialogComponent } from '../ontology-manager-dialog/ontology-manager-dialog.component';
 import { Router } from '@angular/router';
+
+import { MatDialogRef } from '@angular/material/dialog';
+
 @Component({
   selector: 'app-gestion-ressources',
   standalone: true,
@@ -69,7 +72,8 @@ export class GestionRessourcesComponent implements OnInit {
 
   showPersonForm: boolean = false;
 
-  constructor(private dialog: MatDialog, private ontologyService: GestionRessourcesService,
+
+  constructor(public dialog: MatDialog, private ontologyService: GestionRessourcesService,
     private projetService: GestionProjetsService,
     private cdr: ChangeDetectorRef,
     public  router:         Router
@@ -77,9 +81,9 @@ export class GestionRessourcesComponent implements OnInit {
   ) {}
 
   openOntologyManagerDialog() {
-    this.dialog.open(OntologyManagerDialogComponent, {
-      width: '1500px'
-    });
+  //   this.dialog.open(OntologyManagerDialogComponent, {
+  //     width: '1500px'
+  //   });
   }
 
   ngOnInit() {

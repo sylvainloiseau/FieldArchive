@@ -277,21 +277,23 @@
           </div>
         </div>
 
+        <span *ngIf="newAssociation.predicate.range" class="block text-sm font-medium text-gray-500 mb-1">Range : {{ newAssociation.predicate.range }}</span>
+
         <!-- Value -->
-        <div *ngIf="newAssociation.mode === 'existing'">
+        <div *ngIf="newAssociation.mode === 'existing' && newAssociation.valueKind === 'iri'">
           <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
           <select
             [(ngModel)]="newAssociation.value"
             [ngModelOptions]="{standalone: true}"
             class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
             <option value="" disabled>Select a value...</option>
-            <option *ngFor="let range of allPossibleRanges" [ngValue]="range">
-              {{ range }}
+            <option *ngFor="let range of allPossibleRanges" [ngValue]="range.iri">
+              {{ range.label }}
             </option>
           </select>
         </div>
 
-        <div *ngIf="newAssociation.mode === 'new'">
+        <div *ngIf="newAssociation.mode === 'new' || newAssociation.valueKind === 'literal'">
           <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
           <input
             type="text"
