@@ -12,11 +12,10 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 })
 export class ListeEntitesComponent {
 
-  selectedType: string | null = '';
+  // selectedType: string | null = '';
   @Input() allEntities:  any [] = [];
+  @Input() selectedType: string | null = '';
   @Output() selectedEntity = new EventEmitter<any>();
-  // entityKey!: string;
-  // entityList!: any[];
 
 
   // selectedEntity: Entity | null = null;
@@ -30,8 +29,16 @@ export class ListeEntitesComponent {
   constructor(private dialog: MatDialog) {}
 
   openCreateRessourceDialog() {
+    if (!this.selectedType) return;
+
+    const [ontology, type] = this.selectedType.split(':');
+
     this.dialog.open(CreateRessourceComponent, {
-      width: '600px'
+      width: '600px',
+      data: {
+        ontology,
+        type
+      }
     });
   }
 
@@ -95,32 +102,8 @@ export class ListeEntitesComponent {
     this.applyAllFilters();
   }
 
-  // Apply all filters (type + search + sort)
   applyAllFilters() {
-    // let entities = [...this.entityList];
-
-    // // Filter by type
-    // if (this.selectedType) {
-    //   entities = entities.filter(e => e.type === this.selectedType);
-    // }
-
-    // // Filter by search query
-    // if (this.searchQuery.trim()) {
-    //   const query = this.searchQuery.toLowerCase();
-    //   entities = entities.filter(e =>
-    //     e.titre.toLowerCase().includes(query) ||
-    //     e.date.toLowerCase().includes(query) ||
-    //     e.source.toLowerCase().includes(query) ||
-    //     e.type.toLowerCase().includes(query)
-    //   );
-    // }
-
-    // // Apply sorting
-    // if (this.sortColumn) {
-    //   entities = this.sortEntities(entities, this.sortColumn);
-    // }
-
-    // this.entityList = entities;
+ 
   }
 
   // Sort entities

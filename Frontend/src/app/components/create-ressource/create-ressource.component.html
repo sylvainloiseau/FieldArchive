@@ -179,11 +179,12 @@
           <label class="block text-xs font-medium text-gray-600 mb-1">Predicate</label>
           <select
             [(ngModel)]="newAssociation.predicate"
+              (change)="onPredicateChange($event)"
             [ngModelOptions]="{standalone: true}"
             class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
             <option value="" disabled>Select a predicate...</option>
-            <option *ngFor="let prop of allPredicatesByType" [value]="prop">
-              {{ prop }}
+            <option *ngFor="let prop of allPredicatesByType" [ngValue]="prop">
+              {{ prop.p }}
             </option>
           </select>
         </div>
@@ -228,24 +229,48 @@
         </ng-container>
 
         <!-- Kind toggle -->
-        <div *ngIf="newAssociation.mode">
+        <div *ngIf="newAssociation.mode === 'existing'">
           <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
           <div class="flex gap-2">
             <button
-              (click)="newAssociation.kind = 'literal'"
-              [class.bg-blue-600]="newAssociation.kind === 'literal'"
-              [class.text-white]="newAssociation.kind === 'literal'"
-              [class.bg-white]="newAssociation.kind !== 'literal'"
-              [class.text-gray-600]="newAssociation.kind !== 'literal'"
+              [disabled]="newAssociation.predicate.valueKind === 'iri'"
+              [class.bg-blue-600]="newAssociation.valueKind === 'literal'"
+              [class.text-white]="newAssociation.valueKind === 'literal'"
+              [class.bg-white]="newAssociation.valueKind !== 'literal'"
+              [class.text-gray-600]="newAssociation.valueKind !== 'literal'"
               class="cursor-pointer! flex-1 text-sm py-1 rounded-md border border-gray-300 transition-colors font-medium">
               Literal
             </button>
             <button
-              (click)="newAssociation.kind = 'iri'"
-              [class.bg-blue-600]="newAssociation.kind === 'iri'"
-              [class.text-white]="newAssociation.kind === 'iri'"
-              [class.bg-white]="newAssociation.kind !== 'iri'"
-              [class.text-gray-600]="newAssociation.kind !== 'iri'"
+              [disabled]="newAssociation.predicate.valueKind === 'literal'"
+              [class.bg-blue-600]="newAssociation.valueKind === 'iri'"
+              [class.text-white]="newAssociation.valueKind === 'iri'"
+              [class.bg-white]="newAssociation.valueKind !== 'iri'"
+              [class.text-gray-600]="newAssociation.valueKind !== 'iri'"
+              class="cursor-pointer! flex-1 text-sm py-1 rounded-md border border-gray-300 transition-colors font-medium">
+              IRI
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="newAssociation.mode === 'new'">
+          <label class="block text-xs font-medium text-gray-600 mb-1">Type</label>
+          <div class="flex gap-2">
+            <button
+              (click)="newAssociation.valueKind = 'literal'"
+              [class.bg-blue-600]="newAssociation.valueKind === 'literal'"
+              [class.text-white]="newAssociation.valueKind === 'literal'"
+              [class.bg-white]="newAssociation.valueKind !== 'literal'"
+              [class.text-gray-600]="newAssociation.valueKind !== 'literal'"
+              class="cursor-pointer! flex-1 text-sm py-1 rounded-md border border-gray-300 transition-colors font-medium">
+              Literal
+            </button>
+            <button
+              (click)="newAssociation.valueKind = 'iri'"
+              [class.bg-blue-600]="newAssociation.valueKind === 'iri'"
+              [class.text-white]="newAssociation.valueKind === 'iri'"
+              [class.bg-white]="newAssociation.valueKind !== 'iri'"
+              [class.text-gray-600]="newAssociation.valueKind !== 'iri'"
               class="cursor-pointer! flex-1 text-sm py-1 rounded-md border border-gray-300 transition-colors font-medium">
               IRI
             </button>
@@ -253,13 +278,26 @@
         </div>
 
         <!-- Value -->
-        <div *ngIf="newAssociation.mode">
+        <div *ngIf="newAssociation.mode === 'existing'">
+          <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
+          <select
+            [(ngModel)]="newAssociation.value"
+            [ngModelOptions]="{standalone: true}"
+            class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+            <option value="" disabled>Select a value...</option>
+            <option *ngFor="let range of allPossibleRanges" [ngValue]="range">
+              {{ range }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="newAssociation.mode === 'new'">
           <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
           <input
             type="text"
             [(ngModel)]="newAssociation.value"
             [ngModelOptions]="{standalone: true}"
-            [placeholder]="newAssociation.kind === 'iri' ? 'https://...' : 'Enter a value'"
+            [placeholder]="newAssociation.valueKind === 'iri' ? 'https://...' : 'Enter a value'"
             class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"/>
         </div>
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
@@ -7,6 +7,8 @@ import { GestionRessourcesService } from '../../services/gestion-ressources.serv
 import { debounceTime } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
+import {MAT_DIALOG_DATA} from '@angular/material/dialog';
+import { ChangeDetectorRef } from '@angular/core';
 
 export type OntologyLabels = Record<string, string>;
 
@@ -35,24 +37,33 @@ export class CreateRessourceComponent implements OnInit {
   // entityPropertiesDict : any[] = [];
 
 
-  allPredicatesByType: string[] = [];
+  allPredicatesByType: any[] = [];
 
   typeMode: 'existing' | 'custom' = 'existing';
   customSource: 'url' | 'full' = 'url';
   availableTypes: string[] = [];
 
+  allPossibleRanges : any[] = [];
+
   newAssociation: {
     mode: 'existing' | 'new' | null;  
-    predicate: string;                 
+    predicate: any;                 
     ontologyUrl: string;               
     customPredicate: string;          
-    kind: 'literal' | 'iri';
+    valueKind: 'literal' | 'iri';
     value: string;
   } | null = null;
 
   ontologyList: { name: string; iri: string }[] = [];
 
-  constructor(private fb: FormBuilder, private ontologyService: GestionRessourcesService, private snackBar : MatSnackBar) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any, 
+      private fb: FormBuilder,
+      private ontologyService: GestionRessourcesService,
+      private snackBar : MatSnackBar,
+          private cdr: ChangeDetectorRef,
+  ) {
+        
+
 
     this.personForm = this.fb.group({
       entityType: [''],
@@ -70,27 +81,50 @@ export class CreateRessourceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.ontologyService.getTypes().subscribe({
-      next: (data: any[]) => {
-        this.availableTypes = data;
-      },
-      error: (err) => {
-        console.error("Erreur lors du chargement des types d'ontology ", err);
-      }
-    });
+    // this.ontologyService.getTypes().subscribe({
+    //   next: (data: any[]) => {
+    //     this.availableTypes = data;
+    //   },
+    //   error: (err) => {
+    //     console.error("Erreur lors du chargement des types d'ontology ", err);
+    //   }
+    // });
+    this.availableTypes =  this.data?.type && this.data?.ontology
+      ? [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]  
+      : [];
 
     this.personForm.get('entityType')?.valueChanges
     .pipe(debounceTime(300))
     .subscribe(value => {
       if (value) {
-        console.log("VALUEEEEE :",value);
-        this.ontologyService.getPredicatesByType(value)
+        console.log("VALUEEEEE :",this.data.type);
+        this.ontologyService.getPredicatesByTypeRico(this.data.type)
           .subscribe(res => {
-            console.log(res);
-            this.allPredicatesByType = res.map(r => r.p);
+            console.log("All predicates : ",res);
+            this.allPredicatesByType = res;
+            //.map(r => r.p);
+            
           });
       }
     });
+  }
+
+  onPredicateChange(event: any) {
+    if (!this.newAssociation) return;
+
+    this.newAssociation.valueKind =
+      this.newAssociation.predicate?.valueKind || 'literal';
+
+    this.ontologyService.getAllEntitiesByType(this.newAssociation.predicate.range).subscribe({
+      next: (res) => {
+        this.allPossibleRanges = res;
+        console.log("All possible ranges for this predicate : ", res);
+      },
+      error: (err) => {
+        console.error("Error fetching possible ranges: ", err);
+      } 
+    });
+
   }
 
   // ─── Ontology helpers ───────────────────────────────────────────────────────
@@ -250,7 +284,7 @@ export class CreateRessourceComponent implements OnInit {
       predicate: '',
       ontologyUrl: '',
       customPredicate: '',
-      kind: 'literal',
+      valueKind: 'literal',
       value: ''
     };
   }
@@ -277,7 +311,7 @@ export class CreateRessourceComponent implements OnInit {
     this.properties.push({
       key: propertyName,
       value: this.newAssociation.value,
-      kind: this.newAssociation.kind,
+      kind: this.newAssociation.valueKind,
       predicate: fullPredicate
     });
 

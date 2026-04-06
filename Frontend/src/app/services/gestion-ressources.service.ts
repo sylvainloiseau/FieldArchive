@@ -126,7 +126,15 @@ export class GestionRessourcesService {
     return this.http.post<any>(`${this.apiUrl}/select`, objt);
   }
 
-  getPredicatesByType(type: string): Observable<any[]> {
+  getPredicatesByTypeRico(type: string): Observable<any[]> {
+    const objt = {
+      query: `PREFIX rico: <https://www.ica.org/standards/RiC/ontology#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT DISTINCT ?p ?label ?domain ?range ?valueKind WHERE { GRAPH <http://uspn.fr/app#context/ontology/rico> { BIND(rico:Person AS ?selectedClass) ?selectedClass rdfs:subClassOf* ?domain . ?p rdfs:domain ?domain . FILTER(STRSTARTS(STR(?p), "https://www.ica.org/standards/RiC/ontology#")) OPTIONAL { ?p rdfs:label ?label . FILTER(lang(?label) = "" || langMatches(lang(?label), "en") || langMatches(lang(?label), "fr")) } OPTIONAL { ?p rdfs:range ?range . } BIND(IF(EXISTS { ?p a owl:ObjectProperty . }, "iri", IF(EXISTS { ?p a owl:DatatypeProperty . }, "literal", "unknown")) AS ?valueKind) } } ORDER BY ?p`
+    };
+
+    return this.http.post<any[]>(`${this.apiUrl}/select`, objt);
+  }
+
+  getPredicatesByType_V2(type: string): Observable<any[]> {
     const query = `
       SELECT DISTINCT ?p
       WHERE {

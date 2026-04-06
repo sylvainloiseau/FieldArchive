@@ -60,7 +60,10 @@ export class GestionRessourcesComponent implements OnInit {
   filteredEntityTypes: EntityType[] = [];
   selectedEntity: any | null = null;
   previousSelectedEntity: Entity | null = null;
+
   selectedType: string | null = null;
+  selectedOntology : string | null = null;
+
   activeView: 'tableau' | 'graphe' | 'sources' | 'sparql' = 'tableau';
   detailTab: 'ric' | 'foaf' | 'metadata' = 'ric';
 
@@ -90,7 +93,7 @@ export class GestionRessourcesComponent implements OnInit {
           );
 
           // Step 2: Extract the RIC-O array
-          let ricOClasses = allRicoClassesNotFormatted[0]['RIC-O'];
+          let ricOClasses = allRicoClassesNotFormatted[0]['rico'];
 
           // Step 3: Remove duplicates
           // Assuming each element is a string; if it's an object, use a key like `type`
@@ -148,7 +151,7 @@ export class GestionRessourcesComponent implements OnInit {
     console.log('Received from child:', data);
       this.selectedEntity = { ...data }; // nouvelle ref
     this.detailTab = 'ric';
-    this.cdr.markForCheck();             // 🔥 très important
+    this.cdr.markForCheck();            
   }
 
   getValuesOfKey(obj: Record<string, any>): any[] {
@@ -186,6 +189,7 @@ export class GestionRessourcesComponent implements OnInit {
 
   getAllEntitiesByPath(ontology_name : string ,entity_type: string) : void {
     this.selectedType = entity_type;
+    this.selectedOntology = ontology_name;
     const typeUrl = this.ontologyService.getTypeUrlByName(ontology_name ?? '');
     if (typeUrl) {
       this.ontologyService.getAllEntitiesByType(typeUrl+entity_type).subscribe({
