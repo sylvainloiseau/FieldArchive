@@ -12,6 +12,7 @@ import {Entity, EntityType } from '../../models/ressource';
 
 import { EntityDetailsComponent } from '../entity-details/entity-details.component';
 import { ListeEntitesComponent } from '../liste-entites/liste-entites.component';
+import { SparqlComponent } from '../sparql/sparql.component';
 
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
 import { GestionProjetsComponent } from '../gestion-projets/gestion-projets.component';
@@ -33,7 +34,7 @@ import { MatDialogRef } from '@angular/material/dialog';
     MatDividerModule,
     MatListModule,
     MatDialogModule,
-    EntityDetailsComponent, ListeEntitesComponent],
+    EntityDetailsComponent, ListeEntitesComponent, SparqlComponent],
   templateUrl: './gestion-ressources.component.html',
   styleUrl: './gestion-ressources.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
