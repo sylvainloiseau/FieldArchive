@@ -53,7 +53,7 @@
           <span>Tab View</span>
         </button>
         
-        <button (click)="setView('graphe')" [class.bg-white]="activeView === 'graphe'" [class.text-blue-600]="activeView === 'graphe'" [class.shadow-sm]="activeView === 'graphe'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'graphe'" aria-label="Graph View">
+        <!-- <button (click)="setView('graphe')" [class.bg-white]="activeView === 'graphe'" [class.text-blue-600]="activeView === 'graphe'" [class.shadow-sm]="activeView === 'graphe'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'graphe'" aria-label="Graph View">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <circle cx="18" cy="5" r="3" stroke-width="2"></circle>
             <circle cx="6" cy="12" r="3" stroke-width="2"></circle>
@@ -62,7 +62,7 @@
             <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke-width="2"></line>
           </svg>
           <span>Graph View</span>
-        </button>
+        </button> -->
         
         <button (click)="setView('sources')" [class.bg-white]="activeView === 'sources'" [class.text-blue-600]="activeView === 'sources'" [class.shadow-sm]="activeView === 'sources'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sources'" aria-label="Datasource View">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,7 +85,7 @@
   <!-- Main Content Area -->
   <div class="flex flex-1 overflow-hidden">
     <!-- Sidebar -->
-    <aside class="w-60 bg-white border-r border-gray-200 overflow-y-auto shadow-sm flex flex-col">
+    <aside *ngIf="activeView !== 'sparql'" class="w-60 bg-white border-r border-gray-200 overflow-y-auto shadow-sm flex flex-col">
       <div class="p-4 flex-1">
 
         <!-- Header section with gradient accent -->
@@ -227,8 +227,14 @@
       </div>    
     </div>
 
+    <div *ngIf="activeView === 'sparql'" class="flex-1 flex items-start justify-center overflow-y-auto bg-gray-50" [@slideIn]>
+      <div class="w-full max-w-5xl">
+        <app-sparql></app-sparql>
+      </div>
+    </div>
+
     <!-- Detail Panel -->
-    <aside *ngIf="selectedEntity" [@slideIn] class="w-150! bg-white border-l border-gray-200 overflow-y-auto shadow-xl">
+    <aside *ngIf="selectedEntity && activeView !== 'sparql'" [@slideIn] class="w-150! bg-white border-l border-gray-200 overflow-y-auto shadow-xl">
 
       <div class="p-6">
         <app-entity-details (close)="selectedEntity = null" [selectedEntityId]="selectedEntity.entityKey"></app-entity-details>

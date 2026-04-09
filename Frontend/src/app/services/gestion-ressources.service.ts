@@ -148,6 +148,16 @@ export class GestionRessourcesService {
     });
   }
 
+
+  runSelectQuery(query: string): Observable<any[]> {
+    console.log("QUERY : ", {query});
+    return this.http.post<any[]>(`${this.apiUrl}/select`, { query });
+  }
+
+  // runUpdateQuery(query: string): Observable<void> {
+  //   return this.http.post<void>(`${this.apiUrl}/update`, { query });
+  // }
+
 }
 
 
