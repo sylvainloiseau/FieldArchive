@@ -42,6 +42,16 @@
             </svg>
             <span class="text-sm text-white font-medium">Projets</span>
           </button>
+
+          <button 
+            (click)="router.navigate(['/gestion-sources'])"
+            class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
+
+            <span class="text-sm text-white font-medium">Datasource View</span>
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
           
         <button (click)="setView('tableau')" [class.bg-white]="activeView === 'tableau'" [class.text-blue-600]="activeView === 'tableau'" [class.shadow-sm]="activeView === 'tableau'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'tableau'" aria-label="Tab View">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,12 +74,12 @@
           <span>Graph View</span>
         </button> -->
         
-        <button (click)="setView('sources')" [class.bg-white]="activeView === 'sources'" [class.text-blue-600]="activeView === 'sources'" [class.shadow-sm]="activeView === 'sources'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sources'" aria-label="Datasource View">
+        <!-- <button (click)="setView('sources')" [class.bg-white]="activeView === 'sources'" [class.text-blue-600]="activeView === 'sources'" [class.shadow-sm]="activeView === 'sources'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sources'" aria-label="Datasource View">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
           </svg>
           <span>Datasource View</span>
-        </button>
+        </button> -->
         
         <button (click)="setView('sparql')" [class.bg-white]="activeView === 'sparql'" [class.text-blue-600]="activeView === 'sparql'" [class.shadow-sm]="activeView === 'sparql'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sparql'" aria-label="SPARQL view">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
