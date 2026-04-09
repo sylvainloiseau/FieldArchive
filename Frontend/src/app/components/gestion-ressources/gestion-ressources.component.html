@@ -237,7 +237,7 @@
     <aside *ngIf="selectedEntity && activeView !== 'sparql'" [@slideIn] class="w-150! bg-white border-l border-gray-200 overflow-y-auto shadow-xl">
 
       <div class="p-6">
-        <app-entity-details (close)="selectedEntity = null" [selectedEntityId]="selectedEntity.entityKey"></app-entity-details>
+        <app-entity-details (close)="selectedEntity = null" [ontologyLabels]="ontologyLabels" [selectedEntityId]="selectedEntity.entityKey"></app-entity-details>
       </div>
 
     </aside>

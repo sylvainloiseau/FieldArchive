@@ -21,11 +21,14 @@ export class GestionRessourcesService {
    * Retourne les types regroupés par label d'ontologie
    */
   getOntologyLabel(listeIris: string[]): any[] {
+
+    // ❌ Remove all types from this namespace
+    listeIris = listeIris.filter(iri => !iri.startsWith('http://uspn.fr/app#') && !iri.startsWith("http://purl.org/vocommons/voaf#")  && !iri.startsWith("http://www.w3.org/2004/02/skos/core#"));
+
     const ontology_types: any[] = [];
     const labels = this.ontologyLabelsService.getLabels();
 
     for (let typeIri of listeIris) {
-
       const ns = typeIri.includes('#')
         ? typeIri.substring(0, typeIri.lastIndexOf('#') + 1)
         : typeIri.substring(0, typeIri.lastIndexOf('/') + 1);
@@ -47,6 +50,12 @@ export class GestionRessourcesService {
     }
 
     return ontology_types;
+  }
+
+  getTypeNameByUrl(typeUrl: string): string {
+    const labels = this.ontologyLabelsService.getLabels();
+
+    return labels[typeUrl] || '';
   }
 
   /**

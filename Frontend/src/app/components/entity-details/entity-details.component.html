@@ -25,13 +25,11 @@
     </button>
 </div>
 
-<div class="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg">
-    <button (click)="detailTab = 'ric'" [class.bg-white]="detailTab === 'ric'" [class.text-gray-900]="detailTab === 'ric'" [class.shadow-sm]="detailTab === 'ric'" class="cursor-pointer flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors">RIC</button>
-    <button (click)="detailTab = 'foaf'" [class.bg-white]="detailTab === 'foaf'" [class.text-gray-900]="detailTab === 'foaf'" [class.shadow-sm]="detailTab === 'foaf'" class="cursor-pointer flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors">FOAF</button>
-    <button (click)="detailTab = 'metadata'" [class.bg-white]="detailTab === 'metadata'" [class.text-gray-900]="detailTab === 'metadata'" [class.shadow-sm]="detailTab === 'metadata'" class="cursor-pointer flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors">Metadata</button>
+<div *ngFor="let item of ontologyLabels" class="flex mb-6 bg-gray-100 p-1 rounded-lg">
+    <button *ngFor="let entry of item | keyvalue" (click)="detailTab = entry.key" [class.bg-white]="detailTab === entry.key" [class.text-gray-900]="detailTab === entry.key" [class.shadow-sm]="detailTab === entry.key" class="cursor-pointer flex-1 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md transition-colors">{{ entry.key }}</button>
 </div>
 
-<div class="flex flex-col gap-4! p-3!" *ngIf="detailTab === 'ric'">
+<div class="flex flex-col gap-4! p-3!" *ngIf="detailTab">
 
     <!-- ID Field -->
     <div class="mb-6">
@@ -61,73 +59,77 @@
 
 
     <!-- Property Fields -->
-    <div *ngFor="let property of entityPropertiesDict" class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ property.key }}
-            <button class="inline ml-1 text-gray-400 hover:text-gray-600" aria-label="Information">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            </button>
-        </label>
+    <ng-container *ngFor="let property of entityPropertiesDict" class="mb-6">
+        <div *ngIf="property.ontology === detailTab">
 
-        <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                {{ property.key }}
+                <button class="inline ml-1 text-gray-400 hover:text-gray-600" aria-label="Information">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                </button>
+            </label>
 
-            <!-- Literal : champ éditable ou pas  -->
-            <input
-            *ngIf="property.kind === 'literal'"
-            type="text"
-            [(ngModel)]="property.value"
-            [readonly]="!selectedEntity?.editable"
-            [class.cursor-default]="!selectedEntity?.editable"
-            class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
-            />
+            <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
 
-            <!-- IRI : lien cliquable -->
-            <a
-            *ngIf="property.kind === 'iri' && !property.editing"
-            (click)="changeSelectedEntity(property.value); $event.preventDefault()"
-            rel="noopener noreferrer"
-            class="cursor-pointer! text-sm text-blue-600 hover:text-blue-800 underline font-mono truncate w-full"
-            >
-            {{ property.value }}
-            </a>
-            <input
-                *ngIf="property.kind === 'iri' && property.editing"
+                <!-- Literal : champ éditable ou pas  -->
+                <input
+                *ngIf="property.kind === 'literal'"
                 type="text"
                 [(ngModel)]="property.value"
-                (keydown.enter)="property.editing = false"
-                (keydown.escape)="property.editing = false"
-                class="text-sm text-blue-600 font-mono w-full bg-transparent focus:outline-none border-b border-blue-400"
-                autofocus
-            />
+                [readonly]="!selectedEntity?.editable"
+                [class.cursor-default]="!selectedEntity?.editable"
+                class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
+                />
 
-            <button
-                *ngIf="property.kind === 'iri' && selectedEntity?.editable"
-                (click)="property.editing = !property.editing"
-                class="ml-2 text-gray-400 hover:text-blue-600 transition-colors"
-                [attr.aria-label]="property.editing ? 'Confirmer' : 'Modifier'"
-            >
-                <!-- Pencil icon -->
-                <svg *ngIf="!property.editing" class="cursor-pointer! w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
+                <!-- IRI : lien cliquable -->
+                <a
+                *ngIf="property.kind === 'iri' && !property.editing"
+                (click)="changeSelectedEntity(property.value); $event.preventDefault()"
+                rel="noopener noreferrer"
+                class="cursor-pointer! text-sm text-blue-600 hover:text-blue-800 underline font-mono truncate w-full"
+                >
+                {{ property.value }}
+                </a>
+                <input
+                    *ngIf="property.kind === 'iri' && property.editing"
+                    type="text"
+                    [(ngModel)]="property.value"
+                    (keydown.enter)="property.editing = false"
+                    (keydown.escape)="property.editing = false"
+                    class="text-sm text-blue-600 font-mono w-full bg-transparent focus:outline-none border-b border-blue-400"
+                    autofocus
+                />
 
-                <!-- Check icon -->
-                <svg *ngIf="property.editing" class="cursor-pointer! w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                <button
+                    *ngIf="property.kind === 'iri' && selectedEntity?.editable"
+                    (click)="property.editing = !property.editing"
+                    class="ml-2 text-gray-400 hover:text-blue-600 transition-colors"
+                    [attr.aria-label]="property.editing ? 'Confirmer' : 'Modifier'"
+                >
+                    <!-- Pencil icon -->
+                    <svg *ngIf="!property.editing" class="cursor-pointer! w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+
+                    <!-- Check icon -->
+                    <svg *ngIf="property.editing" class="cursor-pointer! w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </button>
+                <button *ngIf="selectedEntity?.editable" (click)="removeProperty(property)" class="cursor-pointer! ml-2 text-red-400 hover:text-red-600 transition-colors flex-shrink-0" aria-label="Supprimer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
-            </button>
-            <button *ngIf="selectedEntity?.editable" (click)="removeProperty(property)" class="cursor-pointer! ml-2 text-red-400 hover:text-red-600 transition-colors flex-shrink-0" aria-label="Supprimer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-            </button>
+                </button>
+
+            </div>
 
         </div>
 
-    </div>
+    </ng-container>
 
     <div class="mb-6 flex flex-col gap-2!">
 
@@ -292,8 +294,6 @@
     </div>
 
 
-
-
     <div class="mt-8 flex gap-3">
         <button (click)="editEntity()" class="cursor-pointer! flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
         Save
@@ -304,32 +304,3 @@
     </div>
 </div>
 
-<!-- FOAF Tab Content -->
-<div *ngIf="detailTab === 'foaf'" class="text-center py-12">
-    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    <p class="mt-4 text-sm text-gray-500">Données FOAF à venir</p>
-</div>
-
-<!-- Metadata Tab Content -->
-<div *ngIf="detailTab === 'metadata'" class="text-center p-12!">
-    <div class="space-y-4">
-    <div>
-        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</span>
-        <p class="mt-1 text-sm text-gray-900">{{ selectedEntity?.type }}</p>
-    </div>
-    <div>
-        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Source</span>
-        <p class="mt-1 text-sm text-gray-900">{{ selectedEntity?.source }}</p>
-    </div>
-    <div>
-        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</span>
-        <p class="mt-1 text-sm text-gray-900">{{ selectedEntity?.statut }}</p>
-    </div>
-    <div>
-        <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</span>
-        <p class="mt-1 text-sm text-gray-900">{{ selectedEntity?.date }}</p>
-    </div>
-    </div>
-</div>

@@ -24,13 +24,14 @@ import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 export class EntityDetailsComponent implements OnInit, OnChanges {
 
   @Input() selectedEntityId: string = "";  
+  @Input() ontologyLabels: Record<string, string>[] = [];
   @Output() close = new EventEmitter<void>();
 
   stack = new Stack<any>();
 
   selectedEntity : any = null ;
   entityPropertiesDict : any[] = [];
-  detailTab: 'ric' | 'foaf' | 'metadata' = 'ric';
+  detailTab: string = 'rico';
   myNewEntites : Entity[] = [];
   newAssociation: {
   mode: 'existing' | 'new' | null;  // which sub-mode
@@ -83,8 +84,12 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
     if (entityProperties.length > 0) {
       for (let prop of entityProperties) {
         if (prop.predicate.includes('#')) {
+          let ontologyUrl = prop.predicate.substring(0, prop.predicate.lastIndexOf('#') + 1);
+          let ontologyName = this.gestionRessourceService.getTypeNameByUrl(ontologyUrl);
+          console.log("ONTOLOGYy NAME : ", ontologyName);
+          
           let propertyName = prop.predicate.substring(prop.predicate.lastIndexOf('#') + 1, prop.predicate.length);
-          entityPropertiesDict.push({ key: propertyName, value: prop.value, kind: prop.kind, predicate : prop.predicate  });
+          entityPropertiesDict.push({ key: propertyName, value: prop.value, kind: prop.kind, predicate : prop.predicate, ontology: ontologyName });
         }
         else {
           let propertyName = prop.predicate.substring(prop.predicate.lastIndexOf('/') + 1, prop.predicate.length);
@@ -119,8 +124,10 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
 
-    this.detailTab = 'ric';
+    this.detailTab = 'rico';
     this.myNewEntites = allEntities;
+
+    console.log("All ontology labels : ", this.ontologyLabels);
   }
 
 
@@ -147,7 +154,7 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
   selectEntity(entity: any) {
     this.selectedEntity = entity;
     this.getEntityPropertiesDict(); // ← ajouter
-    this.detailTab = 'ric';
+    this.detailTab = 'rico';
     this.cdr.markForCheck();
   }
 
