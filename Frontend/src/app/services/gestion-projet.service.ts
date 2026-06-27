@@ -61,6 +61,12 @@ export class GestionProjetService {
     );
   }
 
+  deleteProject(projectName: string): Observable<string> {
+    return this.http.delete(`${this.API_BASE}/${projectName}`, {
+      responseType: 'text'
+    } as const);
+  }
+
   // ── DELETE /api/project/close ────────────────────────────────────────────
 
   /**
@@ -77,6 +83,10 @@ export class GestionProjetService {
       }),
       catchError(err => this.handleError(err, 'Erreur lors de la fermeture du projet'))
     );
+  }
+
+  setActiveProject(project: ProjectDto | null): void {
+    this._activeProject$.next(project);
   }
 
 
