@@ -8,6 +8,8 @@ import { takeUntil, finalize }           from 'rxjs/operators';
 import { GestionProjetService } from '../../services/gestion-projet.service';
 import { ProjectDto }     from '../../models/project.model';
 
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+
 @Component({
   selector:    'app-gestion-projets',
   standalone:  true,
@@ -15,6 +17,7 @@ import { ProjectDto }     from '../../models/project.model';
     CommonModule,         // @if, @for, DatePipe, AsyncPipe…
     FormsModule,          // [(ngModel)]
     ReactiveFormsModule,  // [formGroup], formControlName
+    MatSnackBarModule
   ],
   providers:   [DatePipe],
   templateUrl: './gestion-projets.component.html',
@@ -31,6 +34,7 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
 
   activeProject:   ProjectDto | null = null;
   selectedProject: ProjectDto | null = null;
+  originalProject: ProjectDto | null = null;
 
   isLoading = false;
 
@@ -50,7 +54,8 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
   constructor(
     private fb:             FormBuilder,
     private projectService: GestionProjetService,
-    private router:         Router
+    private router:         Router,
+    private snackBar : MatSnackBar
   ) {}
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
@@ -95,6 +100,66 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
   }
 
   // ── Actions projet ─────────────────────────────────────────────────────────
+
+  onProjectChange(project: ProjectDto): void {
+    console.log("CHANGED PROJECT : ", project);
+    this.projectService.setActiveProject(project);
+    this.selectedProject = structuredClone(project);
+  }
+
+  updateProject(): void {
+    if (!this.selectedProject || !this.originalProject || this.isLoading) return;
+    this.snackBar.open(
+      "✅ Project was successfully updated.",
+      'Close',
+      {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-success']
+      }
+    );
+  }
+
+  onDeleteProject(projectName: string | null): void {
+    if (!projectName || this.isLoading) return;
+
+    const confirmed = confirm(`Are you sure you want to delete "${projectName}"?`);
+
+    if (!confirmed) return;
+
+    this.projectService.deleteProject(projectName).subscribe({
+      next: (response) => {
+        console.log('Success:', response);
+            this.snackBar.open(
+            "✅ Project was successfully deleted.",
+            'Close',
+            {
+              duration: 5000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+              panelClass: ['snackbar-success']
+            }
+          );
+        this.closeDetail();
+        this.loadAll(); // Refresh the list of projects after deletion
+        // refresh list 
+      },
+      error: (error) => {
+        console.error('Error:', error);
+        this.snackBar.open(
+        `Failed to delete project : "${this.selectedProject?.name}".`,
+        'Close',
+        {
+          duration: 5000,
+          horizontalPosition: 'right',
+          verticalPosition: 'bottom',
+          panelClass: ['snackbar-error']
+        }
+        );
+      }
+    });
+  }
 
   onOpenProject(project: ProjectDto): void {
     if (!project.name || this.isLoading) return;
@@ -154,11 +219,30 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
   // ── Panneau détail ─────────────────────────────────────────────────────────
 
   selectProject(project: ProjectDto): void {
-    this.selectedProject = this.selectedProject?.name === project.name ? null : project;
+    const isSame = this.selectedProject?.name === project.name;
+
+    if (isSame) {
+      this.selectedProject = null;
+      this.originalProject = null;
+      return;
+    }
+
+    this.selectedProject = structuredClone(project); // editable copy
+    this.originalProject = structuredClone(project);  // original reference
   }
 
   closeDetail(): void {
     this.selectedProject = null;
+    this.originalProject = null;
+  }
+
+  isProjectDirty(): boolean {
+    if (!this.selectedProject || !this.originalProject) return false;
+
+    return (
+      this.selectedProject.name !== this.originalProject.name ||
+      this.selectedProject.description !== this.originalProject.description
+    );
   }
 
   // ── Recherche / Tri ────────────────────────────────────────────────────────

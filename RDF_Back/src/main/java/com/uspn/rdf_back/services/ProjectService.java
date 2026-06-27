@@ -16,6 +16,12 @@ import org.eclipse.rdf4j.sail.nativerdf.NativeStore;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -45,7 +51,7 @@ public class ProjectService {
      */
     public ProjectDto openProject(String name, boolean persistent, String description) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Nom de projet obligatoire.");
+            throw new IllegalArgumentException("Project's name should not be empty !");
         }
 
         // 1) Fermer un projet déjà ouvert
@@ -78,6 +84,36 @@ public class ProjectService {
         dir.mkdirs();
         return new SailRepository(new NativeStore(dir));
     }
+
+    public void deleteProject(String projectName) throws IOException {
+        if (projectName == null || projectName.isBlank()) {
+            throw new IllegalArgumentException("Project name must not be empty");
+        }
+
+        Path path = Paths.get("projects", projectName);
+
+        if (!Files.exists(path)) {
+            throw new FileNotFoundException("Project not found");
+        }
+
+        if (!Files.isDirectory(path)) {
+            throw new IllegalArgumentException("Path is not a directory");
+        }
+
+        try (var walk = Files.walk(path)) {
+            walk.sorted(Comparator.reverseOrder())
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                        } catch (IOException e) {
+                            throw new UncheckedIOException(e);
+                        }
+                    });
+        } catch (UncheckedIOException e) {
+            throw e.getCause(); // rethrow original IOException
+        }
+    }
+
 
     private void upsertProjectMetadata(String projectName, String description) {
         Repository repo = ProjectContext.getRepository();
