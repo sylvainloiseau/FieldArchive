@@ -4,6 +4,7 @@ import com.uspn.rdf_back.core.ProjectContext;
 import com.uspn.rdf_back.core.RdfContexts;
 import com.uspn.rdf_back.core.RdfNamespaces;
 import com.uspn.rdf_back.dtos.ProjectDto;
+import com.uspn.rdf_back.dtos.UpdateProjectObject;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
@@ -114,7 +115,6 @@ public class ProjectService {
         }
     }
 
-
     private void upsertProjectMetadata(String projectName, String description) {
         Repository repo = ProjectContext.getRepository();
         try (RepositoryConnection conn = repo.getConnection()) {
@@ -151,6 +151,7 @@ public class ProjectService {
             conn.commit();
         }
     }
+
     public String getCurrentProjectName() {
         ProjectDto dto = new ProjectDto();
         dto.open = ProjectContext.isOpen();
@@ -162,6 +163,83 @@ public class ProjectService {
         String name = ProjectContext.getProjectName();
 
         return name;
+    }
+
+    public void updateProject(String oldName, String newName, String newDescription) throws IOException {
+        if (oldName == null || oldName.isBlank() ||
+                newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("Project names must not be empty");
+        }
+
+        boolean rename = !oldName.equals(newName);
+
+        // ─────────────────────────────────────────────
+        // 1) Rename folder on disk
+        // ─────────────────────────────────────────────
+        Path oldPath = Paths.get("projects", oldName);
+        Path newPath = Paths.get("projects", newName);
+
+        if (!Files.exists(oldPath)) {
+            throw new FileNotFoundException("Old project not found");
+        }
+
+        if (rename && Files.exists(newPath)) {
+            throw new IllegalArgumentException("Target project already exists");
+        }
+
+        if(rename) {
+            Files.move(oldPath, newPath);
+        }
+        // ─────────────────────────────────────────────
+        // 2) Re-open repository from new location
+        // ─────────────────────────────────────────────
+        ProjectContext.close();
+
+        String activeName = rename ? newName : oldName;
+        Repository repo = createRepository(activeName, true);
+        repo.init();
+        ProjectContext.set(repo, newName);
+
+        try (RepositoryConnection conn = repo.getConnection()) {
+            ValueFactory vf = conn.getValueFactory();
+
+            IRI oldProject = projectIri(vf, oldName);
+            IRI newProject = projectIri(vf, newName);
+            IRI ctx = metadataCtx(vf);
+
+            conn.begin();
+
+            // ─────────────────────────────────────────────
+            // 3) Copy ALL triples from old → new
+            // ─────────────────────────────────────────────
+            if (rename) {
+                conn.getStatements(oldProject, null, null, ctx).forEach(st -> {
+                    conn.add(newProject, st.getPredicate(), st.getObject(), ctx);
+                });
+
+                // ─────────────────────────────────────────────
+                // 4) Delete old triples
+                // ─────────────────────────────────────────────
+                conn.remove(oldProject, null, null, ctx);
+
+
+                // ─────────────────────────────────────────────
+                // 5) Update label + modified
+                // ─────────────────────────────────────────────
+                conn.remove(newProject, RDFS.LABEL, null, ctx);
+                conn.add(newProject, RDFS.LABEL, vf.createLiteral(newName), ctx);
+            }
+            String now = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+            conn.remove(newProject, DCTERMS.MODIFIED, null, ctx);
+            conn.add(newProject, DCTERMS.MODIFIED, vf.createLiteral(now), ctx);
+
+            if (newDescription != null) {
+                conn.remove(newProject, DCTERMS.DESCRIPTION, null, ctx);
+                conn.add(newProject, DCTERMS.DESCRIPTION, vf.createLiteral(newDescription), ctx);
+            }
+            conn.commit();
+        }
     }
 
     public ProjectDto readCurrentProject() {

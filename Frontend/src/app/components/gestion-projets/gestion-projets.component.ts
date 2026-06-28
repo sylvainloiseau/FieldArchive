@@ -109,16 +109,33 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
 
   updateProject(): void {
     if (!this.selectedProject || !this.originalProject || this.isLoading) return;
-    this.snackBar.open(
-      "✅ Project was successfully updated.",
-      'Close',
-      {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['snackbar-success']
-      }
-    );
+    this.projectService.updateProject(this.originalProject.name!, { name: this.selectedProject.name, description: this.selectedProject.description }).subscribe({
+      next: (success_message) => {
+        this.snackBar.open(
+          "✅ Project was successfully updated.",
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['snackbar-success']
+          }
+        );
+      },
+      error: (error : any) => {
+        console.log("Error :", error);
+        this.snackBar.open(
+          `Failed to update project : "${this.selectedProject?.name}".`,
+          'Close',
+          {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'top',
+            panelClass: ['snackbar-error']
+          }
+        );
+      } 
+    }); 
   }
 
   onDeleteProject(projectName: string | null): void {
