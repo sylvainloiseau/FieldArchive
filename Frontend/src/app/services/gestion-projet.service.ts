@@ -12,7 +12,7 @@ export class GestionProjetService {
 
   private readonly API_BASE = 'http://localhost:8080/projects';
 
-  // ── State global : projet actif ──────────────────────────────────────────
+  // ── Global State ──────────────────────────────────────────
   private _activeProject$ = new BehaviorSubject<ProjectDto | null>(null);
   readonly activeProject$ = this._activeProject$.asObservable();
 
@@ -21,18 +21,18 @@ export class GestionProjetService {
   // ── GET /api/project/all ─────────────────────────────────────────────────
 
   /**
-   * Retourne la liste de tous les projets connus du backend.
+   * Returns a list of all projects with their details.
    */
   getAllProjects(): Observable<ProjectDto[]> {
     return this.http.get<ProjectDto[]>(`${this.API_BASE}/list/details`).pipe(
-      catchError(err => this.handleError(err, 'Erreur lors du chargement des projets'))
+      catchError(err => this.handleError(err, 'Error while loading the projects'))
     );
   }
 
   // ── GET /api/project ─────────────────────────────────────────────────────
 
   /**
-   * Retourne le projet actuellement ouvert (open=false si aucun).
+   * Returns the currently open project (open=false if none).
    */
   getActiveProject(): Observable<ProjectDto> {
     return this.http.get<ProjectDto>(`${this.API_BASE}/current`).pipe(
@@ -40,43 +40,67 @@ export class GestionProjetService {
         this._activeProject$.next(project.name ? project : null);
         // console.log(this._activeProject$.next(project.name ? project : null))
       }),
-      catchError(err => this.handleError(err, 'Erreur lors de la récupération du projet'))
+      catchError(err => this.handleError(err, 'Error while retrieving the project'))
     );
   }
 
   // ── POST /api/project/open ───────────────────────────────────────────────
 
   /**
-   * Ouvre ou crée un projet RDF.
+   * Open or create an RDF Project.
    */
   openProject(request: OpenProjectRequest): Observable<ProjectDto> {
     return this.http.post<ProjectDto>(`${this.API_BASE}/open`, request).pipe(
       tap(project => {
         this._activeProject$.next(project);
-        this.snackBar.open(`Projet  ouvert`, 'Fermer', {
+        this.snackBar.open(`Project opened`, 'Close', {
           duration: 3000, panelClass: ['snackbar-success']
         });
       }),
-      catchError(err => this.handleError(err, 'Erreur lors de l\'ouverture du projet'))
+      catchError(err => this.handleError(err, 'Error while opening the project'))
+    );
+  }
+
+  deleteProject(projectName: string): Observable<string> {
+    return this.http.delete(`${this.API_BASE}/${projectName}`, {
+      responseType: 'text'
+    } as const);
+  }
+
+  updateProject(oldProjectName: string, newProject: any): Observable<any> {
+    console.log("OBJECT OF UPDATE : ", newProject);
+
+    return this.http.put<any>(`${this.API_BASE}/${oldProjectName}`, newProject).pipe(
+      tap(response => {
+        console.log("Project updated:", response?.message ?? response);
+      }),
+      catchError(err => {
+        console.error("Update project failed:", err);
+        return throwError(() => err);
+      })
     );
   }
 
   // ── DELETE /api/project/close ────────────────────────────────────────────
 
   /**
-   * Ferme le projet actif. Les données restent sur disque.
+   * Close the active project. The data remains on disk.
    */
 
     closeProject(): Observable<void> {
     return this.http.post<void>(`${this.API_BASE}/close`, {}).pipe(
       tap(() => {
         this._activeProject$.next(null);
-        this.snackBar.open('Projet fermé', 'Fermer', {
+        this.snackBar.open('Project closed', 'Close', {
           duration: 3000, panelClass: ['snackbar-info']
         });
       }),
-      catchError(err => this.handleError(err, 'Erreur lors de la fermeture du projet'))
+      catchError(err => this.handleError(err, 'Error while closing the project'))
     );
+  }
+
+  setActiveProject(project: ProjectDto | null): void {
+    this._activeProject$.next(project);
   }
 
 
@@ -86,12 +110,12 @@ export class GestionProjetService {
     return this._activeProject$.value;
   }
 
-  // ── Gestion des erreurs ───────────────────────────────────────────────────
+  // ──  Error Handling ───────────────────────────────────────────────────
 
   private handleError(error: HttpErrorResponse, message: string): Observable<never> {
     let errorMessage = message;
-    if (error.status === 400) errorMessage = 'Nom de projet manquant ou invalide';
-    else if (error.status === 0) errorMessage = 'Impossible de contacter le serveur';
+    if (error.status === 400) errorMessage = 'Name of project is invalid or already exists';
+    else if (error.status === 0) errorMessage = 'Impossible to reach the server.';
     else if (error.error?.message) errorMessage = error.error.message;
 
     this.snackBar.open(errorMessage, 'Fermer', {
@@ -99,4 +123,6 @@ export class GestionProjetService {
     });
     return throwError(() => new Error(errorMessage));
   }
+
+
 }
