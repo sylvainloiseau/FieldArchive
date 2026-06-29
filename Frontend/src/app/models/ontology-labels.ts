@@ -5,7 +5,9 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
   "http://uspn.fr/app#": "Application",
   "http://www.w3.org/2002/07/owl#": "OWL",
   "http://www.w3.org/2000/01/rdf-schema#": "RDFS",
-  "http://purl.org/dc/terms/": "Dublin Core"
+  "http://purl.org/dc/terms/": "Dublin Core",
+  "https://schema.org/": "schema",
+  "http://purl.org/dc/elements/1.1/" : "dc"
 };
 
 export function getOntologyList(): { name: string; iri: string }[] {

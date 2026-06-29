@@ -160,7 +160,7 @@
               [class.bg-white]="newAssociation.mode !== 'existing'"
               [class.text-gray-600]="newAssociation.mode !== 'existing'"
               class="cursor-pointer! flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium">
-              Existing predicate
+              RICO
             </button>
             <button
               (click)="newAssociation.mode = 'new'"
@@ -169,7 +169,7 @@
               [class.bg-white]="newAssociation.mode !== 'new'"
               [class.text-gray-600]="newAssociation.mode !== 'new'"
               class="cursor-pointer! flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium">
-              New predicate
+              Other Ontologies
             </button>
           </div>
         </div>
@@ -293,14 +293,30 @@
           </select>
         </div>
 
-        <div *ngIf="newAssociation.mode === 'new' || newAssociation.valueKind === 'literal'">
-          <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
-          <input
-            type="text"
-            [(ngModel)]="newAssociation.value"
-            [ngModelOptions]="{standalone: true}"
-            [placeholder]="newAssociation.valueKind === 'iri' ? 'https://...' : 'Enter a value'"
-            class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+        <div class="flex gap-2 items-end"
+            *ngIf="newAssociation.mode === 'new' || newAssociation.valueKind === 'literal'">
+
+          <!-- Upload button (auto width) -->
+          
+          @if (isEntityMediaFile()) { 
+            <app-file-viewer
+            class="w-full" 
+            (filePathChange)="receiveFilePath($event)">
+            </app-file-viewer>
+          } 
+          @else {
+            <!-- Input takes remaining space -->
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
+              <input
+                type="text"
+                [(ngModel)]="newAssociation.value"
+                [ngModelOptions]="{standalone: true}"
+                [placeholder]="newAssociation.valueKind === 'iri' ? 'https://...' : 'Enter a value'"
+                class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+            </div>
+          } 
+
         </div>
 
         <!-- Confirm / Cancel -->
