@@ -158,10 +158,10 @@ public class RdfEntityService {
     private void addProperty(RepositoryConnection conn, IRI subject, RdfPropertyDto p) {
         if (p == null) return;
         if (p.predicate == null || p.predicate.isBlank()) {
-            throw new BadRequestException("predicate obligatoire.");
+            throw new BadRequestException("Predicate is mandatory!");
         }
         if (p.kind == null || p.kind.isBlank()) {
-            throw new BadRequestException("kind obligatoire (literal|iri).");
+            throw new BadRequestException("Predicate's kind is mandatory (literal|iri).");
         }
 
         IRI pred = vf.createIRI(expand(p.predicate));

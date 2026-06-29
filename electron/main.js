@@ -1,5 +1,5 @@
 // electron/main.js
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const { spawn } = require('child_process');
 const path = require('path');
 const http = require('http');
@@ -78,16 +78,11 @@ function waitForBackend(url, maxRetries = 30, interval = 1000) {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    minWidth: 900,
-    minHeight: 600,
-    title: 'Gestionnaire RDF',
-    // icon: path.join(__dirname, 'assets', 'icon.png'), // décommente si tu as une icône
     webPreferences: {
-      nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      preload: path.join(__dirname, 'electron-preload.js'),
+      webSecurity: false   // ⚠️ allows file:// access
     }
   });
 
@@ -117,6 +112,22 @@ function createWindow() {
     mainWindow = null;
   });
 }
+
+// ─────────────────────────────────────────────
+// 5. IPC - FILE SELECTION
+// ─────────────────────────────────────────────
+
+ipcMain.handle('select-file', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openFile'],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  return result.filePaths[0]; // ✅ FULL DESKTOP PATH
+});
 
 // ─────────────────────────────────────────────
 // 4. CYCLE DE VIE D'ELECTRON
