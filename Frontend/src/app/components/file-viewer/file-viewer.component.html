@@ -1,0 +1,34 @@
+<div class="p-1 flex flex-col gap-1">
+
+  <button
+    (click)="openFile()"
+    class="cursor-pointer px-4 py-2 bg-green-600 text-white rounded"
+  >
+    Select File
+  </button>
+
+  <!-- Show REAL path -->
+  <div *ngIf="filePath" class="p-2 bg-gray-100 rounded text-sm">
+    <p><strong>Full Path:</strong></p>
+    <p class="break-all text-blue-600">{{ filePath }}</p>
+  </div>
+
+  <!-- Preview -->
+  <div class="border rounded p-4 flex justify-center items-center min-h-[200px]">
+
+    <img *ngIf="fileType === 'image'" [src]="fileUrl" class="max-h-[400px]" />
+
+    <video *ngIf="fileType === 'video'" [src]="safeUrl" controls class="max-h-[400px]"></video>
+
+    <audio *ngIf="fileType === 'audio'" [src]="safeUrl" controls></audio>
+
+    <iframe *ngIf="fileType === 'pdf'" [src]="safeUrl" class="w-full h-[500px]"></iframe>
+    <div *ngIf="fileType === 'unknown' && fileUrl !== ''" class="text-gray-500">
+      Unsupported file type
+    </div>
+    <div *ngIf="fileUrl === ''" class="text-gray-500">
+      Waiting for file selection...
+    </div>
+
+  </div>
+</div>

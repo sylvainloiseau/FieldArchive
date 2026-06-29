@@ -69,6 +69,10 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
       .subscribe(p => (this.activeProject = p));
   }
 
+  goToFiles() {
+    this.router.navigate(['/files']);
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

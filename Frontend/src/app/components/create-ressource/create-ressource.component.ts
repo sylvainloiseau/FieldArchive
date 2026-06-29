@@ -6,6 +6,7 @@ import { EntityDetailsComponent } from '../entity-details/entity-details.compone
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
 import { debounceTime } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 
 import {MAT_DIALOG_DATA} from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
@@ -17,12 +18,21 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
   "http://uspn.fr/app#": "Application",
   "http://www.w3.org/2002/07/owl#": "OWL",
   "http://www.w3.org/2000/01/rdf-schema#": "RDFS",
-  "http://purl.org/dc/terms/": "Dublin Core"
+  "http://purl.org/dc/terms/": "Dublin Core",
+  "https://schema.org/": "schema",
+  "http://purl.org/dc/elements/1.1/" : "dc"
 };
 
 @Component({
   selector: 'app-create-ressource',
-  imports: [FormsModule, ReactiveFormsModule, CommonModule, EntityDetailsComponent, MatSnackBarModule],
+  imports: [FormsModule,
+    ReactiveFormsModule,
+    CommonModule, 
+    EntityDetailsComponent, 
+    MatSnackBarModule, 
+    FileViewerComponent
+  ],
+  
   templateUrl: './create-ressource.component.html',
   styleUrl: './create-ressource.component.scss'
 })
@@ -35,6 +45,19 @@ export class CreateRessourceComponent implements OnInit {
   properties: { key: string; value: string; kind: 'literal' | 'iri'; predicate: string }[] = [];
 
   // entityPropertiesDict : any[] = [];
+
+
+  // When Entity is a media file //
+
+  isEntityMediaFile(): boolean {
+    return this.newAssociation?.predicate?.p === 'https://www.ica.org/standards/RiC/ontology#identifier' ;
+  }
+
+  receiveFilePath(path: string) {
+    this.newAssociation!.value = path;
+  }
+
+  // 
 
 
   allPredicatesByType: any[] = [];
