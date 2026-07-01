@@ -2,6 +2,7 @@
   <!-- Header -->
   <header class="bg-gradient-to-r from-blue-900 to-blue-600 shadow-lg">
     <div class="flex items-center justify-between px-6 py-4">
+
       <!-- Left: Logo and Title -->
       <div class="flex items-center gap-4">
         <div class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all duration-300 cursor-pointer">
@@ -11,6 +12,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12l10 5 10-5"></path>
           </svg>
         </div>
+
 
         <div>
           <h1 *ngIf="projectName; else spinner" class="text-xl font-bold text-white tracking-tight">
@@ -27,68 +29,38 @@
           </ng-template>
           <p class="text-xs text-blue-100">RDF Entity Management System</p>
         </div>
-
-
       </div>
 
+
       <!-- Right: View Tabs -->
-      <nav class="flex gap-4 bg-white/10 backdrop-blur-md p-1 rounded-lg" role="tablist">
 
-                          <button 
-            (click)="router.navigate(['/gestion-projets'])"
-            class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-            <span class="text-sm text-white font-medium">Projets</span>
-          </button>
-
-          <button 
-            (click)="router.navigate(['/gestion-sources'])"
-            class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
-
-            <span class="text-sm text-white font-medium">Datasource View</span>
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-          </button>
-          
-        <button (click)="setView('tableau')" [class.bg-white]="activeView === 'tableau'" [class.text-blue-600]="activeView === 'tableau'" [class.shadow-sm]="activeView === 'tableau'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'tableau'" aria-label="Tab View">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <rect x="3" y="3" width="7" height="7" stroke-width="2"></rect>
-            <rect x="14" y="3" width="7" height="7" stroke-width="2"></rect>
-            <rect x="14" y="14" width="7" height="7" stroke-width="2"></rect>
-            <rect x="3" y="14" width="7" height="7" stroke-width="2"></rect>
+      <div class="flex items-center gap-4">
+        <button 
+          (click)="router.navigate(['/gestion-projets'])"
+          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
-          <span>Tab View</span>
+          <span class="text-sm text-white font-medium">Projects</span>
         </button>
-        
-        <!-- <button (click)="setView('graphe')" [class.bg-white]="activeView === 'graphe'" [class.text-blue-600]="activeView === 'graphe'" [class.shadow-sm]="activeView === 'graphe'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'graphe'" aria-label="Graph View">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <circle cx="18" cy="5" r="3" stroke-width="2"></circle>
-            <circle cx="6" cy="12" r="3" stroke-width="2"></circle>
-            <circle cx="18" cy="19" r="3" stroke-width="2"></circle>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" stroke-width="2"></line>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" stroke-width="2"></line>
+        <button 
+          (click)="router.navigate(['/gestion-sources'])"
+          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
+          <span class="text-sm text-white font-medium">Datasources</span>
+          <svg class="w-4 h-4 text-white rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
-          <span>Graph View</span>
-        </button> -->
-        
-        <!-- <button (click)="setView('sources')" [class.bg-white]="activeView === 'sources'" [class.text-blue-600]="activeView === 'sources'" [class.shadow-sm]="activeView === 'sources'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sources'" aria-label="Datasource View">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          <span>Datasource View</span>
-        </button> -->
-        
+        </button>
         <button (click)="setView('sparql')" [class.bg-white]="activeView === 'sparql'" [class.text-blue-600]="activeView === 'sparql'" [class.shadow-sm]="activeView === 'sparql'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sparql'" aria-label="SPARQL view">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <polyline points="16 18 22 12 16 6" stroke-width="2"></polyline>
             <polyline points="8 6 2 12 8 18" stroke-width="2"></polyline>
           </svg>
           <span>SPARQL</span>
-        </button>
-      </nav>
+      </button>
+      </div>   
+        
+
     </div>
   </header>
 
