@@ -134,6 +134,7 @@ export class GestionRessourcesService {
     };
     return this.http.post<any>(`${this.apiUrl}/select`, objt);
   }
+  // BIND(IRI(CONCAT("https://www.ica.org/standards/RiC/ontology#", "${type}")) AS ?selectedClass)
 
   getPredicatesByTypeRico(type: string): Observable<any[]> {
     const objt = {
