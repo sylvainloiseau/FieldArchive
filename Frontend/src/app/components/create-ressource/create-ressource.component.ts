@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, Input, Output, EventEmitter, Optional, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
@@ -9,7 +9,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import { ChangeDetectorRef } from '@angular/core';
 
 export type OntologyLabels = Record<string, string>;
 
@@ -44,11 +43,8 @@ export class CreateRessourceComponent implements OnInit {
 
   properties: { key: string; value: string; kind: 'literal' | 'iri'; predicate: string }[] = [];
 
-  // entityPropertiesDict : any[] = [];
-
 
   // When Entity is a media file //
-
   isEntityMediaFile(): boolean {
     return this.newAssociation?.predicate?.p === 'https://www.ica.org/standards/RiC/ontology#identifier' ;
   }
@@ -57,7 +53,7 @@ export class CreateRessourceComponent implements OnInit {
     this.newAssociation!.value = path;
   }
 
-  // 
+  createSubEntity : boolean = false; 
 
 
   allPredicatesByType: any[] = [];
@@ -79,12 +75,24 @@ export class CreateRessourceComponent implements OnInit {
 
   ontologyList: { name: string; iri: string }[] = [];
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any, 
+  // Used only when opened as a dialog
+  public dialogData: any = inject(MAT_DIALOG_DATA, { optional: true });
+  private dialogRef: MatDialogRef<CreateRessourceComponent> | null = inject(MatDialogRef, { optional: true });
+
+  // Used only when used as a child component tag
+  @Input() inputData: any;
+
+  //let the parent know when created inline (no dialogRef to close)
+  @Output() closed = new EventEmitter<any>();
+
+  // The single source of truth
+  public data: any;
+
+  constructor( 
     private fb: FormBuilder,
     private ontologyService: GestionRessourcesService,
     private snackBar : MatSnackBar,
     private cdr: ChangeDetectorRef,
-    private dialogRef: MatDialogRef<CreateRessourceComponent>
   ) {
 
     this.personForm = this.fb.group({
@@ -103,20 +111,35 @@ export class CreateRessourceComponent implements OnInit {
   }
 
   getFullEntityPath(entityType : string, ontologyName: string): string {
-    // console.log("FADDDDIT ", this.ontologyService.getTypeUrlByName(ontologyName) + entityType );
     return ontologyName
       ? this.ontologyService.getTypeUrlByName(ontologyName) + entityType
       : '';
   }
 
+  extractEntityTypeFromIRI(iri :string ) : string {
+    return iri.includes('#') 
+      ? iri.substring(iri.lastIndexOf('#') + 1)
+      : iri.substring(iri.lastIndexOf('/') + 1);
+  }
+
   ngOnInit(): void {
 
-    this.availableTypes =  this.data?.type && this.data?.ontology
-      ? [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]
-      : [];
-    // this.availableTypes = [
-    //   this.ontologyService.getTypeUrlByName(this.data?.ontology) + this.data.type
-    // ];
+
+    if (!this.dialogData && this.inputData === undefined) {
+      this.getAllRicoEntities();
+    }
+
+    // else if (this.dialogData.type && this.dialogData.ontology || this.inputData.type && this.inputData.ontology ) {
+    else if (this.dialogData || this.inputData) {
+
+      this.data = this.inputData ?? this.dialogData;
+
+      console.log("RECEIVED DATA : ", this.data);
+
+      this.availableTypes =  this.data?.type && this.data?.ontology
+        ? [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]
+        : [];
+    }
 
     this.personForm.get('entityType')?.valueChanges
     .pipe(debounceTime(300))
@@ -138,15 +161,19 @@ export class CreateRessourceComponent implements OnInit {
       }
     });
 
-    if (this.data?.type && this.data?.ontology) {
+    if (this.data) {
       // const fullType = this.ontologyService.getTypeUrlByName(this.data.ontology) + this.data.type;
       this.personForm.get('entityType')?.patchValue(this.data?.type, { emitEvent: true });
     }
 
-    if(this.typeMode === 'rico' && !this.data?.type ) {
-      this.getAllRicoEntities();
-    }
+    // if(this.typeMode === 'rico' && !this.data?.type ) {
+    //   this.getAllRicoEntities();
+    // }
 
+  }
+
+  createSubEntityToggle() {
+    this.createSubEntity = true;
   }
 
   onPredicateChange(event: any) {
@@ -292,7 +319,7 @@ export class CreateRessourceComponent implements OnInit {
 
   cancelNewPerson() {
     this.personForm.reset();
-    this.dialogRef.close(); 
+    this.dialogRef?.close(); 
   }
 
   saveNewPerson() {
