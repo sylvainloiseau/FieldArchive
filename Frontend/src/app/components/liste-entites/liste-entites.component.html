@@ -9,7 +9,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
                 <span class="text-sm text-gray-700">
-                    <strong class="text-gray-900">{{ allEntities.length }}</strong> résultat<span *ngIf="allEntities.length !== 1">s</span>
+                    <strong class="text-gray-900">{{ allEntities.length }}</strong> result <span *ngIf="allEntities.length > 1">s</span>
                 </span>
 
             </div>
@@ -21,7 +21,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                 </svg>
                 <span>Type: {{ selectedType }}</span>
-                <button (click)="clearTypeFilter()" class="hover:bg-blue-200 rounded-full p-1 transition-all duration-200 hover:scale-110" aria-label="Effacer le filtre">
+                <button (click)="clearTypeFilter()" class="hover:bg-blue-200 rounded-full p-1 transition-all duration-200 hover:scale-110" aria-label="Clear Filter">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -48,7 +48,15 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
-            Effacer tous les filtres
+            Clear all filters
+        </button>
+        <button (click)="openCreateEntityDialog_withoutType()" 
+            class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span class="hidden sm:inline">New Entity</span>
+            <span class="sm:hidden">+</span>
         </button>
     </div>
 
@@ -62,13 +70,13 @@
             <input 
                 type="text" 
                 (input)="onSearch()" 
-                placeholder="Rechercher par titre, date ou source..." 
+                placeholder="Search by label, date, or source..." 
                 class="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-gray-50 hover:bg-white transition-all duration-200"
-                aria-label="Rechercher des entités">
+                aria-label="Search entities">
             <button *ngIf="searchQuery" 
                     (click)="clearSearch()" 
                     class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-all duration-200 hover:scale-110"
-                    aria-label="Effacer la recherche">
+                    aria-label="Clear search">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
@@ -102,7 +110,7 @@
             </button>
 
             <!-- [disabled]="!selectedType"  -->
-            <button [disabled]="!selectedType || selectedType === 'null:null'"  (click)="openCreateRessourceDialog()" 
+            <button [disabled]="!selectedType || selectedType === 'null:null'"  (click)="openCreateEntityDialog_withType()" 
                     class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -270,15 +278,15 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                 </svg>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun résultat trouvé</h3>
-            <p class="text-sm text-gray-500 mb-6">Essayez de modifier vos critères de recherche ou de supprimer les filtres.</p>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+            <p class="text-sm text-gray-500 mb-6">Try adjusting your search criteria or clearing the filters.</p>
             <button *ngIf="selectedType || searchQuery" 
                     (click)="clearAllFilters()" 
                     class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 text-sm font-medium shadow-md hover:shadow-lg">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
-                Effacer tous les filtres
+                Clear all filters
             </button>
         </div>
     </div>
