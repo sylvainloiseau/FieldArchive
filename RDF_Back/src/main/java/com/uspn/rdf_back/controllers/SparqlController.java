@@ -19,7 +19,7 @@ public class SparqlController {
     @PostMapping("/select")
     public List<Map<String, String>> select(@RequestBody Map<String, String> body) {
         String query = body.get("query");
-        System.out.println("SPARQL QUERY:\n" + query);
+//        System.out.println("SPARQL QUERY:\n" + query);
         return service.select(query);
     }
 
