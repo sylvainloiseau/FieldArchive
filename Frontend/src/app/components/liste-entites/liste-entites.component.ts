@@ -41,10 +41,11 @@ export class ListeEntitesComponent {
       }
     });
   }
-  openCreateEntityDialog_withoutType() {
-    if (!this.selectedType) return;
 
-    const [ontology, type] = this.selectedType.split(':');
+  openCreateEntityDialog_withoutType() {
+    // if (!this.selectedType) return;
+
+    // const [ontology, type] = this.selectedType.split(':');
 
     this.dialog.open(CreateRessourceComponent, {
       width: '600px',
