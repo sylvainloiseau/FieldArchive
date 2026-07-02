@@ -28,7 +28,7 @@ export class ListeEntitesComponent {
 
   constructor(private dialog: MatDialog) {}
 
-  openCreateRessourceDialog() {
+  openCreateEntityDialog_withType() {
     if (!this.selectedType) return;
 
     const [ontology, type] = this.selectedType.split(':');
@@ -39,6 +39,16 @@ export class ListeEntitesComponent {
         ontology,
         type
       }
+    });
+  }
+  openCreateEntityDialog_withoutType() {
+    if (!this.selectedType) return;
+
+    const [ontology, type] = this.selectedType.split(':');
+
+    this.dialog.open(CreateRessourceComponent, {
+      width: '600px',
+      data: null
     });
   }
 

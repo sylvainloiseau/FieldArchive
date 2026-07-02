@@ -8,7 +8,7 @@ import { debounceTime } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 
-import {MAT_DIALOG_DATA} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
 
 export type OntologyLabels = Record<string, string>;
@@ -62,7 +62,7 @@ export class CreateRessourceComponent implements OnInit {
 
   allPredicatesByType: any[] = [];
 
-  typeMode: 'existing' | 'custom' = 'existing';
+  typeMode: 'defined' |'rico' | 'custom' = 'rico';
   customSource: 'url' | 'full' = 'url';
   availableTypes: string[] = [];
 
@@ -80,13 +80,12 @@ export class CreateRessourceComponent implements OnInit {
   ontologyList: { name: string; iri: string }[] = [];
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any, 
-      private fb: FormBuilder,
-      private ontologyService: GestionRessourcesService,
-      private snackBar : MatSnackBar,
-          private cdr: ChangeDetectorRef,
+    private fb: FormBuilder,
+    private ontologyService: GestionRessourcesService,
+    private snackBar : MatSnackBar,
+    private cdr: ChangeDetectorRef,
+    private dialogRef: MatDialogRef<CreateRessourceComponent>
   ) {
-        
-
 
     this.personForm = this.fb.group({
       entityType: [''],
@@ -103,25 +102,28 @@ export class CreateRessourceComponent implements OnInit {
     this.ontologyList = this.getOntologyList();
   }
 
+  getFullEntityPath(entityType : string, ontologyName: string): string {
+    // console.log("FADDDDIT ", this.ontologyService.getTypeUrlByName(ontologyName) + entityType );
+    return ontologyName
+      ? this.ontologyService.getTypeUrlByName(ontologyName) + entityType
+      : '';
+  }
+
   ngOnInit(): void {
-    // this.ontologyService.getTypes().subscribe({
-    //   next: (data: any[]) => {
-    //     this.availableTypes = data;
-    //   },
-    //   error: (err) => {
-    //     console.error("Erreur lors du chargement des types d'ontology ", err);
-    //   }
-    // });
+
     this.availableTypes =  this.data?.type && this.data?.ontology
-      ? [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]  
+      ? [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]
       : [];
+    // this.availableTypes = [
+    //   this.ontologyService.getTypeUrlByName(this.data?.ontology) + this.data.type
+    // ];
 
     this.personForm.get('entityType')?.valueChanges
     .pipe(debounceTime(300))
     .subscribe(value => {
       if (value) {
-        console.log("VALUEEEEE :",this.data.type);
-        this.ontologyService.getPredicatesByTypeRico(this.data.type)
+
+        this.ontologyService.getPredicatesByTypeRico(this.personForm.get('entityType')?.value)
           .subscribe(res => {
             console.log("All predicates : ",res);
             this.allPredicatesByType = Object.values(
@@ -130,12 +132,21 @@ export class CreateRessourceComponent implements OnInit {
                 return acc;
               }, {})
             );            
-            //.map(r => r.p);
             
           }
         );
       }
     });
+
+    if (this.data?.type && this.data?.ontology) {
+      // const fullType = this.ontologyService.getTypeUrlByName(this.data.ontology) + this.data.type;
+      this.personForm.get('entityType')?.patchValue(this.data?.type, { emitEvent: true });
+    }
+
+    if(this.typeMode === 'rico' && !this.data?.type ) {
+      this.getAllRicoEntities();
+    }
+
   }
 
   onPredicateChange(event: any) {
@@ -184,11 +195,43 @@ export class CreateRessourceComponent implements OnInit {
     return `${selectedIri}${sep}${typeName}`;
   }
 
-  setTypeMode(mode: 'existing' | 'custom') {
+  setTypeMode(mode: 'rico' | 'custom') {
     this.typeMode = mode;
     this.personForm.get('entityType')?.reset();
     this.personForm.get('customTypeUri')?.reset();
     this.personForm.get('customTypeUrl')?.reset();
+  }
+
+  getAllRicoEntities() : void {
+
+    this.ontologyService.getAllRicoClasses().subscribe({
+      next: (data) => {
+        try {
+          // Step 1: Map to type strings
+          const allRicoClassesNotFormatted = this.ontologyService.getOntologyLabel(
+            data.map((d: any) => d.type)
+          );
+
+          // Step 2: Extract the RIC-O array
+          let ricOClasses = allRicoClassesNotFormatted[0]['rico'];
+
+          // Step 3: Remove duplicates
+          // Assuming each element is a string; if it's an object, use a key like `type`
+          ricOClasses = Array.from(new Set(ricOClasses));
+
+          this.availableTypes = ricOClasses;
+          console.log("Classes RICO (no duplicates) ", this.availableTypes);
+
+        } catch (e) {
+          console.error("ERROR in getOntologyLabel:", e);
+        }
+
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error(err);
+      }
+    });
   }
 
   setCustomSource(src: 'url' | 'full') {
@@ -249,12 +292,13 @@ export class CreateRessourceComponent implements OnInit {
 
   cancelNewPerson() {
     this.personForm.reset();
+    this.dialogRef.close(); 
   }
 
   saveNewPerson() {
     let type: string = '';
 
-    if (this.typeMode === 'existing') {
+    if (this.typeMode === 'rico') {
       type = this.personForm.get('entityType')?.value;
     } 
     else {
