@@ -109,6 +109,12 @@ export class CreateRessourceComponent implements OnInit {
 
     this.ontologyList = this.getOntologyList();
   }
+  onChildClosed(event: any) {
+    if (event === true) {
+      this.createSubEntity = false;
+      this.onPredicateChange(null); // Refresh the list of possible ranges after the child entity is created
+    }
+  }
 
   getFullEntityPath(entityType : string, ontologyName: string): string {
     return ontologyName
@@ -373,6 +379,8 @@ export class CreateRessourceComponent implements OnInit {
             panelClass: ['snackbar-success']
           }
         );
+        // const dataToSend = { status: 'closed', reason: 'user clicked button' };
+        this.closed.emit(true);
         // optional UX improvements
         this.personForm.reset();
         this.properties = [];
