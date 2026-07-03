@@ -326,7 +326,8 @@ export class CreateRessourceComponent implements OnInit {
     let type: string = '';
 
     if (this.typeMode === 'rico') {
-      type = this.personForm.get('entityType')?.value;
+      type = this.getFullEntityPath(this.personForm.get('entityType')?.value, 'rico');
+      
     } 
     else {
       type = this.customSource === 'url'

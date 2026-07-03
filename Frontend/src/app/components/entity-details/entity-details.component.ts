@@ -181,12 +181,12 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
         this.gestionRessourceService.deleteEntity(this.selectedEntity.entityKey).subscribe({
           next: () => {
             this.snackBar.open(
-              `"${this.selectedEntity.titre}" was successfully deleted.`,
+              `Entity was successfully deleted.`,
               'Close',
               {
                 duration: 5000,
-                horizontalPosition: 'right',
-                verticalPosition: 'bottom',
+                horizontalPosition: 'center',
+                verticalPosition: 'top',
                 panelClass: ['snackbar-success']
               }
             );
