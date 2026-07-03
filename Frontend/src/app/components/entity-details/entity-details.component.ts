@@ -13,11 +13,13 @@ import { ConfirmDeletePropertyData, ConfirmDeletePropertyComponent } from '../co
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 
+import { FileViewerComponent } from '../file-viewer/file-viewer.component';
+
 
 @Component({
   selector: 'app-entity-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatDialogModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatDialogModule, MatSnackBarModule, FileViewerComponent],
   templateUrl: './entity-details.component.html',
   styleUrl: './entity-details.component.scss'
 })
@@ -283,53 +285,92 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
   }
 
 
-// Computed list of ontology entries for the dropdown
-get ontologyEntries(): { label: string; url: string }[] {
-  return Object.entries(ONTOLOGY_LABELS).map(([url, label]) => ({ url, label: label as string }));
-}
-
-addAssociation() {
-  this.newAssociation = {
-    mode: null,
-    predicate: '',
-    ontologyUrl: '',
-    customPredicate: '',
-    kind: 'literal',
-    value: ''
-  };
-}
-
-confirmAddAssociation() {
-  if (!this.newAssociation || !this.newAssociation.value) return;
-
-  let fullPredicate: string;
-  let propertyName: string;
-
-  if (this.newAssociation.mode === 'existing') {
-    if (!this.newAssociation.predicate) return;
-    fullPredicate = this.newAssociation.predicate;
-    fullPredicate.includes('#')
-      ? propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('#') + 1)
-      : propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('/') + 1);
-  } else {
-    if (!this.newAssociation.ontologyUrl || !this.newAssociation.customPredicate) return;
-    const base = this.newAssociation.ontologyUrl; // already ends with # or /
-    fullPredicate = base + this.newAssociation.customPredicate;
-    propertyName = this.newAssociation.customPredicate;
+  // Computed list of ontology entries for the dropdown
+  get ontologyEntries(): { label: string; url: string }[] {
+    return Object.entries(ONTOLOGY_LABELS).map(([url, label]) => ({ url, label: label as string }));
   }
 
-  this.entityPropertiesDict.push({
-    key: propertyName,
-    value: this.newAssociation.value,
-    kind: this.newAssociation.kind,
-    predicate: fullPredicate
-  });
+  addAssociation() {
+    this.newAssociation = {
+      mode: null,
+      predicate: '',
+      ontologyUrl: '',
+      customPredicate: '',
+      kind: 'literal',
+      value: ''
+    };
+  }
 
-  this.newAssociation = null;
-}
+  confirmAddAssociation() {
+    if (!this.newAssociation || !this.newAssociation.value) return;
 
-cancelAddAssociation() {
-  this.newAssociation = null;
-}
+    let fullPredicate: string;
+    let propertyName: string;
+
+    if (this.newAssociation.mode === 'existing') {
+      if (!this.newAssociation.predicate) return;
+      fullPredicate = this.newAssociation.predicate;
+      fullPredicate.includes('#')
+        ? propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('#') + 1)
+        : propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('/') + 1);
+    } else {
+      if (!this.newAssociation.ontologyUrl || !this.newAssociation.customPredicate) return;
+      const base = this.newAssociation.ontologyUrl; // already ends with # or /
+      fullPredicate = base + this.newAssociation.customPredicate;
+      propertyName = this.newAssociation.customPredicate;
+    }
+
+    this.entityPropertiesDict.push({
+      key: propertyName,
+      value: this.newAssociation.value,
+      kind: this.newAssociation.kind,
+      predicate: fullPredicate
+    });
+
+    this.newAssociation = null;
+  }
+
+  cancelAddAssociation() {
+    this.newAssociation = null;
+  }
+
+  isFilePath(path: string): boolean {
+
+    if (!path) return false;
+
+    const windowsPath = /^[a-zA-Z]:\\.*$/;              // C:\...
+    const windowsUNC = /^\\\\[^\\]+\\[^\\]+/;           // \\Server\Share
+    const unixPath = /^\/(Users|home|tmp|var|etc|opt)/; // /Users/... or /home/...
+    const fileUrl = /^file:\/\/\/.+/;                   // file:///...
+
+    return (
+      windowsPath.test(path) ||
+      windowsUNC.test(path) ||
+      unixPath.test(path) ||
+      fileUrl.test(path)
+    );
+  }
+
+  openFileViewer(property: any, filePath: string) {
+    if (!filePath ) return ;
+
+    console.log("Opening file viewer for property: ", property);
+
+    const dialogRef = this.dialog.open(FileViewerComponent, {
+      width: '1000px',
+      data: filePath
+    });
+
+    dialogRef.afterClosed().subscribe((newFilePath) => {
+      if (newFilePath) {
+        console.log('Received from File Viewer dialog:', newFilePath);
+        property.value = newFilePath; // Update the property value with the new file path
+        this.cdr.markForCheck();
+
+      } else {
+        console.log('File ViewerDialog closed without selection');
+      }
+    });
+  }
 
 }
