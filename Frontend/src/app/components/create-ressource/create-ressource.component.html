@@ -318,7 +318,10 @@
           </div>
 
         </div>
-        <app-create-ressource *ngIf="createSubEntity" [inputData]="{ontology : 'rico', type : extractEntityTypeFromIRI(newAssociation.predicate.range)}" >
+        <app-create-ressource *ngIf="createSubEntity" 
+          [inputData]="{ontology : 'rico', type : extractEntityTypeFromIRI(newAssociation.predicate.range)}"
+          (closed)="onChildClosed($event)"
+        >
         </app-create-ressource>
 
         <div class="flex gap-2 items-end"
