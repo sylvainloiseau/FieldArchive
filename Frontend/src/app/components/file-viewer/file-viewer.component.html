@@ -1,14 +1,14 @@
-<div class="p-1 flex flex-col gap-1">
+<div class="p-3 flex flex-col gap-1">
 
   <button
-    (click)="openFile()"
-    class="cursor-pointer px-4 py-2 bg-green-600 text-white rounded"
+    (click)="openFile('')"
+    class="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded"
   >
     Select File
   </button>
 
   <!-- Show REAL path -->
-  <div *ngIf="filePath" class="p-2 bg-gray-100 rounded text-sm">
+  <div *ngIf="filePath !== ''" class="p-2 bg-gray-100 rounded text-sm">
     <p><strong>Full Path:</strong></p>
     <p class="break-all text-blue-600">{{ filePath }}</p>
   </div>
@@ -31,4 +31,12 @@
     </div>
 
   </div>
+
+  <button
+    *ngIf="isDialogRoot"
+    (click)="closeAndReturn()"
+    class="cursor-pointer px-4 py-2 bg-green-600 text-white rounded"
+  >
+    Validate
+  </button>
 </div>

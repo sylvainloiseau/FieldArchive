@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, Inject, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -6,15 +6,21 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 type FileType = 'image' | 'video' | 'audio' | 'pdf' | 'unknown';
 
+import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+
 @Component({
   selector: 'app-file-viewer',
   imports: [CommonModule, FormsModule],
   templateUrl: './file-viewer.component.html',
   styleUrl: './file-viewer.component.scss'
 })
-export class FileViewerComponent {
+export class FileViewerComponent implements OnInit {
 
   filePath: string = '';
+
+  public data: any = inject(MAT_DIALOG_DATA, { optional: true });
+  private dialogRef: MatDialogRef<FileViewerComponent> | null = inject(MatDialogRef, { optional: true });
+  public isDialogRoot: boolean = false;
 
   @Output() filePathChange = new EventEmitter<string>();
 
@@ -23,7 +29,19 @@ export class FileViewerComponent {
 
   fileType: FileType = 'unknown';
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(private sanitizer: DomSanitizer,
+    // @Inject(MAT_DIALOG_DATA) public data: any,
+    // private dialogRef: MatDialogRef<FileViewerComponent>,
+
+  ) {}
+
+  ngOnInit() {
+    this.isDialogRoot = this.dialogRef?.componentInstance === this; 
+
+    if (this.isDialogRoot) {
+      this.openFile(this.data);
+    }
+  }
 
   detectFileType(path: string): FileType {
     const ext = path.split('.').pop()?.toLowerCase();
@@ -38,8 +56,9 @@ export class FileViewerComponent {
     return 'unknown';
   }
 
-  async openFile() {
-    const path = await window.electronAPI.selectFile();
+  async openFile(pathParam: string) {
+
+    let path = pathParam !== '' ? pathParam : await window.electronAPI.selectFile();
 
     if (path) {
       this.filePathChange.emit(path);
@@ -51,6 +70,16 @@ export class FileViewerComponent {
       this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.fileUrl);
 
       this.fileType = this.detectFileType(path);
+
     }
   }
+
+  closeAndReturn() {
+    console.log('closeAndReturn CALLED, dialogRef:', this.dialogRef, 'filePath:', this.filePath);
+    if (this.dialogRef) {
+      this.dialogRef.close(this.filePath); 
+    }
+  }
+
+
 }
