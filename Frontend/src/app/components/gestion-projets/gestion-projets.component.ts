@@ -226,16 +226,17 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     const { name, description, persistent } = this.projectForm.value;
     this.isLoading = true;
 
-    this.projectService.openProject({ name, description, persistent })
+    this.projectService.createProject({ name, description, persistent })
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
         next:  () => { this.closeCreateModal(); this.router.navigate(['/gestion-sources']); },
         error: () => {}
       });
   }
-      goToSources(): void {
-      this.router.navigate(['/gestion-sources']);
-    }
+  
+  goToSources(): void {
+    this.router.navigate(['/gestion-sources']);
+  }
 
   // ── Panneau détail ─────────────────────────────────────────────────────────
 

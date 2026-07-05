@@ -61,6 +61,18 @@ export class GestionProjetService {
     );
   }
 
+  createProject(request: OpenProjectRequest): Observable<ProjectDto> {
+    return this.http.post<ProjectDto>(`${this.API_BASE}/create`, request).pipe(
+      tap(project => {
+        this._activeProject$.next(project);
+        this.snackBar.open(`Project created`, 'Close', {
+          duration: 3000, panelClass: ['snackbar-success']
+        });
+      }),
+      catchError(err => this.handleError(err, 'Error while creating the project'))
+    );
+  }
+
   deleteProject(projectName: string): Observable<string> {
     return this.http.delete(`${this.API_BASE}/${projectName}`, {
       responseType: 'text'
