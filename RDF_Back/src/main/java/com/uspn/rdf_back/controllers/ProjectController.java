@@ -30,6 +30,15 @@ public class ProjectController {
         );
     }
 
+    @PostMapping("/create")
+    public Map<String, Object> create(@RequestBody CreateProjectRequest req) {
+        ProjectDto dto = projectService.createProject(req.getName(), req.isPersistent(), req.getDescription());
+        return Map.of(
+                "status", "ok",
+                "project", dto.name
+        );
+    }
+
     @GetMapping("/current")
     public ProjectDto current() {
         return projectService.readCurrentProject();
