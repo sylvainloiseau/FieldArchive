@@ -3,6 +3,7 @@ package com.uspn.rdf_back.services;
 import com.uspn.rdf_back.core.ProjectContext;
 import com.uspn.rdf_back.core.RdfContexts;
 import com.uspn.rdf_back.core.RdfNamespaces;
+import com.uspn.rdf_back.dtos.CreateInternalDataSourceRequest;
 import com.uspn.rdf_back.dtos.ProjectDto;
 import com.uspn.rdf_back.dtos.UpdateProjectObject;
 import org.eclipse.rdf4j.model.IRI;
@@ -31,22 +32,64 @@ import java.util.*;
 @Service
 public class ProjectService {
 
+    private final DataSourceService dsService ;
+
     private static final IRI TYPE_PROJECT = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance()
             .createIRI(RdfNamespaces.APP, "Project");
 
-    public ProjectService(BuiltinOntologyService builtinOntologyService) {
+    public ProjectService(BuiltinOntologyService builtinOntologyService, DataSourceService dsService ) {
         this.builtinOntologyService = builtinOntologyService;
+        this.dsService = dsService;
     }
 
     private IRI projectIri(ValueFactory vf, String projectName) {
         return vf.createIRI(RdfNamespaces.APP + "project/" + projectName);
     }
 
+
     private IRI metadataCtx(ValueFactory vf) {
         return vf.createIRI(RdfContexts.CTX_META);
     }
 
     private final BuiltinOntologyService builtinOntologyService;
+
+    public ProjectDto createProject(String name, boolean persistent, String description) {
+
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Project's name should not be empty !");
+        }
+
+        // 1) Fermer un projet déjà ouvert
+        ProjectContext.close();
+
+        // 2) Créer / ouvrir le store
+        Repository repo = createRepository(name, persistent);
+        repo.init();
+        ProjectContext.set(repo, name);
+
+        try {
+            // 3) Écrire (ou mettre à jour) les métadonnées RDF du projet
+            upsertProjectMetadata(name, description);
+
+            // 4) Charger automatiquement RiC-O dans le projet
+            builtinOntologyService.ensureRicoLoaded();
+
+            CreateInternalDataSourceRequest dataSourceCreationRequest = new CreateInternalDataSourceRequest(name+"_internal",name+" internal DataSource ","");
+            this.dsService.createInternalDataSource(dataSourceCreationRequest);
+
+            // 5) Retour DTO
+            return readCurrentProject();
+        }
+
+        catch (RuntimeException e) {
+            ProjectContext.close();
+            throw e;
+        }
+
+    }
+
+
+
     /**
      * Ouvre (ou crée) le repository RDF4J du projet et écrit les métadonnées du projet en RDF.
      */
