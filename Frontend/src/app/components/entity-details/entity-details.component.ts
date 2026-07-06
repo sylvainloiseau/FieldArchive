@@ -293,33 +293,43 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
     };
   }
 
-  confirmAddAssociation() {
+confirmAddAssociation() {
     if (!this.newAssociation || !this.newAssociation.value) return;
 
     let fullPredicate: string;
     let propertyName: string;
+    let ontologyUrl: string;
 
     if (this.newAssociation.mode === 'existing') {
       if (!this.newAssociation.predicate) return;
       fullPredicate = this.newAssociation.predicate;
-      fullPredicate.includes('#')
-        ? propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('#') + 1)
-        : propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('/') + 1);
+
+      if (fullPredicate.includes('#')) {
+        ontologyUrl = fullPredicate.substring(0, fullPredicate.lastIndexOf('#') + 1);
+        propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('#') + 1);
+      } else {
+        ontologyUrl = fullPredicate.substring(0, fullPredicate.lastIndexOf('/') + 1);
+        propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('/') + 1);
+      }
     } else {
       if (!this.newAssociation.ontologyUrl || !this.newAssociation.customPredicate) return;
-      const base = this.newAssociation.ontologyUrl; // already ends with # or /
-      fullPredicate = base + this.newAssociation.customPredicate;
+      ontologyUrl = this.newAssociation.ontologyUrl; // already ends with # or /
+      fullPredicate = ontologyUrl + this.newAssociation.customPredicate;
       propertyName = this.newAssociation.customPredicate;
     }
+
+    const ontologyName = this.gestionRessourceService.getTypeNameByUrl(ontologyUrl);
 
     this.entityPropertiesDict.push({
       key: propertyName,
       value: this.newAssociation.value,
       kind: this.newAssociation.kind,
-      predicate: fullPredicate
+      predicate: fullPredicate,
+      ontology: ontologyName   // matches detailTab
     });
 
     this.newAssociation = null;
+    this.cdr.markForCheck(); 
   }
 
   cancelAddAssociation() {
