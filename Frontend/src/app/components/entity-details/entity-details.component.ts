@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, inject, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
-import { allEntities } from '../../models/ressource';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 
 import {GestionRessourcesService} from '../../services/gestion-ressources.service';
@@ -91,11 +90,11 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
           console.log("ONTOLOGYy NAME : ", ontologyName);
           
           let propertyName = prop.predicate.substring(prop.predicate.lastIndexOf('#') + 1, prop.predicate.length);
-          entityPropertiesDict.push({ key: propertyName, value: prop.value, kind: prop.kind, predicate : prop.predicate, ontology: ontologyName });
+          entityPropertiesDict.push({ name : prop.name,key: propertyName, value: prop.value, kind: prop.kind, predicate : prop.predicate, ontology: ontologyName });
         }
         else {
           let propertyName = prop.predicate.substring(prop.predicate.lastIndexOf('/') + 1, prop.predicate.length);
-          entityPropertiesDict.push({ key: propertyName, value: prop.value, kind : prop.kind, predicate : prop.predicate  });
+          entityPropertiesDict.push({ name : prop.name,key: propertyName, value: prop.value, kind : prop.kind, predicate : prop.predicate  });
         }
       }
 
@@ -127,8 +126,6 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
   ngOnInit(): void {
 
     this.detailTab = 'rico';
-    this.myNewEntites = allEntities;
-
     console.log("All ontology labels : ", this.ontologyLabels);
   }
 
@@ -146,11 +143,6 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
       const prev = this.stack.pop();
       this.selectEntity(prev);
     }
-  }
-
-  getEntityById(id: number): Entity | undefined {
-    const id_str = id.toString();
-    return allEntities.find(entity => entity.id === id_str);
   }
 
   selectEntity(entity: any) {
