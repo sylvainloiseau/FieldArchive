@@ -244,6 +244,49 @@ public class RdfEntityService {
         return getByIri(subject);
     }
 
+    public String getNameOfEntityByIri(IRI subject) {
+            requireProjectOpen();
+            if (subject == null) {
+                throw new BadRequestException("IRI manquant.");
+            }
+            try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+                boolean exists;
+                try (var st = conn.getStatements(subject, null, null)) {
+                    exists = st.hasNext();
+                }
+                if (!exists) throw new NotFoundException("Entité introuvable: " + subject.stringValue());
+
+                // properties (on renvoie tout ce qu’on trouve)
+                // Lire toutes les propriétés
+                try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
+                    while (stmts.hasNext()) {
+                        Statement st = stmts.next();
+                        IRI pred = st.getPredicate();
+                        Value obj = st.getObject();
+
+                        // Ignore rdf:type (déjà traité)
+                        String predicateString = pred.stringValue();
+                        if (!predicateString.equals("https://www.ica.org/standards/RiC/ontology#name") ) continue;
+
+
+                        if (obj.isLiteral()) {
+                            Literal lit = (Literal) obj;
+                            return lit.getLabel();
+
+                        }
+
+
+                    }
+                }
+            }
+            return "";
+
+    }
+
+
+
+
+
     public RdfEntityDto getByIri(IRI subject) {
         requireProjectOpen();
         if (subject == null) {
@@ -288,6 +331,7 @@ public class RdfEntityService {
                     if (obj.isIRI()) {
                         p.kind = "iri";
                         p.value = obj.stringValue();
+                        p.name = this.getNameOfEntityByIri((IRI) obj);
 
                     } else if (obj.isLiteral()) {
                         Literal lit = (Literal) obj;
