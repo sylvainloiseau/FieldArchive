@@ -93,6 +93,9 @@
                 </button>
             </label>
 
+            <span  class="text-sm text-gray-900 font-medium" *ngIf="property.kind === 'iri'">{{property.name}}</span>
+
+
             <div class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg">
 
                 <!-- Literal : champ éditable ou pas  -->

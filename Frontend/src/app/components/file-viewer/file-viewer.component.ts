@@ -64,8 +64,8 @@ export class FileViewerComponent implements OnInit {
       this.filePathChange.emit(path);
       this.filePath = path;
 
-      this.fileUrl = `file:///${path.replace(/\\/g, '/')}`;
-
+      // this.fileUrl = `file:///${path.replace(/\\/g, '/')}`;
+      this.fileUrl = `file://${encodeURI(path.replace(/\\/g, '/'))}`;
       //sanitize for iframe/video/audio usage
       this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.fileUrl);
 
