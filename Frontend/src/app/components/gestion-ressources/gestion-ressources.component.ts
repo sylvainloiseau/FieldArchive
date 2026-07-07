@@ -23,6 +23,7 @@ import { OntologyManagerDialogComponent } from '../ontology-manager-dialog/ontol
 import { Router } from '@angular/router';
 
 import { MatDialogRef } from '@angular/material/dialog';
+import {CdkAccordionModule} from '@angular/cdk/accordion';
 
 @Component({
   selector: 'app-gestion-ressources',
@@ -34,6 +35,7 @@ import { MatDialogRef } from '@angular/material/dialog';
     MatDividerModule,
     MatListModule,
     MatDialogModule,
+    CdkAccordionModule,
     EntityDetailsComponent, ListeEntitesComponent, SparqlComponent],
   templateUrl: './gestion-ressources.component.html',
   styleUrl: './gestion-ressources.component.scss',
@@ -72,6 +74,13 @@ export class GestionRessourcesComponent implements OnInit {
   detailTab: 'ric' | 'foaf' | 'metadata' = 'ric';
 
   showPersonForm: boolean = false;
+
+  accordion_items = [
+    { title: 'Main Entity Types', values: ['Activity', 'Person', 'Record', 'Instantiation', 'Place'] },
+    { title: 'Used Types', values: [] },
+    { title: 'Main Terminologies', values: ['Language', 'ActivityType', 'DocumentaryFormType', 'ContentFormType'] }
+  ];
+  expandedIndex = 0;
 
 
   constructor(public dialog: MatDialog, private ontologyService: GestionRessourcesService,
