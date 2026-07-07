@@ -23,7 +23,12 @@ export class GestionRessourcesService {
   getOntologyLabel(listeIris: string[]): any[] {
 
     // ❌ Remove all types from this namespace
-    listeIris = listeIris.filter(iri => !iri.startsWith('http://uspn.fr/app#') && !iri.startsWith("http://purl.org/vocommons/voaf#")  && !iri.startsWith("http://www.w3.org/2004/02/skos/core#"));
+    listeIris = listeIris.filter(iri => 
+      !iri.startsWith('http://uspn.fr/app#') 
+      && !iri.startsWith("http://purl.org/vocommons/voaf#")  
+      && !iri.startsWith("http://www.w3.org/2004/02/skos/core#")
+      && !iri.startsWith('http://www.w3.org/2002/07/owl#')
+    );
 
     const ontology_types: any[] = [];
     const labels = this.ontologyLabelsService.getLabels();
