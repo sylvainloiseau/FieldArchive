@@ -67,7 +67,7 @@
   <!-- Main Content Area -->
   <div class="flex flex-1 overflow-hidden">
     <!-- Sidebar -->
-    <aside *ngIf="activeView !== 'sparql'" class="w-60 bg-white border-r border-gray-200 overflow-y-auto shadow-sm flex flex-col">
+    <aside *ngIf="activeView !== 'sparql'" class="w-[35%] bg-white border-r border-gray-200 overflow-y-auto shadow-sm flex flex-col">
       <div class="p-4 flex-1">
 
         <!-- Header section with gradient accent -->
@@ -111,7 +111,7 @@
         
         <mat-accordion class="flex flex-col gap-2">
 
-          <mat-expansion-panel 
+          <!--mat-expansion-panel 
             class="!border-none !shadow-none !rounded-lg overflow-hidden transition-all duration-200"
             [class.!bg-gray-50]="panelOpenState()"
             (opened)="panelOpenState.set(true)" 
@@ -147,7 +147,7 @@
                 </button>
               </div>
             </div>
-          </mat-expansion-panel>
+          </mat-expansion-panel-->
 
 
           <mat-expansion-panel 
@@ -165,29 +165,87 @@
                 <span class="text-xs text-gray-400">{{ getValuesOfKey(ontology_type)?.length }}</span>
               </mat-panel-description>
             </mat-expansion-panel-header>
-            
-            <div class="pt-1 pb-2">
-              <div class="space-y-0.5">
-                <button 
-                  *ngFor="let entityType of getValuesOfKey(ontology_type)" 
-                  [class.bg-blue-50]="selectedType === entityType.type" 
-                  [class.border-l-3]="selectedType === entityType.type"
-                  [class.border-l-blue-500]="selectedType === entityType.type"
-                  [class.text-blue-700]="selectedType === entityType.type"
-                  class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-all duration-150 group relative"
-                  [attr.aria-pressed]="selectedType === entityType.type"
-                  (click)="getAllEntitiesByPath(getKey(ontology_type), entityType)">
-                  
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm font-medium group-hover:text-gray-900 transition-colors duration-150">
-                      {{ entityType }}
-                    </span>
-                    <span *ngIf="selectedType === entityType.type" class="text-blue-500 text-xs">●</span>
-                  </div>
+
+            <cdk-accordion *ngIf="getKey(ontology_type) === 'rico'" class="example-accordion">
+              @for (item of accordion_items; track item; let index = $index) {
+              <cdk-accordion-item #accordionItem="cdkAccordionItem" class="example-accordion-item">
+                <button
+                  class="example-accordion-item-header p-5!"
+                  (click)="accordionItem.toggle()"
+                  tabindex="0"
+                  [attr.id]="'accordion-header-' + index"
+                  [attr.aria-expanded]="accordionItem.expanded"
+                  [attr.aria-controls]="'accordion-body-' + index">
+                <span>{{ item.title }}</span>
+
+                <span class="example-accordion-item-description flex items-center">
+                  <svg
+                    class="w-5 h-5 transition-transform duration-300"
+                    [ngClass]="{ 'rotate-180': accordionItem.expanded }"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </span>
                 </button>
-              </div>
-            </div>
+
+                <!-- <div class="example-accordion-item-body">
+                  <div class="space-y-0.5"> -->
+                      @if(accordionItem.expanded && index === 1) {
+                        <button 
+                          class = "example-accordion-item-body p-2!"
+                          *ngFor="let entityType of getValuesOfKey(ontology_type)" 
+                          [class.bg-blue-50]="selectedType === entityType" 
+                          [class.border-l-3]="selectedType === entityType"
+                          [class.border-l-blue-500]="selectedType === entityType"
+                          [class.text-blue-700]="selectedType === entityType"
+                          class="w-full text-center! px-4! py-3! text-sm rounded-lg hover:bg-gray-50 transition-all duration-150 group relative"
+                          [attr.aria-pressed]="selectedType === entityType"
+                          (click)="getAllEntitiesByPath(getKey(ontology_type), entityType)">
+                          
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium group-hover:text-gray-900 transition-colors duration-150">
+                              {{ entityType }}
+                            </span>
+                            <span *ngIf="selectedType === entityType" class="text-blue-500 text-xs">●</span>
+                          </div>
+                        </button>
+                      }
+                      @if (index !== 1 && accordionItem.expanded) {
+                        <button 
+                          class = "example-accordion-item-body p-2"
+                          *ngFor="let entityType of item.values" 
+                          [class.bg-blue-50]="selectedType === entityType" 
+                          [class.border-l-3]="selectedType === entityType"
+                          [class.border-l-blue-500]="selectedType === entityType"
+                          [class.text-blue-700]="selectedType === entityType"
+                          class="w-full text-center! px-4! py-3! text-sm rounded-lg hover:bg-gray-50 transition-all duration-150 group relative"
+                          [attr.aria-pressed]="selectedType === entityType"
+                          (click)="getAllEntitiesByPath(getKey(ontology_type), entityType)">
+                          
+                          <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium group-hover:text-gray-900 transition-colors duration-150">
+                              {{ entityType }}
+                            </span>
+                            <span *ngIf="selectedType === entityType" class="text-blue-500 text-xs">●</span>
+                          </div>
+                        </button>
+                      }
+                    <!-- </div>
+                  </div> -->
+              </cdk-accordion-item>
+              }
+            </cdk-accordion>
+
           </mat-expansion-panel>
+
         </mat-accordion>
 
         <!-- Enhanced empty state with better visual feedback -->
@@ -216,7 +274,7 @@
     </div>
 
     <!-- Detail Panel -->
-    <aside *ngIf="selectedEntity && activeView !== 'sparql'" [@slideIn] class="w-150! bg-white border-l border-gray-200 overflow-y-auto shadow-xl">
+    <aside *ngIf="selectedEntity && activeView !== 'sparql'" [@slideIn] class="w-200! bg-white border-l border-gray-200 overflow-y-auto shadow-xl">
 
       <div class="p-6">
         <app-entity-details (close)="selectedEntity = null" [ontologyLabels]="ontologyLabels" [selectedEntityId]="selectedEntity.entityKey"></app-entity-details>

@@ -293,7 +293,7 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
     };
   }
 
-confirmAddAssociation() {
+  confirmAddAssociation() {
     if (!this.newAssociation || !this.newAssociation.value) return;
 
     let fullPredicate: string;
