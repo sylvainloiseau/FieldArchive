@@ -136,5 +136,15 @@ export class GestionProjetService {
     return throwError(() => new Error(errorMessage));
   }
 
+  importTurtleSource(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<any>(`${this.API_BASE}/import`, formData, {
+      reportProgress: true,
+      observe: 'events'
+    });
+  }
+
 
 }

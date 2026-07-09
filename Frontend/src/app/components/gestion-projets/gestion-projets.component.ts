@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, DatePipe }        from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router }                        from '@angular/router';
@@ -57,6 +57,46 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     private router:         Router,
     private snackBar : MatSnackBar
   ) {}
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
+  private pendingImportProject: any | null = null;
+
+  onImportFile(project: any): void {
+    if (this.activeProject?.name !== project.name) {
+      // Import writes into the currently open repository — enforce that here
+      // rather than letting the backend fail with a confusing "no project open" error.
+      alert(`Open "${project.name}" first before importing into it.`);
+      return;
+    }
+    this.pendingImportProject = project;
+    this.fileInput.nativeElement.value = ''; // reset so re-selecting the same file still fires 'change'
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this.pendingImportProject) return;
+
+
+    this.isLoading = true;
+
+    this.projectService.importTurtleSource(file).subscribe({
+      next: (result) => {
+        this.isLoading = false;
+        alert(`Imported ${result.tripleCount} triples into source .`);
+        // refresh whatever view shows sources/entities, if visible from here
+      },
+      error: (err) => {
+        this.isLoading = false;
+        const detail = err.error?.lineNumber
+          ? `Line ${err.error.lineNumber}, column ${err.error.columnNumber}: ${err.error.message}`
+          : err.error?.message ?? 'Import failed.';
+        alert(detail);
+      }
+    });
+  }
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
