@@ -78,7 +78,7 @@ export class GestionRessourcesComponent implements OnInit {
   accordion_items = [
     { title: 'Main Entity Types', values: ['Activity', 'Person', 'Record', 'Instantiation', 'Place'] },
     { title: 'Used Types', values: [] },
-    { title: 'Main Terminologies', values: ['Language', 'ActivityType', 'DocumentaryFormType', 'ContentFormType'] }
+    { title: 'Main Terminologies', values: ['ActivityType', 'DocumentaryFormType', 'ContentFormType', 'Language', 'PlaceType', 'RoleType'] }
   ];
   expandedIndex = 0;
 

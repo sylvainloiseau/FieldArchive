@@ -6,6 +6,8 @@ public class CreateProjectRequest {
 
     private String description;
 
+    private String prefix;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -15,6 +17,12 @@ public class CreateProjectRequest {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
+    public String getPrefix() {
+        return prefix;
+    }
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+    }
 }
 
 

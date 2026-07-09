@@ -24,7 +24,7 @@ public class ProjectController {
 
     @PostMapping("/open")
     public Map<String, Object> open(@RequestBody CreateProjectRequest req) {
-        ProjectDto dto = projectService.openProject(req.getName(), req.isPersistent(), req.getDescription());
+        ProjectDto dto = projectService.openProject(req.getName(), req.isPersistent(), req.getDescription(), req.getPrefix());
         return Map.of(
                 "status", "ok",
                 "project", dto.name
@@ -33,7 +33,7 @@ public class ProjectController {
 
     @PostMapping("/create")
     public Map<String, Object> create(@RequestBody CreateProjectRequest req) {
-        ProjectDto dto = projectService.createProject(req.getName(), req.isPersistent(), req.getDescription());
+        ProjectDto dto = projectService.createProject(req.getName(), req.isPersistent(), req.getDescription(), req.getPrefix());
         return Map.of(
                 "status", "ok",
                 "project", dto.name

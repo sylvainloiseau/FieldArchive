@@ -67,6 +67,21 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.projectService.activeProject$
       .pipe(takeUntil(this.destroy$))
       .subscribe(p => (this.activeProject = p));
+
+    this.projectForm.get('name')?.valueChanges.subscribe(value => {
+      if (this.projectForm.get('prefix')?.value.startsWith('http://fr.cnrs.lacito.FieldArchive/')) {
+        this.projectForm.patchValue({
+          prefix: 'http://fr.cnrs.lacito.FieldArchive/' + value 
+        });
+      }
+    });
+    this.projectForm.get('prefix')?.valueChanges.subscribe(value => {
+      if (value === '') {
+        this.projectForm.patchValue({
+          prefix: 'http://fr.cnrs.lacito.FieldArchive/'
+        });
+      }
+    });
   }
 
   goToFiles() {
@@ -84,7 +99,8 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.projectForm = this.fb.group({
       name:        ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_-]+$/)]],
       description: [''],
-      persistent:  [true]
+      persistent:  [true],
+      prefix:      ['http://fr.cnrs.lacito.FieldArchive/', [Validators.required, Validators.pattern(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z]{2,6})([\/\w \.-]*)*\/?$/)]]
     });
   }
 
@@ -94,7 +110,7 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.projectService.getAllProjects()
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
-        next:  (list) => { this.projects = list; this.applyFilters(); },
+        next:  (list) => { this.projects = list; console.log("PROJECTS : ", list); this.applyFilters(); },
         error: () => {}
       });
 
@@ -186,7 +202,7 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     if (!project.name || this.isLoading) return;
     this.isLoading = true;
 
-    this.projectService.openProject({ name: project.name, persistent: true })
+    this.projectService.openProject({ name: project.name, persistent: true, prefix: project.prefix })
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
         next:  () => this.router.navigate(['/gestion-ressources']),
@@ -213,7 +229,9 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
   // ── Modal ──────────────────────────────────────────────────────────────────
 
   openCreateModal(): void {
-    this.projectForm.reset({ persistent: true, name: '', description: '' });
+    this.projectForm.reset(
+      { persistent: true, name: '', description: '', prefix: 'http://fr.cnrs.lacito.FieldArchive/' }
+    );
     this.showCreateModal = true;
   }
 
@@ -223,10 +241,10 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
 
   onSubmitProject(): void {
     if (!this.projectForm.valid || this.isLoading) return;
-    const { name, description, persistent } = this.projectForm.value;
+    const { name, description, persistent, prefix } = this.projectForm.value;
     this.isLoading = true;
 
-    this.projectService.createProject({ name, description, persistent })
+    this.projectService.createProject({ name, description, persistent, prefix })
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
         next:  () => { this.closeCreateModal(); this.router.navigate(['/gestion-sources']); },

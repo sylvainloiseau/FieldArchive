@@ -18,21 +18,38 @@ import java.util.*;
 
 @Service
 public class RdfEntityService {
-    private static final String ENTITY_NS = RdfNamespaces.APP + "entity/";
 
-    private IRI iriFromKey(String key) {
-        return vf.createIRI(ENTITY_NS + key);
+    private static final ValueFactory vf = SimpleValueFactory.getInstance();
+
+    private final ProjectService projectService;
+
+    public RdfEntityService(ProjectService projectService) {
+        this.projectService = projectService;
+    }
+
+    private IRI iriFromKey(String entityIri, String key) {
+        String entityTypeName = entityIri.replace(RdfNamespaces.RICO,"");
+        ProjectDto currentProject = this.projectService.readCurrentProject();
+        return vf.createIRI(currentProject.prefix + '/' + entityTypeName +'/' + key);
     }
 
     private String keyFromIri(IRI iri) {
         String s = iri.stringValue();
-        if (!s.startsWith(ENTITY_NS)) {
-            throw new IllegalArgumentException("IRI invalide: " + s);
+        String entityNs = projectService.readCurrentProject().prefix;
+
+        if (entityNs == null || !s.startsWith(entityNs)) {
+            throw new IllegalArgumentException("invalid IRI: " + s);
         }
-        return s.substring(ENTITY_NS.length());
+
+        int lastSlash = s.lastIndexOf('/');
+
+        if (lastSlash == -1 || lastSlash == s.length() - 1) {
+            throw new IllegalArgumentException("IRI mal formée (pas de clé): " + s);
+        }
+
+        return s.substring(lastSlash + 1);
     }
 
-    private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     // Graphe interne éditable (aligné avec ton implémentation actuelle)
     private static final IRI CTX_INTERNAL = vf.createIRI("urn:datasource:internal");
@@ -124,17 +141,18 @@ public class RdfEntityService {
     // =========================
     public RdfEntityDto create(CreateRdfEntityRequest req) {
         requireProjectOpen();
-        if (req == null) throw new BadRequestException("Body manquant.");
+        if (req == null) throw new BadRequestException("Body is missing.");
         if (req.types == null || req.types.isEmpty()) {
-            throw new BadRequestException("types obligatoire (au moins 1 rdf:type).");
+            throw new BadRequestException("Entity type is mandatory (at least one)");
         }
 
         String entityKey = UUID.randomUUID().toString();
-        IRI subject = iriFromKey(entityKey);
+        IRI subject = iriFromKey(req.types.get(0),entityKey);
 
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
             conn.begin();
+
 
             // rdf:type
             for (String t : req.types) {
@@ -152,7 +170,7 @@ public class RdfEntityService {
             conn.commit();
         }
 
-        return getByKey(entityKey);
+        return getByIri(subject);
 
     }
 
@@ -236,14 +254,14 @@ public class RdfEntityService {
     // =========================
     //  READ ONE
     // =========================
-    public RdfEntityDto getByKey(String key) {
-        requireProjectOpen();
-        if (key == null || key.isBlank()) {
-            throw new BadRequestException("entityKey manquant.");
-        }
-        IRI subject = iriFromKey(key);
-        return getByIri(subject);
-    }
+//    public RdfEntityDto getByKey(String key) {
+//        requireProjectOpen();
+//        if (key == null || key.isBlank()) {
+//            throw new BadRequestException("entityKey manquant.");
+//        }
+//        IRI subject = iriFromKey(key);
+//        return getByIri(subject);
+//    }
 
     public String getNameOfEntityByIri(IRI subject) {
             requireProjectOpen();
@@ -284,14 +302,18 @@ public class RdfEntityService {
 
     }
 
-
-
+    public RdfEntityDto getByKey(String key) {
+        if (key == null || key.isBlank()) {
+            throw new BadRequestException("IRI is missing.");
+        }
+        return getByIri(vf.createIRI(key));
+    }
 
 
     public RdfEntityDto getByIri(IRI subject) {
         requireProjectOpen();
         if (subject == null) {
-            throw new BadRequestException("IRI manquant.");
+            throw new BadRequestException("IRI is missing.");
         }
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
@@ -363,18 +385,18 @@ public class RdfEntityService {
     // =========================
 //  UPDATE (interne uniquement)
 // =========================
-    public RdfEntityDto updateByKey(String key, UpdateRdfEntityRequest req) {
+    public RdfEntityDto updateByKey(String entityIri, UpdateRdfEntityRequest req) {
 
         requireProjectOpen();
 
-        if (key == null || key.isBlank()) {
+        if (entityIri == null || entityIri.isBlank()) {
             throw new BadRequestException("entityKey manquant.");
         }
         if (req == null) {
             throw new BadRequestException("Body manquant.");
         }
 
-        IRI subject = iriFromKey(key);
+        IRI subject = vf.createIRI(entityIri);
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
 
@@ -384,7 +406,7 @@ public class RdfEntityService {
                 exists = st.hasNext();
             }
             if (!exists) {
-                throw new NotFoundException("Entité introuvable: " + key);
+                throw new NotFoundException("Entity not found : " + entityIri);
             }
 
             // 2 Vérifier éditable
@@ -422,20 +444,20 @@ public class RdfEntityService {
             conn.commit();
         }
 
-        return getByKey(key);
+        return getByIri(subject);
     }
 
     //  DELETE (interne uniquement)
 // =========================
-    public void deleteByKey(String key) {
+    public void deleteByKey(String entityIri) {
 
         requireProjectOpen();
 
-        if (key == null || key.isBlank()) {
+        if (entityIri == null || entityIri.isBlank()) {
             throw new BadRequestException("entityKey manquant.");
         }
 
-        IRI subject = iriFromKey(key);
+        IRI subject = vf.createIRI(entityIri);
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
 
@@ -445,13 +467,13 @@ public class RdfEntityService {
                 exists = st.hasNext();
             }
             if (!exists) {
-                throw new NotFoundException("Entité introuvable: " + key);
+                throw new NotFoundException("Entity not found: " + entityIri);
             }
 
             // 2 Vérifier éditable
             if (!isInternalEntity(conn, subject)) {
                 throw new BadRequestException(
-                        "Suppression interdite : entité provenant d'une source externe."
+                        "Deletion of entity is not allowed : Entity is from an external DataSource"
                 );
             }
 
