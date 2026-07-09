@@ -1,4 +1,4 @@
-@prefix rico: <https://www.ica.org/standards/RiC/ontology#>
+@prefix rico: <https://www.ica.org/standards/RiC/ontology#> .
 
 <http://www.test.com/People/Martin> a rico:Person ;
     rico:name "Martin" .
