@@ -36,6 +36,9 @@ public class ProjectService {
     private static final IRI TYPE_PROJECT = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance()
             .createIRI(RdfNamespaces.APP, "Project");
 
+    private static final IRI PROP_PREFIX = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance()
+            .createIRI(RdfNamespaces.APP, "prefix");
+
     public ProjectService(BuiltinOntologyService builtinOntologyService, DataSourceService dsService ) {
         this.builtinOntologyService = builtinOntologyService;
         this.dsService = dsService;
@@ -52,7 +55,7 @@ public class ProjectService {
 
     private final BuiltinOntologyService builtinOntologyService;
 
-    public ProjectDto createProject(String name, boolean persistent, String description) {
+    public ProjectDto createProject(String name, boolean persistent, String description, String prefix) {
 
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Project's name should not be empty !");
@@ -68,7 +71,7 @@ public class ProjectService {
 
         try {
             // 3) Écrire (ou mettre à jour) les métadonnées RDF du projet
-            upsertProjectMetadata(name, description);
+            upsertProjectMetadata(name, description, prefix);
 
             // 4) Charger automatiquement RiC-O dans le projet
             builtinOntologyService.ensureRicoLoaded();
@@ -92,7 +95,7 @@ public class ProjectService {
     /**
      * Ouvre (ou crée) le repository RDF4J du projet et écrit les métadonnées du projet en RDF.
      */
-    public ProjectDto openProject(String name, boolean persistent, String description) {
+    public ProjectDto openProject(String name, boolean persistent, String description, String prefix) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Project's name should not be empty !");
         }
@@ -107,7 +110,7 @@ public class ProjectService {
 
         try {
             // 3) Écrire (ou mettre à jour) les métadonnées RDF du projet
-            upsertProjectMetadata(name, description);
+            upsertProjectMetadata(name, description, prefix );
 
             // 4) Charger automatiquement RiC-O dans le projet
             builtinOntologyService.ensureRicoLoaded();
@@ -157,7 +160,7 @@ public class ProjectService {
         }
     }
 
-    private void upsertProjectMetadata(String projectName, String description) {
+    private void upsertProjectMetadata(String projectName, String description, String prefix) {
         Repository repo = ProjectContext.getRepository();
         try (RepositoryConnection conn = repo.getConnection()) {
             ValueFactory vf = conn.getValueFactory();
@@ -188,6 +191,11 @@ public class ProjectService {
             if (description != null) {
                 conn.remove(project, DCTERMS.DESCRIPTION, null, ctx);
                 conn.add(project, DCTERMS.DESCRIPTION, vf.createLiteral(description), ctx);
+            }
+
+            if (prefix != null) {
+                conn.remove(project, PROP_PREFIX, null, ctx);
+                conn.add(project, PROP_PREFIX, vf.createLiteral(prefix), ctx);
             }
 
             conn.commit();
@@ -309,6 +317,11 @@ public class ProjectService {
 
             var modifiedSt = conn.getStatements(project, DCTERMS.MODIFIED, null, ctx).stream().findFirst().orElse(null);
             dto.modified = (modifiedSt != null) ? modifiedSt.getObject().stringValue() : null;
+
+            var prefix = conn.getStatements(project, PROP_PREFIX, null, ctx).stream().findFirst().orElse(null);
+            dto.prefix = (prefix != null) ? prefix.getObject().stringValue() : null;
+
+
         }
 
         return dto;
@@ -380,6 +393,8 @@ public class ProjectService {
                     info.put("description", null);
                     info.put("created",     null);
                     info.put("lastModified",    new java.util.Date(dir.lastModified()));
+                    info.put("prefix",    "NOT_FOUND");
+
                 } finally {
                     tempRepo.shutDown();
                 }
@@ -402,6 +417,8 @@ public class ProjectService {
             info.put("description", getStringValue(conn, project, DCTERMS.DESCRIPTION, ctx));
             info.put("created",     getStringValue(conn, project, DCTERMS.CREATED,     ctx));
             info.put("lastModified",    getStringValue(conn, project, DCTERMS.MODIFIED,    ctx));
+            info.put("prefix",    getStringValue(conn, project, PROP_PREFIX,    ctx));
+
         }
     }
 

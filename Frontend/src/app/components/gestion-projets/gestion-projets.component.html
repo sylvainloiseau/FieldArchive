@@ -367,7 +367,7 @@
             <!-- Nom -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Nom du projet <span class="text-red-500">*</span>
+                Project's Name <span class="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -375,10 +375,33 @@
                 placeholder="ex: archive_2025"
                 class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
                 [class.border-red-300]="projectForm.get('name')?.invalid && projectForm.get('name')?.touched">
-              <p class="mt-1 text-xs text-gray-400">Lettres, chiffres, tirets et underscores uniquement</p>
+              <p class="mt-1 text-xs text-gray-400">Must contain only letters, numbers, dashes, and underscores.</p>
               @if (projectForm.get('name')?.invalid && projectForm.get('name')?.touched) {
                 <div class="mt-1 text-xs text-red-600">
-                  Nom requis — lettres, chiffres, tirets et underscores uniquement
+                  Name is required and must contain only letters, numbers, dashes, and underscores.
+                </div>
+              }
+            </div>
+
+            <!-- Prefix -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Prefix for future entity’s IRI generation <span class="text-red-500">*</span>
+                <div>
+                  <span class="text-xs text-gray-500">
+                    If your project has a stable URL in a Language Archive, you can enter it here. Otherwise, you can leave the default IRI generation scheme.
+                  </span>
+                </div>
+              </label>
+
+              <input
+                type="text"
+                formControlName="prefix"
+                class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
+                [class.border-red-300]="projectForm.get('prefix')?.invalid && projectForm.get('prefix')?.touched">
+              @if (projectForm.get('prefix')?.invalid && projectForm.get('prefix')?.touched) {
+                <div class="mt-1 text-xs text-red-600">
+                  A URL is required for the project prefix.
                 </div>
               }
             </div>
@@ -394,8 +417,9 @@
               </textarea>
             </div>
 
+
             <!-- Persistant -->
-            <div class="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <!--div class="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <input
                 type="checkbox"
                 formControlName="persistent"
@@ -409,7 +433,7 @@
                   Data stored in <code class="bg-white px-1 rounded">projects/{{ formName }}/store/</code>
                 </p>
               </div>
-            </div>
+            </div-->
           </div>
 
           <!-- Footer -->
@@ -518,6 +542,22 @@
         <textarea [(ngModel)]="selectedProject.description" class="flex w-full text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-3" type="text">
 
         </textarea>
+      </div>
+
+      <div *ngIf="selectedProject">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Prefix</label>
+        <div class="relative w-full">
+          <input disabled [(ngModel)]="selectedProject.prefix" class="flex w-full text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg p-3" type="text"/>
+          <button
+            (click)="copyToClipboard(selectedProject.prefix)"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <!-- Dates -->
