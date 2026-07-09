@@ -247,6 +247,18 @@
                         </svg>
                         Delete
                       </button>
+
+                  <button
+                    (click)="onImportFile(project); $event.stopPropagation()"
+                    [disabled]="isLoading"
+                    class="cursor-pointer flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v-8m0 0l-3 3m3-3l3 3"/>
+                    </svg>
+                    Import
+                  </button>
                     </div>
                   </td>
                 </tr>
@@ -331,6 +343,13 @@
     }
 
   </main>
+  <input
+  #fileInput
+  type="file"
+  accept=".ttl,.turtle"
+  class="hidden"
+  (change)="onFileSelected($event)"
+/>
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════════
