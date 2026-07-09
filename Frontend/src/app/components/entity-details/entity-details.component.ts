@@ -105,11 +105,11 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
 
   changeSelectedEntity(entityIri : string) {
     if (entityIri) {
-      const entityKey = entityIri.substring(entityIri.lastIndexOf('/') + 1, entityIri.length);
-      console.log("Reference entity key : ",entityKey);
+      // const entityKey = entityIri.substring(entityIri.lastIndexOf('/') + 1, entityIri.length);
+      // console.log("Reference entity key : ",entityKey);
       // this.previousSelectedEntity = this.selectedEntity;
       this.stack.push(this.selectedEntity);
-      this.gestionRessourceService.getEntityDetails(entityKey).subscribe({
+      this.gestionRessourceService.getEntityDetails(entityIri).subscribe({
         next: (data) => {
           console.log("DATA:", data);
           this.selectedEntity = data;
@@ -172,7 +172,7 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
 
-        this.gestionRessourceService.deleteEntity(this.selectedEntity.entityKey).subscribe({
+        this.gestionRessourceService.deleteEntity(this.selectedEntity.iri).subscribe({
           next: () => {
             this.snackBar.open(
               `Entity was successfully deleted.`,
@@ -184,7 +184,7 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
                 panelClass: ['snackbar-success']
               }
             );
-            console.log('Entity deleted:', this.selectedEntity.entityKey);
+            console.log('Entity deleted:', this.selectedEntity.iri);
             this.closeDetail();
           },
           error: (err : any) => {
@@ -213,7 +213,7 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
         kind
       }))
     };
-    this.gestionRessourceService.editEntity(this.selectedEntity.entityKey, payload).subscribe({
+    this.gestionRessourceService.editEntity(this.selectedEntity.iri, payload).subscribe({
       next: () => {
         this.snackBar.open(
           `"${this.selectedEntity.iri}" was successfully updated.`,
@@ -225,7 +225,7 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
             panelClass: ['snackbar-success']
           }
         );
-        console.log('Entity updated:', this.selectedEntity.entityKey);
+        console.log('Entity updated:', this.selectedEntity.iri);
       },
       error: (err) => {
         console.error('Edit failed:', err);
