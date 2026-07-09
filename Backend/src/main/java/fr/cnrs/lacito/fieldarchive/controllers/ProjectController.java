@@ -2,13 +2,18 @@ package fr.cnrs.lacito.fieldarchive.controllers;
 
 import fr.cnrs.lacito.fieldarchive.dtos.*;
 import fr.cnrs.lacito.fieldarchive.dtos.*;
+import fr.cnrs.lacito.fieldarchive.exceptions.ImportException;
+import fr.cnrs.lacito.fieldarchive.services.FileImportService;
 import fr.cnrs.lacito.fieldarchive.services.ProjectService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.Map;
 
@@ -17,9 +22,25 @@ import java.util.Map;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final FileImportService fileImportService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, FileImportService fileImportService) {
         this.projectService = projectService;
+        this.fileImportService = fileImportService;
+    }
+
+    @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> importExternalTurtle(
+            @RequestParam("file") MultipartFile file) {
+
+        try (InputStream is = file.getInputStream()) {
+            ImportResult result = fileImportService.importTurtle(is, "http://www.test.com/");
+            return ResponseEntity.ok("Ok import");
+        } catch (ImportException e) {
+            return ResponseEntity.badRequest().body("ERROR");
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @PostMapping("/open")

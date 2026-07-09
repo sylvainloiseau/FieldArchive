@@ -37,7 +37,8 @@ public class RdfEntityService {
         String s = iri.stringValue();
         String entityNs = projectService.readCurrentProject().prefix;
 
-        if (entityNs == null || !s.startsWith(entityNs)) {
+//        || !s.startsWith(entityNs)
+        if (entityNs == null ) {
             throw new IllegalArgumentException("invalid IRI: " + s);
         }
 
@@ -51,8 +52,6 @@ public class RdfEntityService {
     }
 
 
-    // Graphe interne éditable (aligné avec ton implémentation actuelle)
-    private static final IRI CTX_INTERNAL = vf.createIRI("urn:datasource:internal");
 
     // Prefixes acceptés par l’API (CURIE -> IRI)
     private static final Map<String, String> PREFIX = Map.of(
@@ -89,6 +88,8 @@ public class RdfEntityService {
 
     private boolean isInternalEntity(RepositoryConnection conn, IRI subject) {
         // Si l'entité a au moins un triplet dans le graphe interne, on la considère interne/éditable
+        IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
+
         try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
             return stmts.hasNext();
         }
@@ -152,6 +153,7 @@ public class RdfEntityService {
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
             conn.begin();
+            IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
 
 
             // rdf:type
@@ -182,6 +184,7 @@ public class RdfEntityService {
         if (p.kind == null || p.kind.isBlank()) {
             throw new BadRequestException("Predicate's kind is mandatory (literal|iri).");
         }
+        IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
 
         IRI pred = vf.createIRI(expand(p.predicate));
 
@@ -217,7 +220,7 @@ public class RdfEntityService {
 
         requireProjectOpen();
         if (typeCurieOrIri == null || typeCurieOrIri.isBlank()) {
-            throw new BadRequestException("Paramètre type obligatoire.");
+            throw new BadRequestException("Type parameter is mandatory.");
         }
 
         IRI typeIri = vf.createIRI(expand(typeCurieOrIri));
@@ -274,6 +277,7 @@ public class RdfEntityService {
                     exists = st.hasNext();
                 }
                 if (!exists) throw new NotFoundException("Entité introuvable: " + subject.stringValue());
+                IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
 
                 // properties (on renvoie tout ce qu’on trouve)
                 // Lire toutes les propriétés
@@ -339,6 +343,8 @@ public class RdfEntityService {
 
             // properties (on renvoie tout ce qu’on trouve)
             // Lire toutes les propriétés
+            IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
+
             try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
                 while (stmts.hasNext()) {
                     Statement st = stmts.next();
@@ -427,6 +433,7 @@ public class RdfEntityService {
                     }
 
                     IRI pred = vf.createIRI(expand(p.predicate));
+                    IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
 
                     // Supprimer anciennes valeurs dans le graphe interne
                     conn.remove(subject, pred, null, CTX_INTERNAL);
@@ -476,6 +483,7 @@ public class RdfEntityService {
                         "Deletion of entity is not allowed : Entity is from an external DataSource"
                 );
             }
+            IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
 
             conn.begin();
             // 3 Supprimer UNIQUEMENT dans la source interne
