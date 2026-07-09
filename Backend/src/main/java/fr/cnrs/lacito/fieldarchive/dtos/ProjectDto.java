@@ -6,4 +6,5 @@ public class ProjectDto {
     public String created;   // ISO date or datetime as string
     public String modified;  // ISO datetime as string
     public boolean open;
+    public String prefix;
 }

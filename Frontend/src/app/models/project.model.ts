@@ -14,6 +14,8 @@ export interface ProjectDto {
   created: string | null;
   /** Date de dernière modification (format ISO) */
   lastModified: string | null;
+
+  prefix : string;
 }
 
 /**
@@ -23,6 +25,7 @@ export interface OpenProjectRequest {
   name: string;
   persistent?: boolean;
   description?: string;
+  prefix : string;
 }
 
 /**
