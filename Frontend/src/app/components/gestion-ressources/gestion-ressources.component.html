@@ -103,9 +103,9 @@
           </div>
 
           <!-- Right side badge -->
-          <span class="inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
+          <!-- <span class="inline-flex items-center justify-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600">
             {{ formattedEntities?.length }}
-          </span>
+          </span> -->
 
         </div>
         
@@ -161,8 +161,8 @@
               <mat-panel-title class="text-sm font-medium text-gray-700">
                 {{ getKey(ontology_type) }}
               </mat-panel-title>
-              <mat-panel-description class="justify-end">
-                <span class="text-xs text-gray-400">{{ getValuesOfKey(ontology_type)?.length }}</span>
+              <mat-panel-description *ngIf="getKey(ontology_type) !== 'rico'" class="justify-end">
+                <span class="text-xs text-gray-400">{{ getValuesOfKey(ontology_type).length }}</span>
               </mat-panel-description>
             </mat-expansion-panel-header>
 
@@ -176,7 +176,14 @@
                   [attr.id]="'accordion-header-' + index"
                   [attr.aria-expanded]="accordionItem.expanded"
                   [attr.aria-controls]="'accordion-body-' + index">
-                <span>{{ item.title }}</span>
+
+                <div class="flex items-center justify-between w-full">
+                  <span>{{ item.title }}</span>
+                  <span *ngIf="index !== 1 " class="text-xs text-gray-400 mr-2">({{ item.values.length }})</span>
+                  <span *ngIf="index === 1 " class="text-xs text-gray-400 mr-2">({{ getValuesOfKey(ontology_type).length }})</span>
+
+                  
+                </div>
 
                 <span class="example-accordion-item-description flex items-center">
                   <svg
