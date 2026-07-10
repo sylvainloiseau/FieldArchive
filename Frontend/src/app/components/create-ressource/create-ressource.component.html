@@ -3,11 +3,28 @@
 
     <!-- Entity Type -->
     <div class="w-full">
-      <div class="flex items-center justify-between mb-3">
-        <label class="block text-sm font-medium text-gray-700">
-          Entity type *
-        </label>
-      </div>
+<div class="flex items-center justify-between mb-3">
+  <label class="flex items-center gap-3 text-sm font-medium text-gray-700">
+    Entity type(s) *
+
+    <button
+      type="button"
+      class="grid place-items-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition leading-none"
+      title="Add new type"
+    >
+      <svg
+        class="w-5 h-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
+      </svg>
+    </button>
+
+  </label>
+</div>
 
       <!-- Mode toggle -->
       @if(dialogData === null && inputData === undefined) {
