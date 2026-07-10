@@ -130,6 +130,31 @@ ipcMain.handle('select-file', async () => {
 });
 
 // ─────────────────────────────────────────────
+// 5b. IPC - FILE EXPORT (SAVE)
+// ─────────────────────────────────────────────
+
+ipcMain.handle('save-file', async (event, data, suggestedName) => {
+  const win = BrowserWindow.fromWebContents(event.sender);
+
+  const { canceled, filePath } = await dialog.showSaveDialog(win, {
+    defaultPath: suggestedName,
+    filters: [{ name: 'Turtle', extensions: ['ttl'] }],
+  });
+
+  if (canceled || !filePath) {
+    return { success: false, canceled: true };
+  }
+
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(filePath, Buffer.from(data));
+    return { success: true, filePath };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+});
+
+// ─────────────────────────────────────────────
 // 4. CYCLE DE VIE D'ELECTRON
 // ─────────────────────────────────────────────
 

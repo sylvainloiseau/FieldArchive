@@ -22,5 +22,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // ✅ NEW FEATURE
-  selectFile: () => ipcRenderer.invoke('select-file')
+  selectFile: () => ipcRenderer.invoke('select-file'),
+  
+  saveFile: (data, suggestedName) => ipcRenderer.invoke('save-file', data, suggestedName),
+
 });
