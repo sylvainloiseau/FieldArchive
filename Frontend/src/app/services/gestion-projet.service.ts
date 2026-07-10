@@ -4,6 +4,7 @@ import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { ProjectDto, OpenProjectRequest } from '../models/project.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -144,6 +145,14 @@ export class GestionProjetService {
       reportProgress: true,
       observe: 'events'
     });
+  }
+
+  async exportInternalDataSource(): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.API_BASE}/export/internal`, {
+        responseType: 'blob',
+      })
+    );
   }
 
 
