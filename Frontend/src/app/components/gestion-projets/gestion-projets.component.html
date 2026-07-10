@@ -631,6 +631,7 @@
           Update Project
         </button>
 
+        @if (selectedProject?.name === originalProject!.name) {
         <button
           (click)="onOpenProject(selectedProject)"
           [disabled]="activeProject?.name === selectedProject.name || isLoading"
@@ -640,9 +641,10 @@
           </svg>
           {{ activeProject?.name === selectedProject.name ? 'Project Already Active' : 'Open project' }}
         </button>
+      }
 
-        @if (activeProject?.name === originalProject!.name) {
-          @if (activeProject?.name === originalProject!.name) {
+      @if (activeProject?.name === originalProject!.name ) {
+
           <button
             (click)="goToSources()"
             class="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
@@ -652,7 +654,17 @@
             </svg>
             Manage Data Sources
           </button>
-          }
+
+          <button
+            (click)="onExportInternal(); $event.stopPropagation()"
+            [disabled]="isLoading"
+            class="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 0L8 8m4-4l4 4"/>
+            </svg>
+            Export Internal DataSource
+          </button>
 
           <button
             (click)="onCloseProject()"

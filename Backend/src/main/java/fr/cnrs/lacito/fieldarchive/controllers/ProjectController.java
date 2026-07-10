@@ -3,8 +3,10 @@ package fr.cnrs.lacito.fieldarchive.controllers;
 import fr.cnrs.lacito.fieldarchive.dtos.*;
 import fr.cnrs.lacito.fieldarchive.dtos.*;
 import fr.cnrs.lacito.fieldarchive.exceptions.ImportException;
+import fr.cnrs.lacito.fieldarchive.services.FileExportService;
 import fr.cnrs.lacito.fieldarchive.services.FileImportService;
 import fr.cnrs.lacito.fieldarchive.services.ProjectService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,10 +25,19 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final FileImportService fileImportService;
+    private final FileExportService fileExportService;
 
-    public ProjectController(ProjectService projectService, FileImportService fileImportService) {
+    public ProjectController(ProjectService projectService, FileImportService fileImportService, FileExportService fileExportService) {
         this.projectService = projectService;
         this.fileImportService = fileImportService;
+        this.fileExportService = fileExportService;
+    }
+
+    @GetMapping(value = "/export/internal", produces = "text/turtle")
+    public void exportInternal(HttpServletResponse response) throws IOException {
+        response.setContentType("text/turtle");
+        response.setHeader("Content-Disposition", "attachment; filename=\"internal-data.ttl\"");
+        fileExportService.exportInternalDataSource(response.getOutputStream());
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

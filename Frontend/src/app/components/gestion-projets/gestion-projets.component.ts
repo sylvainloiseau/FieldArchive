@@ -97,6 +97,44 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
       }
     });
   }
+  private async saveViaElectron(blob: Blob, filename: string): Promise<void> {
+    const buffer = await blob.arrayBuffer();
+    const result = await (window as any).electronAPI.saveFile(new Uint8Array(buffer), filename);
+
+    if (!result.success) {
+      if (!result.canceled) {
+        // show an error toast/snackbar here
+        console.error('Save failed:', result.error);
+      }
+      return;
+    }
+
+    // show a success message with result.filePath
+    this.snackBar.open('File saved successfully.', 'Close', { duration: 3000 });
+  }
+
+  private saveViaBrowser(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async onExportInternal() {
+    const blob = await this.projectService.exportInternalDataSource();
+    const filename = `${this.activeProject?.name}-internal-export.ttl`;
+
+    const isElectron = !!(window as any).electronAPI;
+
+    if (isElectron) {
+      await this.saveViaElectron(blob, filename);
+    } else {
+      this.saveViaBrowser(blob, filename);
+    }
+  }
+
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
