@@ -23,9 +23,11 @@ public class FileImportService {
 
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private final ProjectService projectService;
+    private final DataSourceService dsService;
 
-    public FileImportService(ProjectService projectService) {
+    public FileImportService(ProjectService projectService, DataSourceService dsService) {
         this.projectService = projectService;
+        this.dsService = dsService;
     }
 
     public ImportResult importTurtle(InputStream ttlStream, String baseURI) {
@@ -35,7 +37,10 @@ public class FileImportService {
         }
 //        IRI CTX_INTERNAL = SimpleValueFactory.getInstance()
 //                .createIRI("http://fieldarchive.local/source/" + sourceName);
-        IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
+//        IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
+        String projectName = projectService.readCurrentProject().name;
+        IRI CTX_INTERNAL = dsService.getGraphIri(projectName + "_internal"); // ✅ lu depuis les métadonnées
+
         try (RepositoryConnection conn = repo.getConnection()) {
             conn.begin();
 

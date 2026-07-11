@@ -135,6 +135,19 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     }
   }
 
+  async onExportBackup() {
+    const blob = await this.projectService.exportBackup();
+    const filename = `${this.activeProject?.name}-backup.zip`;
+
+    const isElectron = !!(window as any).electronAPI;
+
+    if (isElectron) {
+      await this.saveViaElectron(blob, filename);
+    } else {
+      this.saveViaBrowser(blob, filename);
+    }
+  }
+
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
