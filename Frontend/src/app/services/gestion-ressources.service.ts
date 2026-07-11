@@ -11,6 +11,7 @@ export class GestionRessourcesService {
   private apiUrl = 'http://localhost:8080/sparql';
   private ontologyUrl = 'http://localhost:8080/ontology';
   private rdfUrl = 'http://localhost:8080/rdf';
+  private ricoGraphIri = 'http://cnrs.lacito/app#/context/ontology/rico'; // ⚠️ à vérifier exactement contre RdfContexts.CTX_ONTO_RICO
 
   constructor(
     private http: HttpClient,
@@ -135,15 +136,16 @@ export class GestionRessourcesService {
 
   getAllRicoClasses(): Observable<any> {
     const objt = {
-      "query": "PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type ?label WHERE { GRAPH <http://uspn.fr/app#context/ontology/rico> { { ?type a owl:Class . } UNION { ?type a rdfs:Class . } FILTER(STRSTARTS(STR(?type), \"https://www.ica.org/standards/RiC/ontology#\")) OPTIONAL { ?type rdfs:label ?label . FILTER(lang(?label) = \"\" || langMatches(lang(?label), \"en\") || langMatches(lang(?label), \"fr\")) } } } ORDER BY ?type"
+      query: `PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type ?label WHERE { GRAPH <${this.ricoGraphIri}> { { ?type a owl:Class . } UNION { ?type a rdfs:Class . } FILTER(STRSTARTS(STR(?type), "https://www.ica.org/standards/RiC/ontology#")) OPTIONAL { ?type rdfs:label ?label . FILTER(lang(?label) = "" || langMatches(lang(?label), "en") || langMatches(lang(?label), "fr")) } } } ORDER BY ?type`
     };
     return this.http.post<any>(`${this.apiUrl}/select`, objt);
   }
+
   // BIND(IRI(CONCAT("https://www.ica.org/standards/RiC/ontology#", "${type}")) AS ?selectedClass)
 
   getPredicatesByTypeRico(type: string): Observable<any[]> {
     const objt = {
-      query: `PREFIX rico: <https://www.ica.org/standards/RiC/ontology#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT DISTINCT ?p ?label ?domain ?range ?valueKind WHERE { GRAPH <http://uspn.fr/app#context/ontology/rico> { BIND(rico:${type} AS ?selectedClass) ?selectedClass rdfs:subClassOf* ?domain . ?p rdfs:domain ?domain . FILTER(STRSTARTS(STR(?p), "https://www.ica.org/standards/RiC/ontology#")) OPTIONAL { ?p rdfs:label ?label . FILTER(lang(?label) = "" || langMatches(lang(?label), "en") || langMatches(lang(?label), "fr")) } OPTIONAL { ?p rdfs:range ?range . } BIND(IF(EXISTS { ?p a owl:ObjectProperty . }, "iri", IF(EXISTS { ?p a owl:DatatypeProperty . }, "literal", "unknown")) AS ?valueKind) } } ORDER BY ?p`
+      query: `PREFIX rico: <https://www.ica.org/standards/RiC/ontology#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT DISTINCT ?p ?label ?domain ?range ?valueKind WHERE { GRAPH <${this.ricoGraphIri}> { BIND(rico:${type} AS ?selectedClass) ?selectedClass rdfs:subClassOf* ?domain . ?p rdfs:domain ?domain . FILTER(STRSTARTS(STR(?p), "https://www.ica.org/standards/RiC/ontology#")) OPTIONAL { ?p rdfs:label ?label . FILTER(lang(?label) = "" || langMatches(lang(?label), "en") || langMatches(lang(?label), "fr")) } OPTIONAL { ?p rdfs:range ?range . } BIND(IF(EXISTS { ?p a owl:ObjectProperty . }, "iri", IF(EXISTS { ?p a owl:DatatypeProperty . }, "literal", "unknown")) AS ?valueKind) } } ORDER BY ?p`
     };
 
     return this.http.post<any[]>(`${this.apiUrl}/select`, objt);

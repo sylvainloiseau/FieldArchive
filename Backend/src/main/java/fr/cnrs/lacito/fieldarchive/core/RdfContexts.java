@@ -5,10 +5,6 @@ public final class RdfContexts {
 
     // Contexte où on stocke les METADONNEES des sources (en RDF)
     // graphe nommé pour les métadonnées (projet, sources de données, etc.)
-    public static final String CTX_META = RdfNamespaces.APP + "context/metadata";
-
-    // Contexte éditable interne (source interne)
-    public static final String CTX_INTERNAL = RdfNamespaces.APP + "context/internal";
-
-    public static final String CTX_ONTO_RICO = RdfNamespaces.APP + "context/ontology/rico";
+    public static final String CTX_META = RdfNamespaces.APP + "/context/metadata";
+    public static final String CTX_ONTO_RICO = RdfNamespaces.APP + "/context/ontology/rico";
 }

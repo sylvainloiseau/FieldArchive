@@ -33,6 +33,13 @@ public class ProjectController {
         this.fileExportService = fileExportService;
     }
 
+    @GetMapping(value = "/export/backup", produces = "application/zip")
+    public void exportBackup(HttpServletResponse response) throws IOException {
+        response.setContentType("application/zip");
+        response.setHeader("Content-Disposition", "attachment; filename=\"project-backup.zip\"");
+        fileExportService.exportBackup(response.getOutputStream());
+    }
+
     @GetMapping(value = "/export/internal", produces = "text/turtle")
     public void exportInternal(HttpServletResponse response) throws IOException {
         response.setContentType("text/turtle");

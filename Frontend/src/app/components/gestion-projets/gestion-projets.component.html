@@ -667,6 +667,17 @@
           </button>
 
           <button
+            (click)="onExportBackup(); $event.stopPropagation()"
+            [disabled]="isLoading"
+            class="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12V4m0 0L8 8m4-4l4 4"/>
+            </svg>
+            Export Backup Project
+          </button>
+
+          <button
             (click)="onCloseProject()"
             class="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-sm font-medium"
           >

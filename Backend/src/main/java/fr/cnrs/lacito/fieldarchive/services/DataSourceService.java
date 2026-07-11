@@ -41,7 +41,7 @@ public class DataSourceService {
     }
 
     private IRI dsIri(String shortName) {
-        return vf.createIRI(RdfNamespaces.APP + "datasource/" + shortName);
+        return vf.createIRI(RdfNamespaces.APP + "/datasource/" + shortName);
     }
 
     /** Graphe nommé (contexte) où seront stockés les triplets "contenu" de la source */
@@ -505,4 +505,19 @@ public class DataSourceService {
         }
     }
 
+    public IRI getGraphIri(String shortName) {
+        requireProjectOpen();
+        validateShortName(shortName);
+
+        IRI ctxMeta = metaCtx();
+        IRI ds = dsIri(shortName);
+
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+            String graphIri = getIri(conn, ds, pGraph(), ctxMeta);
+            if (graphIri == null) {
+                throw new NotFoundException("No graph found for source : " + shortName);
+            }
+            return vf.createIRI(graphIri);
+        }
+    }
 }

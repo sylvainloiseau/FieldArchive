@@ -154,6 +154,13 @@ export class GestionProjetService {
       })
     );
   }
+  async exportBackup(): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.API_BASE}/export/backup`, {
+        responseType: 'blob',
+      })
+    );
+  }
 
 
 }

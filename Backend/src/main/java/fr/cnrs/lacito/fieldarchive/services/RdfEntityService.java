@@ -1,6 +1,7 @@
 package fr.cnrs.lacito.fieldarchive.services;
 
 import fr.cnrs.lacito.fieldarchive.core.ProjectContext;
+import fr.cnrs.lacito.fieldarchive.core.RdfContexts;
 import fr.cnrs.lacito.fieldarchive.core.RdfNamespaces;
 import fr.cnrs.lacito.fieldarchive.dtos.*;
 import fr.cnrs.lacito.fieldarchive.dtos.*;
@@ -22,9 +23,15 @@ public class RdfEntityService {
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
 
     private final ProjectService projectService;
+    private final DataSourceService dsService;
 
-    public RdfEntityService(ProjectService projectService) {
+    public RdfEntityService(ProjectService projectService, DataSourceService dsService) {
         this.projectService = projectService;
+        this.dsService = dsService;
+    }
+    private IRI internalCtx() {
+        String projectName = projectService.readCurrentProject().name;
+        return dsService.getGraphIri(projectName + "_internal");
     }
 
     private IRI iriFromKey(String entityIri, String key) {
@@ -88,7 +95,7 @@ public class RdfEntityService {
 
     private boolean isInternalEntity(RepositoryConnection conn, IRI subject) {
         // Si l'entité a au moins un triplet dans le graphe interne, on la considère interne/éditable
-        IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
+        IRI CTX_INTERNAL = internalCtx();
 
         try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
             return stmts.hasNext();
@@ -153,8 +160,7 @@ public class RdfEntityService {
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
             conn.begin();
-            IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
-
+            IRI CTX_INTERNAL = internalCtx();
 
             // rdf:type
             for (String t : req.types) {
@@ -184,8 +190,7 @@ public class RdfEntityService {
         if (p.kind == null || p.kind.isBlank()) {
             throw new BadRequestException("Predicate's kind is mandatory (literal|iri).");
         }
-        IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
-
+        IRI CTX_INTERNAL = internalCtx();
         IRI pred = vf.createIRI(expand(p.predicate));
 
         if ("iri".equalsIgnoreCase(p.kind)) {
@@ -277,8 +282,7 @@ public class RdfEntityService {
                     exists = st.hasNext();
                 }
                 if (!exists) throw new NotFoundException("Entité introuvable: " + subject.stringValue());
-                IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
-
+                IRI CTX_INTERNAL = internalCtx();
                 // properties (on renvoie tout ce qu’on trouve)
                 // Lire toutes les propriétés
                 try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
@@ -343,8 +347,7 @@ public class RdfEntityService {
 
             // properties (on renvoie tout ce qu’on trouve)
             // Lire toutes les propriétés
-            IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
-
+            IRI CTX_INTERNAL = internalCtx();
             try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
                 while (stmts.hasNext()) {
                     Statement st = stmts.next();
@@ -433,8 +436,7 @@ public class RdfEntityService {
                     }
 
                     IRI pred = vf.createIRI(expand(p.predicate));
-                    IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
-
+                    IRI CTX_INTERNAL = internalCtx();
                     // Supprimer anciennes valeurs dans le graphe interne
                     conn.remove(subject, pred, null, CTX_INTERNAL);
 
@@ -483,8 +485,7 @@ public class RdfEntityService {
                         "Deletion of entity is not allowed : Entity is from an external DataSource"
                 );
             }
-            IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
-
+            IRI CTX_INTERNAL = internalCtx();
             conn.begin();
             // 3 Supprimer UNIQUEMENT dans la source interne
             //Supprimer tous les triplets où l'entité est SUJET
@@ -503,16 +504,13 @@ public class RdfEntityService {
 
 
     private void touchInternalDataSource(RepositoryConnection conn) {
-        IRI ctxMeta = vf.createIRI("urn:datasource:meta");
-        IRI ds = vf.createIRI("http://uspn.fr/app#datasource/internal");
+        IRI ctxMeta = vf.createIRI(RdfContexts.CTX_META);
+        String projectName = projectService.readCurrentProject().name;
+        IRI ds = vf.createIRI(RdfNamespaces.APP + "/datasource/" + projectName + "_internal");
 
         String now = OffsetDateTime.now().toString();
-
         conn.remove(ds, vf.createIRI("http://purl.org/dc/terms/modified"), null, ctxMeta);
-        conn.add(ds,
-                vf.createIRI("http://purl.org/dc/terms/modified"),
-                vf.createLiteral(now),
-                ctxMeta);
+        conn.add(ds, vf.createIRI("http://purl.org/dc/terms/modified"), vf.createLiteral(now), ctxMeta);
     }
 
 }
