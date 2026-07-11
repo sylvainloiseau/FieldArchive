@@ -44,13 +44,16 @@ public class ProjectService {
         this.dsService = dsService;
     }
 
-    private IRI projectIri(ValueFactory vf, String projectName) {
-        return vf.createIRI(RdfNamespaces.APP + "project/" + projectName);
+    private IRI projectIri(String projectName, ValueFactory vf) {
+        return vf.createIRI(RdfNamespaces.APP + "/projects#" + projectName);
     }
 
+    private IRI metadataCtx(String projectName, ValueFactory vf) {
+        return vf.createIRI(RdfNamespaces.APP + "/projects#" +projectName+"/metadata");
+    }
 
-    private IRI metadataCtx(ValueFactory vf) {
-        return vf.createIRI(RdfContexts.CTX_META);
+    public IRI getMetadataContext(String projectName, ValueFactory vf) {
+        return metadataCtx(projectName, vf);
     }
 
     private final BuiltinOntologyService builtinOntologyService;
@@ -89,8 +92,6 @@ public class ProjectService {
         }
 
     }
-
-
 
     /**
      * Ouvre (ou crée) le repository RDF4J du projet et écrit les métadonnées du projet en RDF.
@@ -164,8 +165,8 @@ public class ProjectService {
         Repository repo = ProjectContext.getRepository();
         try (RepositoryConnection conn = repo.getConnection()) {
             ValueFactory vf = conn.getValueFactory();
-            IRI project = projectIri(vf, projectName);
-            IRI ctx = metadataCtx(vf);
+            IRI project = projectIri(projectName,vf);
+            IRI ctx = metadataCtx(projectName,vf);
 
             String now = OffsetDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             String today = LocalDate.now().toString();
@@ -253,9 +254,9 @@ public class ProjectService {
         try (RepositoryConnection conn = repo.getConnection()) {
             ValueFactory vf = conn.getValueFactory();
 
-            IRI oldProject = projectIri(vf, oldName);
-            IRI newProject = projectIri(vf, newName);
-            IRI ctx = metadataCtx(vf);
+            IRI oldProject = projectIri(oldName,vf);
+            IRI newProject = projectIri(newName,vf);
+            IRI ctx = metadataCtx(newName,vf);
 
             conn.begin();
 
@@ -305,8 +306,8 @@ public class ProjectService {
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
             ValueFactory vf = conn.getValueFactory();
-            IRI project = projectIri(vf, name);
-            IRI ctx = metadataCtx(vf);
+            IRI project = projectIri(name,vf);
+            IRI ctx = metadataCtx(name,vf);
 
             // read description
             var descSt = conn.getStatements(project, DCTERMS.DESCRIPTION, null, ctx).stream().findFirst().orElse(null);
@@ -411,8 +412,8 @@ public class ProjectService {
     private void readMetadataFromRepo(Repository repo, String projectName, Map<String, Object> info) {
         try (RepositoryConnection conn = repo.getConnection()) {
             ValueFactory vf = conn.getValueFactory();
-            IRI project = projectIri(vf, projectName);   // même helper que upsertProjectMetadata
-            IRI ctx     = metadataCtx(vf);               // même helper que upsertProjectMetadata
+            IRI project = projectIri(projectName,vf);   // même helper que upsertProjectMetadata
+            IRI ctx     = metadataCtx(projectName,vf);               // même helper que upsertProjectMetadata
 
             info.put("description", getStringValue(conn, project, DCTERMS.DESCRIPTION, ctx));
             info.put("created",     getStringValue(conn, project, DCTERMS.CREATED,     ctx));
