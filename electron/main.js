@@ -28,13 +28,13 @@ function startBackend() {
   // __dirname = Projet-RDF-App_V1/electron/
   // On remonte d'un niveau pour atteindre la racine du projet
   const projectRoot = path.join(__dirname, '..');
-  const jarPath = path.join(projectRoot, 'RDF_Back', 'target', 'RDF_Back-0.0.1-SNAPSHOT.jar');
+  const jarPath = path.join(projectRoot, 'Backend', 'target', 'Backend-0.0.1-SNAPSHOT.jar');
 
   console.log('[Electron] Chemin JAR :', jarPath);
   console.log('[Electron] Démarrage du backend Spring Boot...');
 
   backendProcess = spawn('java', ['-jar', jarPath], {
-    cwd: path.join(projectRoot, 'RDF_Back'),
+    cwd: path.join(projectRoot, 'Backend'),
     stdio: 'pipe'
   });
 
