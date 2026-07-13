@@ -137,7 +137,7 @@ export class GestionRessourcesService {
   getAllRicoClasses(): Observable<any> {
     const objt = {
       query: `PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> SELECT ?type ?label WHERE { GRAPH <${this.ricoGraphIri}> { { ?type a owl:Class . } UNION { ?type a rdfs:Class . } FILTER(STRSTARTS(STR(?type), "https://www.ica.org/standards/RiC/ontology#")) OPTIONAL { ?type rdfs:label ?label . FILTER(lang(?label) = "" || langMatches(lang(?label), "en") || langMatches(lang(?label), "fr")) } } } ORDER BY ?type`
-    };
+    };1
     return this.http.post<any>(`${this.apiUrl}/select`, objt);
   }
 
