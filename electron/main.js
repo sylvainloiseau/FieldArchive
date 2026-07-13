@@ -1,17 +1,30 @@
 // electron/main.js
 const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
-const { spawn } = require('child_process');
+const { spawn, execSync } = require('child_process');
 const path = require('path');
 const http = require('http');
 
 let mainWindow;
 let backendProcess;
 
+
+function killExistingBackendOnPort(port) {
+  try {
+    const pid = execSync(`lsof -ti :${port}`).toString().trim();
+    if (pid) {
+      console.log(`[Electron] Port ${port} déjà utilisé par PID ${pid}, arrêt...`);
+      execSync(`kill -9 ${pid}`);
+    }
+  } catch (e) {
+    console.log(`[Electron] Aucun process existant sur le port ${port} (ou lsof indisponible).`);
+  }
+}
 // ─────────────────────────────────────────────
 // 1. DÉMARRAGE DU BACKEND SPRING BOOT
 // ─────────────────────────────────────────────
 
 function startBackend() {
+  killExistingBackendOnPort(8080);
   // __dirname = Projet-RDF-App_V1/electron/
   // On remonte d'un niveau pour atteindre la racine du projet
   const projectRoot = path.join(__dirname, '..');
