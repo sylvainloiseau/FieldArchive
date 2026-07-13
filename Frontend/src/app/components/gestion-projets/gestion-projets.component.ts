@@ -114,37 +114,58 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
   }
 
   private saveViaBrowser(blob: Blob, filename: string): void {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!blob || blob.size === 0) {
+      console.error('Export failed: empty blob received');
+      this.snackBar.open('Export failed: no data received.', 'Close', { duration: 5000 });
+      return;
+    }
+
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a); // certains navigateurs (Safari) exigent que l'élément soit dans le DOM
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Export failed:', e);
+      this.snackBar.open('Export failed. See console for details.', 'Close', { duration: 5000 });
+    }
   }
 
   async onExportInternal() {
-    const blob = await this.projectService.exportInternalDataSource();
-    const filename = `${this.activeProject?.name}-internal-export.ttl`;
+    try {
+      const blob = await this.projectService.exportInternalDataSource();
+      const filename = `${this.activeProject?.name}-internal-export.ttl`;
 
-    const isElectron = !!(window as any).electronAPI;
-
-    if (isElectron) {
-      await this.saveViaElectron(blob, filename);
-    } else {
-      this.saveViaBrowser(blob, filename);
+      const isElectron = !!(window as any).electronAPI;
+      if (isElectron) {
+        await this.saveViaElectron(blob, filename);
+      } else {
+        this.saveViaBrowser(blob, filename);
+      }
+    } catch (e) {
+      console.error('Export internal failed:', e);
+      this.snackBar.open('Export failed. See console for details.', 'Close', { duration: 5000 });
     }
   }
 
   async onExportBackup() {
-    const blob = await this.projectService.exportBackup();
-    const filename = `${this.activeProject?.name}-backup.zip`;
+    try {
+      const blob = await this.projectService.exportBackup();
+      const filename = `${this.activeProject?.name}-backup.zip`;
 
-    const isElectron = !!(window as any).electronAPI;
-
-    if (isElectron) {
-      await this.saveViaElectron(blob, filename);
-    } else {
-      this.saveViaBrowser(blob, filename);
+      const isElectron = !!(window as any).electronAPI;
+      if (isElectron) {
+        await this.saveViaElectron(blob, filename);
+      } else {
+        this.saveViaBrowser(blob, filename);
+      }
+    } catch (e) {
+      console.error('Export backup failed:', e);
+      this.snackBar.open('Export failed. See console for details.', 'Close', { duration: 5000 });
     }
   }
 
