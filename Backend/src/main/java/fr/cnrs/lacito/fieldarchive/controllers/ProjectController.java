@@ -33,6 +33,18 @@ public class ProjectController {
         this.fileExportService = fileExportService;
     }
 
+    @PostMapping(value = "/import-backup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> importBackup(@RequestParam("file") MultipartFile file) {
+        try (InputStream is = file.getInputStream()) {
+            ImportResult result = fileImportService.importBackup(is);
+            return ResponseEntity.ok("Project is successfully restored !");
+        } catch (ImportException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body("Error while reading file.");
+        }
+    }
+
     @GetMapping(value = "/export/backup", produces = "application/zip")
     public void exportBackup(HttpServletResponse response) throws IOException {
         response.setContentType("application/zip");
