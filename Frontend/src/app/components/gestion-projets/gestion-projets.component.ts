@@ -59,6 +59,7 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
   ) {}
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('zipInput') zipInput!: ElementRef<HTMLInputElement>;
 
   private pendingImportProject: any | null = null;
 
@@ -97,6 +98,32 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  onBackupSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.isLoading = true;
+
+    this.projectService.importBackUpProject(file).subscribe({
+      next: () => {
+        this.isLoading = false;
+        alert('Imported backup project.');
+      },
+      error: (err) => {
+        this.isLoading = false;
+        alert("Error: " + (err.error?.message ?? 'Import failed.'));
+      }
+    });
+  }
+
+  onImportBackUpProject(project: any): void {
+    this.pendingImportProject = project;
+    this.zipInput.nativeElement.value = '';
+    this.zipInput.nativeElement.click();
+  }
+
   private async saveViaElectron(blob: Blob, filename: string): Promise<void> {
     const buffer = await blob.arrayBuffer();
     const result = await (window as any).electronAPI.saveFile(new Uint8Array(buffer), filename);
