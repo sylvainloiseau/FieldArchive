@@ -58,6 +58,24 @@ public class ProjectService {
 
     private final BuiltinOntologyService builtinOntologyService;
 
+    public void initEmptyProjectRepository(String name, boolean persistent) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Project's name should not be empty !");
+        }
+
+        Path path = Paths.get("projects", name);
+        if (Files.exists(path)) {
+            throw new IllegalArgumentException("A project with name \"" + name + "\" already exists.");
+        }
+
+        ProjectContext.close();
+
+        Repository repo = createRepository(name, persistent);
+        repo.init();
+        ProjectContext.set(repo, name);
+    }
+
+
     public ProjectDto createProject(String name, boolean persistent, String description, String prefix) {
 
         if (name == null || name.isBlank()) {
@@ -135,6 +153,9 @@ public class ProjectService {
     public void deleteProject(String projectName) throws IOException {
         if (projectName == null || projectName.isBlank()) {
             throw new IllegalArgumentException("Project name must not be empty");
+        }
+        if (projectName.equals(ProjectContext.getProjectName())) {
+            ProjectContext.close();
         }
 
         Path path = Paths.get("projects", projectName);

@@ -100,7 +100,7 @@ export class GestionProjetService {
    * Close the active project. The data remains on disk.
    */
 
-    closeProject(): Observable<void> {
+  closeProject(): Observable<void> {
     return this.http.post<void>(`${this.API_BASE}/close`, {}).pipe(
       tap(() => {
         this._activeProject$.next(null);
@@ -137,14 +137,28 @@ export class GestionProjetService {
     return throwError(() => new Error(errorMessage));
   }
 
+  importBackUpProject(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http.post<any>(`${this.API_BASE}/import-backup`, formData, 
+    // {
+    //   reportProgress: true,
+    //   observe: 'events'
+    // }
+  );
+  }
+
   importTurtleSource(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post<any>(`${this.API_BASE}/import`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    });
+    return this.http.post<any>(`${this.API_BASE}/import`, formData, 
+    // {
+    //   reportProgress: true,
+    //   observe: 'events'
+    // }
+    );
   }
 
   async exportInternalDataSource(): Promise<Blob> {
