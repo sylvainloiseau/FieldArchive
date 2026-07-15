@@ -34,14 +34,21 @@ public class ProjectController {
     }
 
     @PostMapping(value = "/import-backup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> importBackup(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Map<String, Object>> importBackup(@RequestParam("file") MultipartFile file) {
         try (InputStream is = file.getInputStream()) {
             ImportResult result = fileImportService.importBackup(is);
-            return ResponseEntity.ok("Project is successfully restored !");
+            Map<String, Object> body = new HashMap<>();
+            body.put("status", "ok");
+            body.put("message", "Project is successfully restored !");
+            body.put("project", result.message);
+            return ResponseEntity.ok(body);
+
         } catch (ImportException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body("Error while reading file.");
+            return ResponseEntity.internalServerError().body(Map.of("status", "error", "message", "Error while reading file."));
         }
     }
 
@@ -60,14 +67,19 @@ public class ProjectController {
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> importExternalTurtle(
+    public ResponseEntity<Map<String, Object>> importExternalTurtle(
             @RequestParam("file") MultipartFile file) {
 
         try (InputStream is = file.getInputStream()) {
-            ImportResult result = fileImportService.importTurtle(is, "http://www.test.com/");
-            return ResponseEntity.ok("Ok import");
+            String baseURI = projectService.readCurrentProject().prefix;
+            ImportResult result = fileImportService.importTurtle(is, baseURI);
+            Map<String, Object> body = new HashMap<>();
+            body.put("status", "ok");
+            body.put("message", "Internal DataSource was successfully updated !");
+            body.put("project", result.message);
+            return ResponseEntity.ok(body);
         } catch (ImportException e) {
-            return ResponseEntity.badRequest().body("ERROR");
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
         } catch (IOException e) {
             return ResponseEntity.internalServerError().build();
         }
