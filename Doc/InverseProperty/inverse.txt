@@ -1,0 +1,403 @@
+https://www.ica.org/standards/RiC/ontology#accumulationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#activityDocumentationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#activityIsContextOfRelation ; https://www.ica.org/standards/RiC/ontology#asConcernsActivity ;
+https://www.ica.org/standards/RiC/ontology#affectsOrAffected ; https://www.ica.org/standards/RiC/ontology#isOrWasAffectedBy ; RiC-R059 ('affects or affected' relation)
+https://www.ica.org/standards/RiC/ontology#agentControlRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#agentHasOrHadLocation ; https://www.ica.org/standards/RiC/ontology#isOrWasLocationOfAgent ;
+https://www.ica.org/standards/RiC/ontology#agentHierarchicalRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#agentTemporalRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#agentToAgentRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#appellationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#asConcernsActivity ; https://www.ica.org/standards/RiC/ontology#activityIsContextOfRelation ;
+https://www.ica.org/standards/RiC/ontology#authorityRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#authorizedBy ; https://www.ica.org/standards/RiC/ontology#authorizes ; RiC-R067i ('authorizedBy' relation)
+https://www.ica.org/standards/RiC/ontology#authorizes ; https://www.ica.org/standards/RiC/ontology#authorizedBy ; RiC-R067 ('authorizes' relation)
+https://www.ica.org/standards/RiC/ontology#authorizingAgent ; https://www.ica.org/standards/RiC/ontology#isAuthorizingAgentInMandateRelation ;
+https://www.ica.org/standards/RiC/ontology#authorshipRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#childRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#contained ; https://www.ica.org/standards/RiC/ontology#wasContainedBy ;
+https://www.ica.org/standards/RiC/ontology#containsOrContained ; https://www.ica.org/standards/RiC/ontology#isOrWasContainedBy ; RiC-R007 ('contains or contained' relation)
+https://www.ica.org/standards/RiC/ontology#containsTransitive ; https://www.ica.org/standards/RiC/ontology#isContainedByTransitive ;
+https://www.ica.org/standards/RiC/ontology#correspondenceRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#creationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#creationWithRole ; https://www.ica.org/standards/RiC/ontology#roleIsContextOfCreationRelation ;
+https://www.ica.org/standards/RiC/ontology#derivationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#descendanceRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#describesOrDescribed ; https://www.ica.org/standards/RiC/ontology#isOrWasDescribedBy ; RiC-R021 ('describes or described' relation)
+https://www.ica.org/standards/RiC/ontology#directlyContains ; https://www.ica.org/standards/RiC/ontology#isDirectlyContainedBy ;
+https://www.ica.org/standards/RiC/ontology#directlyFollowsInSequence ; https://www.ica.org/standards/RiC/ontology#directlyPrecedesInSequence ;
+https://www.ica.org/standards/RiC/ontology#directlyIncludes ; https://www.ica.org/standards/RiC/ontology#isDirectlyIncludedIn ;
+https://www.ica.org/standards/RiC/ontology#directlyPrecedesInSequence ; https://www.ica.org/standards/RiC/ontology#directlyFollowsInSequence ;
+https://www.ica.org/standards/RiC/ontology#documentedBy ; https://www.ica.org/standards/RiC/ontology#documents ; RiC-R033i ('documented by' relation)
+https://www.ica.org/standards/RiC/ontology#documents ; https://www.ica.org/standards/RiC/ontology#documentedBy ; RiC-R033 ('documents' relation)
+https://www.ica.org/standards/RiC/ontology#eventRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#evidences ; https://www.ica.org/standards/RiC/ontology#isEvidencedBy ; Inverse of 'is evidenced by' object property.
+https://www.ica.org/standards/RiC/ontology#existsOrExistedIn ; https://www.ica.org/standards/RiC/ontology#hasOrHadPosition ; RiC-R056 ('exists or existed in' relation)
+https://www.ica.org/standards/RiC/ontology#expressesOrExpressed ; https://www.ica.org/standards/RiC/ontology#isOrWasExpressedBy ; RiC-R064i ('expresses or expressed' relation)
+https://www.ica.org/standards/RiC/ontology#familyRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#followedInSequence ; https://www.ica.org/standards/RiC/ontology#precededInSequence ;
+https://www.ica.org/standards/RiC/ontology#followsInSequenceTransitive ; https://www.ica.org/standards/RiC/ontology#precedesInSequenceTransitive ;
+https://www.ica.org/standards/RiC/ontology#followsInTime ; https://www.ica.org/standards/RiC/ontology#precedesInTime ; RiC-R009i ('follows in time' relation)
+https://www.ica.org/standards/RiC/ontology#followsOrFollowed ; https://www.ica.org/standards/RiC/ontology#precedesOrPreceded ; RiC-R008i ('follows or followed' relation)
+https://www.ica.org/standards/RiC/ontology#functionalEquivalenceRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#groupSubdivisionRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#hadComponent ; https://www.ica.org/standards/RiC/ontology#wasComponentOf ;
+https://www.ica.org/standards/RiC/ontology#hadConstituent ; https://www.ica.org/standards/RiC/ontology#wasConstituentOf ;
+https://www.ica.org/standards/RiC/ontology#hadPart ; https://www.ica.org/standards/RiC/ontology#wasPartOf ;
+https://www.ica.org/standards/RiC/ontology#hadSubdivision ; https://www.ica.org/standards/RiC/ontology#wasSubdivisionOf ;
+https://www.ica.org/standards/RiC/ontology#hadSubevent ; https://www.ica.org/standards/RiC/ontology#wasSubeventOf ;
+https://www.ica.org/standards/RiC/ontology#hadSubordinate ; https://www.ica.org/standards/RiC/ontology#wasSubordinateTo ;
+https://www.ica.org/standards/RiC/ontology#hasAccumulator ; https://www.ica.org/standards/RiC/ontology#isAccumulatorOf ; RiC-R028 ('has accumulator' relation)
+https://www.ica.org/standards/RiC/ontology#hasActivityType ; https://www.ica.org/standards/RiC/ontology#isActivityTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasAddressee ; https://www.ica.org/standards/RiC/ontology#isAddresseeOf ; RiC-R032 ('has addressee' relation)
+https://www.ica.org/standards/RiC/ontology#hasAncestor ; https://www.ica.org/standards/RiC/ontology#hasDescendant ; RiC-R017i (has ancestor relation)
+https://www.ica.org/standards/RiC/ontology#hasAuthor ; https://www.ica.org/standards/RiC/ontology#isAuthorOf ; RiC-R079 ('has author' relation)
+https://www.ica.org/standards/RiC/ontology#hasBeginningDate ; https://www.ica.org/standards/RiC/ontology#isBeginningDateOf ; RiC-R069i ('has beginning date' relation)
+https://www.ica.org/standards/RiC/ontology#hasBirthDate ; https://www.ica.org/standards/RiC/ontology#isBirthDateOf ; RiC-R070i ('has birth date' relation)
+https://www.ica.org/standards/RiC/ontology#hasBirthPlace ; https://www.ica.org/standards/RiC/ontology#isBirthPlaceOf ;
+https://www.ica.org/standards/RiC/ontology#hasCarrierType ; https://www.ica.org/standards/RiC/ontology#isCarrierTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasChild ; https://www.ica.org/standards/RiC/ontology#isChildOf ; RiC-R018 ('has child' relation)
+https://www.ica.org/standards/RiC/ontology#hasCollector ; https://www.ica.org/standards/RiC/ontology#isCollectorOf ; RiC-R030 ('has collector' relation)
+https://www.ica.org/standards/RiC/ontology#hasComponentTransitive ; https://www.ica.org/standards/RiC/ontology#isComponentOfTransitive ;
+https://www.ica.org/standards/RiC/ontology#hasConstituentTransitive ; https://www.ica.org/standards/RiC/ontology#isConstituentOfTransitive ;
+https://www.ica.org/standards/RiC/ontology#hasContentOfType ; https://www.ica.org/standards/RiC/ontology#isContentTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasCopy ; https://www.ica.org/standards/RiC/ontology#isCopyOf ; RiC-R012 ('has copy' relation)
+https://www.ica.org/standards/RiC/ontology#hasCreationDate ; https://www.ica.org/standards/RiC/ontology#isCreationDateOf ; RiC-R080i ('has creation date' relation)
+https://www.ica.org/standards/RiC/ontology#hasCreator ; https://www.ica.org/standards/RiC/ontology#isCreatorOf ; RiC-R027 ('has creator' relation)
+https://www.ica.org/standards/RiC/ontology#hasDateType ; https://www.ica.org/standards/RiC/ontology#isDateTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasDeathDate ; https://www.ica.org/standards/RiC/ontology#isDeathDateOf ; RiC-R072i ('has death date' relation)
+https://www.ica.org/standards/RiC/ontology#hasDeathPlace ; https://www.ica.org/standards/RiC/ontology#isDeathPlaceOf ;
+https://www.ica.org/standards/RiC/ontology#hasDescendant ; https://www.ica.org/standards/RiC/ontology#hasAncestor ; RiC-R017 ('has descendant' relation)
+https://www.ica.org/standards/RiC/ontology#hasDestructionDate ; https://www.ica.org/standards/RiC/ontology#isDestructionDateOf ;
+https://www.ica.org/standards/RiC/ontology#hasDirectComponent ; https://www.ica.org/standards/RiC/ontology#isDirectComponentOf ;
+https://www.ica.org/standards/RiC/ontology#hasDirectConstituent ; https://www.ica.org/standards/RiC/ontology#isDirectConstituentOf ;
+https://www.ica.org/standards/RiC/ontology#hasDirectPart ; https://www.ica.org/standards/RiC/ontology#isDirectPartOf ;
+https://www.ica.org/standards/RiC/ontology#hasDirectSubdivision ; https://www.ica.org/standards/RiC/ontology#isDirectSubdivisionOf ;
+https://www.ica.org/standards/RiC/ontology#hasDirectSubevent ; https://www.ica.org/standards/RiC/ontology#isDirectSubeventOf ;
+https://www.ica.org/standards/RiC/ontology#hasDirectSubordinate ; https://www.ica.org/standards/RiC/ontology#isDirectSubordinateTo ;
+https://www.ica.org/standards/RiC/ontology#hasDocumentaryFormType ; https://www.ica.org/standards/RiC/ontology#isDocumentaryFormTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasDraft ; https://www.ica.org/standards/RiC/ontology#isDraftOf ; RiC-011i ('has draft' relation)
+https://www.ica.org/standards/RiC/ontology#hasEndDate ; https://www.ica.org/standards/RiC/ontology#isEndDateOf ; RiC-R071i ('has end date' relation)
+https://www.ica.org/standards/RiC/ontology#hasEventType ; https://www.ica.org/standards/RiC/ontology#isEventTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasExtent ; https://www.ica.org/standards/RiC/ontology#isExtentOf ;
+https://www.ica.org/standards/RiC/ontology#hasExtentType ; https://www.ica.org/standards/RiC/ontology#isExtentTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasFamilyAssociationWith ;  ; RiC-R047 ('has family association with' relation)
+https://www.ica.org/standards/RiC/ontology#hasFamilyType ; https://www.ica.org/standards/RiC/ontology#isFamilyTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasGeneticLinkToRecordResource ;  ; RiC-R023 ('has genetic link to record resource' relation)
+https://www.ica.org/standards/RiC/ontology#hasIdentifierType ; https://www.ica.org/standards/RiC/ontology#isIdentifierTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasModificationDate ; https://www.ica.org/standards/RiC/ontology#isModificationDateOf ; RiC-R073i ('has modification date' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadAgentName ; https://www.ica.org/standards/RiC/ontology#isOrWasAgentNameOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithCategory ; https://www.ica.org/standards/RiC/ontology#isOrWasCategoryOfAllMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithContentType ; https://www.ica.org/standards/RiC/ontology#isOrWasContentTypeOfAllMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithCreationDate ; https://www.ica.org/standards/RiC/ontology#isOrWasCreationDateOfAllMembersOf ; RiC-R081i ('has or had all members with creation date' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithDocumentaryFormType ; https://www.ica.org/standards/RiC/ontology#isOrWasDocumentaryFormTypeOfAllMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithLanguage ; https://www.ica.org/standards/RiC/ontology#isOrWasLanguageOfAllMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithLegalStatus ; https://www.ica.org/standards/RiC/ontology#isOrWasLegalStatusOfAllMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithRecordState ; https://www.ica.org/standards/RiC/ontology#isOrWasRecordStateOfAllMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAnalogueInstantiation ; https://www.ica.org/standards/RiC/ontology#isOrWasAnalogueInstantiationOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAppellation ; https://www.ica.org/standards/RiC/ontology#isOrWasAppellationOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadAuthorityOver ; https://www.ica.org/standards/RiC/ontology#isOrWasUnderAuthorityOf ; RiC-R036 ('has or had authority over' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadCategory ; https://www.ica.org/standards/RiC/ontology#isOrWasCategoryOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadComponent ; https://www.ica.org/standards/RiC/ontology#isOrWasComponentOf ; RiC-R004 ('has or had component' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadConstituent ; https://www.ica.org/standards/RiC/ontology#isOrWasConstituentOf ; RiC-R003 ('has or had constituent' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadController ; https://www.ica.org/standards/RiC/ontology#isOrWasControllerOf ; RiC-R041i ('has or had controller' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadCoordinates ; https://www.ica.org/standards/RiC/ontology#isOrWasCoordinatesOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadCorporateBodyType ; https://www.ica.org/standards/RiC/ontology#isOrWasCorporateBodyTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadCorrespondent ;  ; RiC-R052 ('has or had correspondent' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadDemographicGroup ; https://www.ica.org/standards/RiC/ontology#isOrWasDemographicGroupOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadDerivedInstantiation ; https://www.ica.org/standards/RiC/ontology#isOrWasDerivedFromInstantiation ; RiC-R014 ('has or had derived instantiation' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadDigitalInstantiation ; https://www.ica.org/standards/RiC/ontology#isOrWasDigitalInstantiationOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadEmployer ; https://www.ica.org/standards/RiC/ontology#isOrWasEmployerOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadHolder ; https://www.ica.org/standards/RiC/ontology#isOrWasHolderOf ; RiC-R039i ('has or had holder' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadIdentifier ; https://www.ica.org/standards/RiC/ontology#isOrWasIdentifierOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadInstantiation ; https://www.ica.org/standards/RiC/ontology#isOrWasInstantiationOf ; RiC-R025 ('has or had instantiation' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadIntellectualPropertyRightsHolder ; https://www.ica.org/standards/RiC/ontology#isOrWasHolderOfIntellectualPropertyRightsOf ; RiC-R040i ('has or had intellectual property rights holder ' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadJurisdiction ; https://www.ica.org/standards/RiC/ontology#isOrWasJurisdictionOf ; RiC-R076i ('has or had jurisdiction' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadLanguage ; https://www.ica.org/standards/RiC/ontology#isOrWasLanguageOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadLeader ; https://www.ica.org/standards/RiC/ontology#isOrWasLeaderOf ; RiC-R042i ('has or had leader' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadLegalStatus ; https://www.ica.org/standards/RiC/ontology#isOrWasLegalStatusOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadLocation ; https://www.ica.org/standards/RiC/ontology#isOrWasLocationOf ; RiC-R075i ('has or had location' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadMainSubject ; https://www.ica.org/standards/RiC/ontology#isOrWasMainSubjectOf ; RiC-R020 ('has or had main subject' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadManager ; https://www.ica.org/standards/RiC/ontology#isOrWasManagerOf ; RiC-R038i ('is or was managed by' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadMandateType ; https://www.ica.org/standards/RiC/ontology#isOrWasMandateTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadMember ; https://www.ica.org/standards/RiC/ontology#isOrWasMemberOf ; RiC-R055 ('has or had member' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadMostMembersWithCreationDate ; https://www.ica.org/standards/RiC/ontology#isOrWasCreationDateOfMostMembersOf ; RiC-R083i ('has or had most members with creation date' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadName ; https://www.ica.org/standards/RiC/ontology#isOrWasNameOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadOccupationOfType ; https://www.ica.org/standards/RiC/ontology#isOrWasOccupationTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadOwner ; https://www.ica.org/standards/RiC/ontology#isOrWasOwnerOf ; RiC-R037i ('has or had owner' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadPart ; https://www.ica.org/standards/RiC/ontology#isOrWasPartOf ; RiC-R002 ('has or had part' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadParticipant ; https://www.ica.org/standards/RiC/ontology#isOrWasParticipantIn ; RiC-R058 ('has or had participant' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadPhysicalLocation ; https://www.ica.org/standards/RiC/ontology#isOrWasPhysicalLocationOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadPlaceName ; https://www.ica.org/standards/RiC/ontology#isOrWasPlaceNameOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadPlaceType ; https://www.ica.org/standards/RiC/ontology#isOrWasPlaceTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadPosition ; https://www.ica.org/standards/RiC/ontology#existsOrExistedIn ; RiC-R056i ('has or had position' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadRuleType ; https://www.ica.org/standards/RiC/ontology#isOrWasRuleTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithCategory ; https://www.ica.org/standards/RiC/ontology#isOrWasCategoryOfSomeMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithContentType ; https://www.ica.org/standards/RiC/ontology#isOrWasContentTypeOfSomeMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithCreationDate ; https://www.ica.org/standards/RiC/ontology#isOrWasCreationDateOfSomeMembersOf ; RiC-R082i ('has or had some members with creation date' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithDocumentaryFormType ; https://www.ica.org/standards/RiC/ontology#isOrWasDocumentaryFormTypeOfSomeMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithLanguage ; https://www.ica.org/standards/RiC/ontology#isOrWasLanguageOfSomeMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithLegalStatus ; https://www.ica.org/standards/RiC/ontology#isOrWasLegalStatusOfSomeMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithRecordState ; https://www.ica.org/standards/RiC/ontology#isOrWasRecordStateOfSomeMembersOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadSpouse ;  ; RiC-R049 ('has or had spouse' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadStudent ; https://www.ica.org/standards/RiC/ontology#hasOrHadTeacher ; RiC-R053i ('has or had student' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadSubdivision ; https://www.ica.org/standards/RiC/ontology#isOrWasSubdivisionOf ; RiC-R005 ('has or had subdivision' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadSubevent ; https://www.ica.org/standards/RiC/ontology#isOrWasSubeventOf ; RiC-R006 ('has or had subevent' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadSubject ; https://www.ica.org/standards/RiC/ontology#isOrWasSubjectOf ; RiC-R019 ('has or had subject' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadSubordinate ; https://www.ica.org/standards/RiC/ontology#isOrWasSubordinateTo ; RiC-R045 ('has or had subordinate ' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadTeacher ; https://www.ica.org/standards/RiC/ontology#hasOrHadStudent ; RiC-R053 ('has or had teacher' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrHadTitle ; https://www.ica.org/standards/RiC/ontology#isOrWasTitleOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrHadWorkRelationWith ;  ; RiC-R046 ('has or had work relation with' relation)
+https://www.ica.org/standards/RiC/ontology#hasOrganicOrFunctionalProvenance ; https://www.ica.org/standards/RiC/ontology#isOrganicOrFunctionalProvenanceOf ;
+https://www.ica.org/standards/RiC/ontology#hasOrganicProvenance ; https://www.ica.org/standards/RiC/ontology#isOrganicProvenanceOf ; RiC-R026 ('has provenance' relation)
+https://www.ica.org/standards/RiC/ontology#hasOriginal ; https://www.ica.org/standards/RiC/ontology#isOriginalOf ; RiC-R010i ('is original of' relation)
+https://www.ica.org/standards/RiC/ontology#hasPartTransitive ; https://www.ica.org/standards/RiC/ontology#isPartOfTransitive ;
+https://www.ica.org/standards/RiC/ontology#hasProductionTechniqueType ; https://www.ica.org/standards/RiC/ontology#isProductionTechniqueTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasPublicationDate ; https://www.ica.org/standards/RiC/ontology#isPublicationDateOf ;
+https://www.ica.org/standards/RiC/ontology#hasPublisher ; https://www.ica.org/standards/RiC/ontology#isPublisherOf ;
+https://www.ica.org/standards/RiC/ontology#hasReceiver ; https://www.ica.org/standards/RiC/ontology#isReceiverOf ; RiC-R029 ('has receiver' relation)
+https://www.ica.org/standards/RiC/ontology#hasRecordSetType ; https://www.ica.org/standards/RiC/ontology#isRecordSetTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasRecordState ; https://www.ica.org/standards/RiC/ontology#isRecordStateOf ;
+https://www.ica.org/standards/RiC/ontology#hasReply ; https://www.ica.org/standards/RiC/ontology#isReplyTo ; RiC-R013 ('has reply' relation)
+https://www.ica.org/standards/RiC/ontology#hasRepresentationType ; https://www.ica.org/standards/RiC/ontology#isRepresentationTypeOf ;
+https://www.ica.org/standards/RiC/ontology#hasSender ; https://www.ica.org/standards/RiC/ontology#isSenderOf ; RiC-R031 ('has sender' relation)
+https://www.ica.org/standards/RiC/ontology#hasSibling ;  ; RiC-R048 ('has sibling' relation)
+https://www.ica.org/standards/RiC/ontology#hasSubdivisionTransitive ; https://www.ica.org/standards/RiC/ontology#isSubdivisionOfTransitive ;
+https://www.ica.org/standards/RiC/ontology#hasSubeventTransitive ; https://www.ica.org/standards/RiC/ontology#isSubeventOfTransitive ;
+https://www.ica.org/standards/RiC/ontology#hasSubordinateTransitive ; https://www.ica.org/standards/RiC/ontology#isSubordinateToTransitive ;
+https://www.ica.org/standards/RiC/ontology#hasSuccessor ; https://www.ica.org/standards/RiC/ontology#isSuccessorOf ; RIC-R016 ('has successor' relation)
+http://www.w3.org/2004/02/skos/core#hasTopConcept ; http://www.w3.org/2004/02/skos/core#topConceptOf ;
+https://www.ica.org/standards/RiC/ontology#hasUnitOfMeasurement ; https://www.ica.org/standards/RiC/ontology#isUnitOfMeasurementOf ;
+https://www.ica.org/standards/RiC/ontology#hasWithin ; https://www.ica.org/standards/RiC/ontology#isWithin ; RiC-R085i ('has within' relation)
+https://www.ica.org/standards/RiC/ontology#included ; https://www.ica.org/standards/RiC/ontology#wasIncludedIn ;
+https://www.ica.org/standards/RiC/ontology#includesOrIncluded ; https://www.ica.org/standards/RiC/ontology#isOrWasIncludedIn ; RiC-R024 ('includes or included' relation)
+https://www.ica.org/standards/RiC/ontology#includesTransitive ; https://www.ica.org/standards/RiC/ontology#isIncludedInTransitive ;
+http://www.w3.org/2004/02/skos/core#inScheme ;  ;
+https://www.ica.org/standards/RiC/ontology#instantiationToInstantiationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#intellectualPropertyRightsRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#intersects ;  ; RiC-R086 ('intersects' relation)
+https://www.ica.org/standards/RiC/ontology#isAccumulatorOf ; https://www.ica.org/standards/RiC/ontology#hasAccumulator ; RiC-R028i ('is accumulator of' relation)
+https://www.ica.org/standards/RiC/ontology#isActivityTypeOf ; https://www.ica.org/standards/RiC/ontology#hasActivityType ;
+https://www.ica.org/standards/RiC/ontology#isAddresseeOf ; https://www.ica.org/standards/RiC/ontology#hasAddressee ; RiC-032i ('is addressee of' relation)
+https://www.ica.org/standards/RiC/ontology#isAgentAssociatedWithAgent ;  ; RiC-R044 ('is agent associated with agent' relation)
+https://www.ica.org/standards/RiC/ontology#isAgentAssociatedWithPlace ; https://www.ica.org/standards/RiC/ontology#isPlaceAssociatedWithAgent ;
+https://www.ica.org/standards/RiC/ontology#isAssociatedWithDate ; https://www.ica.org/standards/RiC/ontology#isDateAssociatedWith ; RiC-R068i ('is associated with date' relation)
+https://www.ica.org/standards/RiC/ontology#isAssociatedWithEvent ; https://www.ica.org/standards/RiC/ontology#isEventAssociatedWith ; RiC-R057i ('is associated with event' relation)
+https://www.ica.org/standards/RiC/ontology#isAssociatedWithPlace ; https://www.ica.org/standards/RiC/ontology#isPlaceAssociatedWith ; RiC-R074i ('is associated with place' relation)
+https://www.ica.org/standards/RiC/ontology#isAssociatedWithRule ; https://www.ica.org/standards/RiC/ontology#isRuleAssociatedWith ; RiC-R062i ('is associated with rule' relation)
+https://www.ica.org/standards/RiC/ontology#isAuthorOf ; https://www.ica.org/standards/RiC/ontology#hasAuthor ; RiC-R079i ('is author of' relation)
+https://www.ica.org/standards/RiC/ontology#isAuthorizingAgentInMandateRelation ; https://www.ica.org/standards/RiC/ontology#authorizingAgent ;
+https://www.ica.org/standards/RiC/ontology#isBeginningDateOf ; https://www.ica.org/standards/RiC/ontology#hasBeginningDate ; RiC-R069 ('is beginning date of' relation)
+https://www.ica.org/standards/RiC/ontology#isBirthDateOf ; https://www.ica.org/standards/RiC/ontology#hasBirthDate ; RiC-R070 ('is birth date of' relation)
+https://www.ica.org/standards/RiC/ontology#isBirthPlaceOf ; https://www.ica.org/standards/RiC/ontology#hasBirthPlace ;
+https://www.ica.org/standards/RiC/ontology#isCarrierTypeOf ; https://www.ica.org/standards/RiC/ontology#hasCarrierType ;
+https://www.ica.org/standards/RiC/ontology#isChildOf ; https://www.ica.org/standards/RiC/ontology#hasChild ; RiC-R018i ('is child of' relation)
+https://www.ica.org/standards/RiC/ontology#isCollectorOf ; https://www.ica.org/standards/RiC/ontology#hasCollector ; RiC-R030i ('is collector of' relation)
+https://www.ica.org/standards/RiC/ontology#isComponentOfTransitive ; https://www.ica.org/standards/RiC/ontology#hasComponentTransitive ;
+https://www.ica.org/standards/RiC/ontology#isConstituentOfTransitive ; https://www.ica.org/standards/RiC/ontology#hasConstituentTransitive ;
+https://www.ica.org/standards/RiC/ontology#isContainedByTransitive ; https://www.ica.org/standards/RiC/ontology#containsTransitive ;
+https://www.ica.org/standards/RiC/ontology#isContentTypeOf ; https://www.ica.org/standards/RiC/ontology#hasContentOfType ;
+https://www.ica.org/standards/RiC/ontology#isCopyOf ; https://www.ica.org/standards/RiC/ontology#hasCopy ; RiC-R012i ('is copy of' relation)
+https://www.ica.org/standards/RiC/ontology#isCreationDateOf ; https://www.ica.org/standards/RiC/ontology#hasCreationDate ; RiC-R080 ('is creation date of' relation)
+https://www.ica.org/standards/RiC/ontology#isCreatorOf ; https://www.ica.org/standards/RiC/ontology#hasCreator ; RiC-R027i ('is creator of 'relation')
+https://www.ica.org/standards/RiC/ontology#isDateAssociatedWith ; https://www.ica.org/standards/RiC/ontology#isAssociatedWithDate ; RiC-R068 ('is date associated with' relation)
+https://www.ica.org/standards/RiC/ontology#isDateOfOccurrenceOf ; https://www.ica.org/standards/RiC/ontology#occurredAtDate ; RiC-R084 ('is date of occurrence of' relation)
+https://www.ica.org/standards/RiC/ontology#isDateTypeOf ; https://www.ica.org/standards/RiC/ontology#hasDateType ;
+https://www.ica.org/standards/RiC/ontology#isDeathDateOf ; https://www.ica.org/standards/RiC/ontology#hasDeathDate ; RiC-R072 ('is death date of' relation)
+https://www.ica.org/standards/RiC/ontology#isDeathPlaceOf ; https://www.ica.org/standards/RiC/ontology#hasDeathPlace ;
+https://www.ica.org/standards/RiC/ontology#isDestructionDateOf ; https://www.ica.org/standards/RiC/ontology#hasDestructionDate ;
+https://www.ica.org/standards/RiC/ontology#isDirectComponentOf ; https://www.ica.org/standards/RiC/ontology#hasDirectComponent ;
+https://www.ica.org/standards/RiC/ontology#isDirectConstituentOf ; https://www.ica.org/standards/RiC/ontology#hasDirectConstituent ;
+https://www.ica.org/standards/RiC/ontology#isDirectPartOf ; https://www.ica.org/standards/RiC/ontology#hasDirectPart ;
+https://www.ica.org/standards/RiC/ontology#isDirectSubdivisionOf ; https://www.ica.org/standards/RiC/ontology#hasDirectSubdivision ;
+https://www.ica.org/standards/RiC/ontology#isDirectSubeventOf ; https://www.ica.org/standards/RiC/ontology#hasDirectSubevent ;
+https://www.ica.org/standards/RiC/ontology#isDirectSubordinateTo ; https://www.ica.org/standards/RiC/ontology#hasDirectSubordinate ;
+https://www.ica.org/standards/RiC/ontology#isDirectlyContainedBy ; https://www.ica.org/standards/RiC/ontology#directlyContains ;
+https://www.ica.org/standards/RiC/ontology#isDirectlyIncludedIn ; https://www.ica.org/standards/RiC/ontology#directlyIncludes ;
+https://www.ica.org/standards/RiC/ontology#isDocumentaryFormTypeOf ; https://www.ica.org/standards/RiC/ontology#hasDocumentaryFormType ;
+https://www.ica.org/standards/RiC/ontology#isDraftOf ; https://www.ica.org/standards/RiC/ontology#hasDraft ; RiC-R011 ('is draft of' relation)
+https://www.ica.org/standards/RiC/ontology#isEndDateOf ; https://www.ica.org/standards/RiC/ontology#hasEndDate ; RiC-R071 ('is end date of' relation)
+https://www.ica.org/standards/RiC/ontology#isEquivalentTo ;  ;
+https://www.ica.org/standards/RiC/ontology#isEventAssociatedWith ; https://www.ica.org/standards/RiC/ontology#isAssociatedWithEvent ; RiC-R057 ('is event associated with' relation)
+https://www.ica.org/standards/RiC/ontology#isEventTypeOf ; https://www.ica.org/standards/RiC/ontology#hasEventType ;
+https://www.ica.org/standards/RiC/ontology#isEvidencedBy ; https://www.ica.org/standards/RiC/ontology#evidences ; Object property implementation of RiC-RA05 (Source of Relation attribute).
+https://www.ica.org/standards/RiC/ontology#isExtentOf ; https://www.ica.org/standards/RiC/ontology#hasExtent ;
+https://www.ica.org/standards/RiC/ontology#isExtentTypeOf ; https://www.ica.org/standards/RiC/ontology#hasExtentType ;
+https://www.ica.org/standards/RiC/ontology#isFamilyTypeOf ; https://www.ica.org/standards/RiC/ontology#hasFamilyType ;
+https://www.ica.org/standards/RiC/ontology#isFromUseDateOf ; https://www.ica.org/standards/RiC/ontology#wasUsedFromDate ;
+https://www.ica.org/standards/RiC/ontology#isFunctionallyEquivalentTo ;  ; RiC-R035 ('is functionally equivalent to' relation)
+https://www.ica.org/standards/RiC/ontology#isIdentifierTypeOf ; https://www.ica.org/standards/RiC/ontology#hasIdentifierType ;
+https://www.ica.org/standards/RiC/ontology#isIncludedInTransitive ; https://www.ica.org/standards/RiC/ontology#includesTransitive ;
+https://www.ica.org/standards/RiC/ontology#isInstantiationAssociatedWithInstantiation ;  ; RiC-R034 ('is instantiation associated with instantiation' relation)
+https://www.ica.org/standards/RiC/ontology#isLastUpdateDateOf ; https://www.ica.org/standards/RiC/ontology#wasLastUpdatedAtDate ;
+https://www.ica.org/standards/RiC/ontology#isModificationDateOf ; https://www.ica.org/standards/RiC/ontology#hasModificationDate ; RiC-R073 ('is modification date of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasAdjacentTo ;  ; RiC-R077 ('is or was adjacent to' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasAffectedBy ; https://www.ica.org/standards/RiC/ontology#affectsOrAffected ; RiC-R059i ('is or was affected by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasAgentNameOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAgentName ;
+https://www.ica.org/standards/RiC/ontology#isOrWasAnalogueInstantiationOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAnalogueInstantiation ;
+https://www.ica.org/standards/RiC/ontology#isOrWasAppellationOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAppellation ;
+https://www.ica.org/standards/RiC/ontology#isOrWasCategoryOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadCategory ;
+https://www.ica.org/standards/RiC/ontology#isOrWasCategoryOfAllMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithCategory ;
+https://www.ica.org/standards/RiC/ontology#isOrWasCategoryOfSomeMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithCategory ;
+https://www.ica.org/standards/RiC/ontology#isOrWasComponentOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadComponent ; RiC-R004i ('is or was component of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasConstituentOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadConstituent ; RiC-R003i ('is or was constituent of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasContainedBy ; https://www.ica.org/standards/RiC/ontology#containsOrContained ; RiC-R007i ('is or was contained by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasContentTypeOfAllMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithContentType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasContentTypeOfSomeMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithContentType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasControllerOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadController ; RiC-R041 ('is or was controller of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasCoordinatesOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadCoordinates ;
+https://www.ica.org/standards/RiC/ontology#isOrWasCorporateBodyTypeOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadCorporateBodyType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasCreationDateOfAllMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithCreationDate ; RiC-R081 ('is or was creation date of all members of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasCreationDateOfMostMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadMostMembersWithCreationDate ; RiC-R083 ('is or was creation date of most members of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasCreationDateOfSomeMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithCreationDate ; RiC-R082 ('is or was creation date of some members of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasDemographicGroupOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadDemographicGroup ;
+https://www.ica.org/standards/RiC/ontology#isOrWasDerivedFromInstantiation ; https://www.ica.org/standards/RiC/ontology#hasOrHadDerivedInstantiation ; RiC-R014i ('is or was derived from instantiation' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasDescribedBy ; https://www.ica.org/standards/RiC/ontology#describesOrDescribed ; RiC-R021i ('is or was described by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasDigitalInstantiationOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadDigitalInstantiation ;
+https://www.ica.org/standards/RiC/ontology#isOrWasDocumentaryFormTypeOfAllMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithDocumentaryFormType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasDocumentaryFormTypeOfSomeMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithDocumentaryFormType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasEmployerOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadEmployer ;
+https://www.ica.org/standards/RiC/ontology#isOrWasEnforcedBy ; https://www.ica.org/standards/RiC/ontology#isOrWasResponsibleForEnforcing ; RiC-R066 ('is or was enforced by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasExpressedBy ; https://www.ica.org/standards/RiC/ontology#expressesOrExpressed ; RiC-R064 ('is or was expressed by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasHolderOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadHolder ; RiC-R039 ('is or was holder of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasHolderOfIntellectualPropertyRightsOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadIntellectualPropertyRightsHolder ; RiC-R040 ('is or was holder of intellectual property rights of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasIdentifierOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadIdentifier ;
+https://www.ica.org/standards/RiC/ontology#isOrWasIncludedIn ; https://www.ica.org/standards/RiC/ontology#includesOrIncluded ; RiC-R024i ('is or was included in' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasInstantiationOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadInstantiation ; RiC-R025i ('is or was instantiation of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasJurisdictionOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadJurisdiction ; RiC-R076 ('is or was jurisdiction of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasLanguageOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadLanguage ;
+https://www.ica.org/standards/RiC/ontology#isOrWasLanguageOfAllMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithLanguage ;
+https://www.ica.org/standards/RiC/ontology#isOrWasLanguageOfSomeMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithLanguage ;
+https://www.ica.org/standards/RiC/ontology#isOrWasLeaderOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadLeader ; RiC-R042 ('is or was leader of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasLegalStatusOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadLegalStatus ;
+https://www.ica.org/standards/RiC/ontology#isOrWasLegalStatusOfAllMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithLegalStatus ;
+https://www.ica.org/standards/RiC/ontology#isOrWasLegalStatusOfSomeMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithLegalStatus ;
+https://www.ica.org/standards/RiC/ontology#isOrWasLocationOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadLocation ; RiC-R075 ('is or was location of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasLocationOfAgent ; https://www.ica.org/standards/RiC/ontology#agentHasOrHadLocation ;
+https://www.ica.org/standards/RiC/ontology#isOrWasMainSubjectOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadMainSubject ; RiC-R020i ('is or was main subject of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasManagerOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadManager ; RiC-R038 ('is or was manager of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasMandateTypeOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadMandateType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasMemberOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadMember ; RiC-R055i ('is or was member of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasNameOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadName ;
+https://www.ica.org/standards/RiC/ontology#isOrWasOccupationTypeOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadOccupationOfType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasOccupiedBy ; https://www.ica.org/standards/RiC/ontology#occupiesOrOccupied ; RiC-R054i ('is or was occupied by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasOwnerOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadOwner ; RiC-R037 ('is or was owner of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasPartOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadPart ; RiC-R002i ('is or was part of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasParticipantIn ; https://www.ica.org/standards/RiC/ontology#hasOrHadParticipant ; RiC-R058i ('is or was participant in' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasPerformedBy ; https://www.ica.org/standards/RiC/ontology#performsOrPerformed ; RiC-R060 ('is or was performed by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasPhysicalLocationOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadPhysicalLocation ;
+https://www.ica.org/standards/RiC/ontology#isOrWasPlaceNameOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadPlaceName ;
+https://www.ica.org/standards/RiC/ontology#isOrWasPlaceTypeOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadPlaceType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasRecordStateOfAllMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAllMembersWithRecordState ;
+https://www.ica.org/standards/RiC/ontology#isOrWasRecordStateOfSomeMembersOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSomeMembersWithRecordState ;
+https://www.ica.org/standards/RiC/ontology#isOrWasRegulatedBy ; https://www.ica.org/standards/RiC/ontology#regulatesOrRegulated ; RiC-R063i ('is or was regulated by' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasResponsibleForEnforcing ; https://www.ica.org/standards/RiC/ontology#isOrWasEnforcedBy ; RiC-R066i ('is or was responsible for enforcing' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasRuleTypeOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadRuleType ;
+https://www.ica.org/standards/RiC/ontology#isOrWasSubdivisionOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSubdivision ; RiC-R005i ('is or was subdivision' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasSubeventOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSubevent ; RiC-R006i ('is or was subevent of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasSubjectOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadSubject ; RIc-R019i ('is or was subject of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasSubordinateTo ; https://www.ica.org/standards/RiC/ontology#hasOrHadSubordinate ; RiC-R045i ('is or was subordinate to' relation)
+https://www.ica.org/standards/RiC/ontology#isOrWasTitleOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadTitle ;
+https://www.ica.org/standards/RiC/ontology#isOrWasUnderAuthorityOf ; https://www.ica.org/standards/RiC/ontology#hasOrHadAuthorityOver ; RiC-R036i ('is or was under authority of' relation)
+https://www.ica.org/standards/RiC/ontology#isOrganicOrFunctionalProvenanceOf ; https://www.ica.org/standards/RiC/ontology#hasOrganicOrFunctionalProvenance ;
+https://www.ica.org/standards/RiC/ontology#isOrganicProvenanceOf ; https://www.ica.org/standards/RiC/ontology#hasOrganicProvenance ; RiC-R026i ('is provenance of' relation)
+https://www.ica.org/standards/RiC/ontology#isOriginalOf ; https://www.ica.org/standards/RiC/ontology#hasOriginal ; RiC-R010 (is original of relation)
+https://www.ica.org/standards/RiC/ontology#isPartOfTransitive ; https://www.ica.org/standards/RiC/ontology#hasPartTransitive ;
+https://www.ica.org/standards/RiC/ontology#isPlaceAssociatedWith ; https://www.ica.org/standards/RiC/ontology#isAssociatedWithPlace ; RiC-R074 ('is place associated with' relation)
+https://www.ica.org/standards/RiC/ontology#isPlaceAssociatedWithAgent ; https://www.ica.org/standards/RiC/ontology#isAgentAssociatedWithPlace ;
+https://www.ica.org/standards/RiC/ontology#isProductionTechniqueTypeOf ; https://www.ica.org/standards/RiC/ontology#hasProductionTechniqueType ;
+https://www.ica.org/standards/RiC/ontology#isPublicationDateOf ; https://www.ica.org/standards/RiC/ontology#hasPublicationDate ;
+https://www.ica.org/standards/RiC/ontology#isPublisherOf ; https://www.ica.org/standards/RiC/ontology#hasPublisher ;
+https://www.ica.org/standards/RiC/ontology#isReceiverOf ; https://www.ica.org/standards/RiC/ontology#hasReceiver ; RiC-R029i ('is receiver of' relation)
+https://www.ica.org/standards/RiC/ontology#isRecordResourceAssociatedWithRecordResource ;  ; RiC-R022 ('is record resource associated with record resource' relation)
+https://www.ica.org/standards/RiC/ontology#isRecordSetTypeOf ; https://www.ica.org/standards/RiC/ontology#hasRecordSetType ;
+https://www.ica.org/standards/RiC/ontology#isRecordStateOf ; https://www.ica.org/standards/RiC/ontology#hasRecordState ;
+https://www.ica.org/standards/RiC/ontology#isRelatedTo ;  ; RiC-R001 ('is related to' relation)
+https://www.ica.org/standards/RiC/ontology#isReplyTo ; https://www.ica.org/standards/RiC/ontology#hasReply ; RiC-R013i ('is reply to' relation)
+https://www.ica.org/standards/RiC/ontology#isRepresentationTypeOf ; https://www.ica.org/standards/RiC/ontology#hasRepresentationType ;
+https://www.ica.org/standards/RiC/ontology#isResponsibleForIssuing ; https://www.ica.org/standards/RiC/ontology#issuedBy ; RiC-R065i ('is responsible for issuing' relation)
+https://www.ica.org/standards/RiC/ontology#isRuleAssociatedWith ; https://www.ica.org/standards/RiC/ontology#isAssociatedWithRule ; RiC-R062 ('is rule associated with' relation)
+https://www.ica.org/standards/RiC/ontology#isSenderOf ; https://www.ica.org/standards/RiC/ontology#hasSender ; RiC-R031i ('is sender of' relation)
+https://www.ica.org/standards/RiC/ontology#isSubdivisionOfTransitive ; https://www.ica.org/standards/RiC/ontology#hasSubdivisionTransitive ;
+https://www.ica.org/standards/RiC/ontology#isSubeventOfTransitive ; https://www.ica.org/standards/RiC/ontology#hasSubeventTransitive ;
+https://www.ica.org/standards/RiC/ontology#isSubordinateToTransitive ; https://www.ica.org/standards/RiC/ontology#hasSubordinateTransitive ;
+https://www.ica.org/standards/RiC/ontology#isSuccessorOf ; https://www.ica.org/standards/RiC/ontology#hasSuccessor ; RiC-R016i ('is successor of' relation)
+https://www.ica.org/standards/RiC/ontology#isToUseDateOf ; https://www.ica.org/standards/RiC/ontology#wasUsedToDate ;
+https://www.ica.org/standards/RiC/ontology#isUnitOfMeasurementOf ; https://www.ica.org/standards/RiC/ontology#hasUnitOfMeasurement ;
+https://www.ica.org/standards/RiC/ontology#isWithin ; https://www.ica.org/standards/RiC/ontology#hasWithin ; RiC-R085 ('is within' relation)
+https://www.ica.org/standards/RiC/ontology#issuedBy ; https://www.ica.org/standards/RiC/ontology#isResponsibleForIssuing ; RiC-R065 ('issued by' relation)
+https://www.ica.org/standards/RiC/ontology#knowingOfRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#knowingRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#knownBy ; https://www.ica.org/standards/RiC/ontology#knowsOf ; RiC-R050i ('known by' relation)
+https://www.ica.org/standards/RiC/ontology#knows ;  ; RiC-R051 ('knows' relation)
+https://www.ica.org/standards/RiC/ontology#knowsOf ; https://www.ica.org/standards/RiC/ontology#knownBy ; RiC-R050 ('knows of' relation)
+https://www.ica.org/standards/RiC/ontology#leadershipRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#leadershipWithPosition ; https://www.ica.org/standards/RiC/ontology#positionIsContextOfLeadershipRelation ;
+https://www.ica.org/standards/RiC/ontology#managementRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#mandateRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#membershipRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#membershipWithPosition ; https://www.ica.org/standards/RiC/ontology#positionIsContextOfMembershipRelation ;
+https://www.ica.org/standards/RiC/ontology#migratedFrom ; https://www.ica.org/standards/RiC/ontology#migratedInto ; RiC-R015i ('migrated from' relation)
+https://www.ica.org/standards/RiC/ontology#migratedInto ; https://www.ica.org/standards/RiC/ontology#migratedFrom ; RiC-R015 ('migrated into' relation)
+https://www.ica.org/standards/RiC/ontology#migrationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#occupiesOrOccupied ; https://www.ica.org/standards/RiC/ontology#isOrWasOccupiedBy ; RiC-R054 ('occupies or occupied' relation)
+https://www.ica.org/standards/RiC/ontology#occurredAtDate ; https://www.ica.org/standards/RiC/ontology#isDateOfOccurrenceOf ; RiC-R084i ('occurred at date' relation)
+https://www.ica.org/standards/RiC/ontology#organicOrFunctionalProvenanceRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#organicProvenanceRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#overlapsOrOverlapped ;  ; RiC-R078 ('overlaps or overlapped' relation)
+https://www.ica.org/standards/RiC/ontology#ownershipRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#performanceRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#performsOrPerformed ; https://www.ica.org/standards/RiC/ontology#isOrWasPerformedBy ; RiC-R060i ('performs or performed' relation)
+https://www.ica.org/standards/RiC/ontology#placeRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#positionHoldingRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#positionIsContextOfLeadershipRelation ; https://www.ica.org/standards/RiC/ontology#leadershipWithPosition ;
+https://www.ica.org/standards/RiC/ontology#positionIsContextOfMembershipRelation ; https://www.ica.org/standards/RiC/ontology#membershipWithPosition ;
+https://www.ica.org/standards/RiC/ontology#positionToGroupRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#precededInSequence ; https://www.ica.org/standards/RiC/ontology#followedInSequence ;
+https://www.ica.org/standards/RiC/ontology#precedesInSequenceTransitive ; https://www.ica.org/standards/RiC/ontology#followsInSequenceTransitive ;
+https://www.ica.org/standards/RiC/ontology#precedesInTime ; https://www.ica.org/standards/RiC/ontology#followsInTime ; RiC-R009 ('precedes in time' relation)
+https://www.ica.org/standards/RiC/ontology#precedesOrPreceded ; https://www.ica.org/standards/RiC/ontology#followsOrFollowed ; RiC-R008 ('precedes or preceded' relation)
+https://www.ica.org/standards/RiC/ontology#proxyFor ;  ;
+https://www.ica.org/standards/RiC/ontology#proxyIn ;  ;
+https://www.ica.org/standards/RiC/ontology#recordResourceGeneticRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#recordResourceHoldingRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#recordResourceToInstantiationRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#recordResourceToRecordResourceRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#regulatesOrRegulated ; https://www.ica.org/standards/RiC/ontology#isOrWasRegulatedBy ; RiC-R063 ('regulates or regulated' relation)
+https://www.ica.org/standards/RiC/ontology#relationConnects ; https://www.ica.org/standards/RiC/ontology#thingIsConnectedToRelation ;
+https://www.ica.org/standards/RiC/ontology#relationHasContext ; https://www.ica.org/standards/RiC/ontology#thingIsContextOfRelation ;
+https://www.ica.org/standards/RiC/ontology#relationHasSource ; https://www.ica.org/standards/RiC/ontology#thingIsSourceOfRelation ;
+https://www.ica.org/standards/RiC/ontology#relationHasTarget ; https://www.ica.org/standards/RiC/ontology#thingIsTargetOfRelation ;
+https://www.ica.org/standards/RiC/ontology#relation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#resultedFromTheMergerOf ; https://www.ica.org/standards/RiC/ontology#wasMergedInto ;
+https://www.ica.org/standards/RiC/ontology#resultedFromTheSplitOf ; https://www.ica.org/standards/RiC/ontology#wasSplitInto ;
+https://www.ica.org/standards/RiC/ontology#resultsOrResultedFrom ; https://www.ica.org/standards/RiC/ontology#resultsOrResultedIn ; RiC-R061i ('results or resulted from' relation)
+https://www.ica.org/standards/RiC/ontology#resultsOrResultedIn ; https://www.ica.org/standards/RiC/ontology#resultsOrResultedFrom ; RiC-R061 ('results or resulted in' relation)
+https://www.ica.org/standards/RiC/ontology#roleIsContextOfCreationRelation ; https://www.ica.org/standards/RiC/ontology#creationWithRole ;
+https://www.ica.org/standards/RiC/ontology#ruleRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#sequentialRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#siblingRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#spouseRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#teachingRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#temporalRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#thingIsConnectedToRelation ; https://www.ica.org/standards/RiC/ontology#relationConnects ;
+https://www.ica.org/standards/RiC/ontology#thingIsContextOfRelation ; https://www.ica.org/standards/RiC/ontology#relationHasContext ;
+https://www.ica.org/standards/RiC/ontology#thingIsSourceOfRelation ; https://www.ica.org/standards/RiC/ontology#relationHasSource ;
+https://www.ica.org/standards/RiC/ontology#thingIsTargetOfRelation ; https://www.ica.org/standards/RiC/ontology#relationHasTarget ;
+http://www.w3.org/2004/02/skos/core#topConceptOf ; http://www.w3.org/2004/02/skos/core#hasTopConcept ;
+https://www.ica.org/standards/RiC/ontology#typeRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#wasComponentOf ; https://www.ica.org/standards/RiC/ontology#hadComponent ;
+https://www.ica.org/standards/RiC/ontology#wasConstituentOf ; https://www.ica.org/standards/RiC/ontology#hadConstituent ;
+https://www.ica.org/standards/RiC/ontology#wasContainedBy ; https://www.ica.org/standards/RiC/ontology#contained ;
+https://www.ica.org/standards/RiC/ontology#wasIncludedIn ; https://www.ica.org/standards/RiC/ontology#included ;
+https://www.ica.org/standards/RiC/ontology#wasLastUpdatedAtDate ; https://www.ica.org/standards/RiC/ontology#isLastUpdateDateOf ;
+https://www.ica.org/standards/RiC/ontology#wasMergedInto ; https://www.ica.org/standards/RiC/ontology#resultedFromTheMergerOf ;
+https://www.ica.org/standards/RiC/ontology#wasPartOf ; https://www.ica.org/standards/RiC/ontology#hadPart ;
+https://www.ica.org/standards/RiC/ontology#wasSplitInto ; https://www.ica.org/standards/RiC/ontology#resultedFromTheSplitOf ;
+https://www.ica.org/standards/RiC/ontology#wasSubdivisionOf ; https://www.ica.org/standards/RiC/ontology#hadSubdivision ;
+https://www.ica.org/standards/RiC/ontology#wasSubeventOf ; https://www.ica.org/standards/RiC/ontology#hadSubevent ;
+https://www.ica.org/standards/RiC/ontology#wasSubordinateTo ; https://www.ica.org/standards/RiC/ontology#hadSubordinate ;
+https://www.ica.org/standards/RiC/ontology#wasUsedFromDate ; https://www.ica.org/standards/RiC/ontology#isFromUseDateOf ;
+https://www.ica.org/standards/RiC/ontology#wasUsedToDate ; https://www.ica.org/standards/RiC/ontology#isToUseDateOf ;
+https://www.ica.org/standards/RiC/ontology#wholePartRelation_role ;  ;
+https://www.ica.org/standards/RiC/ontology#workRelation_role ;  ;

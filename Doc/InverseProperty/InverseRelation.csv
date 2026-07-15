@@ -1,0 +1,494 @@
+"Relation
+ID ",Domain ,"ID of
+domain ",Name ,"ID of
+range ",Range ,"Inverse relation ID
+and name"
+"RiC-
+R009i ",Thing ,RiC-E01 ,follows in time ,RiC-E01 ,Thing ,"RiC-R009 precedes in
+time"
+"RiC-
+R008i ",Thing ,RiC-E01 ,follows or followed ,RiC-E01 ,Thing ,"RiC-R008 precedes or
+preceded"
+RiC-R002 ,Thing ,RiC-E01 ,has or had part ,RiC-E01 ,Thing ,"RiC-R002i is or was
+part of"
+"RiC-
+R002i ",Thing ,RiC-E01 ,is or was part of ,RiC-E01 ,Thing ,"RiC-R002 has or had
+part"
+RiC-R001 ,Thing ,RiC-E01 ,is related to ,RiC-E01 ,Thing ,RiC-R001 is related to
+RiC-R009 ,Thing ,RiC-E01 ,precedes in time ,RiC-E01 ,Thing ,"RiC-R009i follows in
+time"
+RiC-R008 ,Thing ,RiC-E01 ,"precedes or
+preceded ",RiC-E01 ,Thing ,"RiC-R008i follows or
+followed"
+"RiC-
+R021i ",Thing ,RiC-E01 ,"is or was described
+by ",RiC-E02 ,"Record
+Resource","RiC-R021 describes or
+described"
+"RiC-
+R020i ",Thing ,RiC-E01 ,"is or was main
+subject of ",RiC-E02 ,"Record
+Resource","RiC-R020 has or had
+main subject"
+"RiC-
+R019i ",Thing ,RiC-E01 ,is or was subject of ,RiC-E02 ,"Record
+Resource","RiC-R019 has or had
+subject"
+"RiC-
+R036i ",Thing ,RiC-E01 ,"is or was under
+authority of ",RiC-E07 ,Agent ,"RiC-R036 has or had
+authority over"
+"RiC-
+R037i ",Thing ,RiC-E01 ,has or had owner,"RiC-E08;
+RiC-E09;
+RiC-E12","Person;
+Group;
+Position","RiC-R037 is or was
+owner of"
+"RiC-
+R057i ",Thing ,RiC-E01 ,"is associated with
+event",RiC-E14 ,Event ,"RiC-R057 is event
+associated with"
+"RiC-
+R059i ",Thing ,RiC-E01 ,"is or was affected
+by ",RiC-E14 ,Event ,"RiC-R059 affects or
+affected"
+"RiC-
+R058i ",Thing ,RiC-E01 ,"is or was
+participant in ",RiC-E14 ,Event ,"RiC-R058 has or had
+participant"
+"RiC-
+R061i ",Thing ,RiC-E01 ,"results or resulted
+from ",RiC-E14 ,Event ,"RiC-R061 results or
+resulted in"
+"RiC-
+R062i ",Thing ,RiC-E01 ,"is associated with
+rule ",RiC-E16 ,Rule ,"RiC-R062 is rule
+associated with"
+"RiC-
+R063i ",Thing ,RiC-E01 ,"is or was regulated
+by ",RiC-E16 ,Rule ,"RiC-R063 regulates or
+regulated"
+"RiC-
+R069i ",Thing ,RiC-E01 ,has beginning date ,RiC-E18 ,Date ,"RiC-R069 is beginning
+date of"
+"RiC-
+R071i ",Thing ,RiC-E01 ,has end date ,RiC-E18 ,Date ,"RiC-R071 is end date
+of"
+"RiC-
+R073i ",Thing ,RiC-E01 ,"has modification
+date ",RiC-E18 ,Date ,"RiC-R073 is
+modification date of"
+"RiC-
+R068i ",Thing ,RiC-E01 ,"is associated with
+date ",RiC-E18 ,Date ,"RiC-R068 is date
+associated with"
+"RiC-
+R075i ",Thing ,RiC-E01 ,has or had location ,RiC-E22 ,Place ,"RiC-R075 is or was
+location of"
+"RiC-
+R074i ",Thing ,RiC-E01 ,"is associated with
+place ",RiC-E22 ,Place ,"RiC-R074 is place
+associated with"
+RiC-R021 ,"Record
+Resource ",RiC-E02 ,"describes or
+described ",RiC-E01 ,Thing ,"RiC-R021i is or was
+described by"
+RiC-R020 ,"Record
+Resource ",RiC-E02 ,"has or had main
+subject ",RiC-E01 ,Thing ,"RiC-R020i is or was
+main subject of"
+RiC-R019 ,"Record
+Resource ",RiC-E02 ,has or had subject ,RiC-E01 ,Thing ,"RiC-R019i is or was
+subject of"
+RiC-R012 ,"Record
+Resource ",RiC-E02 ,has copy ,RiC-E02 ,"Record
+Resource ",RiC-R012i is copy of
+RiC-R023 ,"Record
+Resource ",RiC-E02 ,"has genetic link to
+record resource ",RiC-E02 ,"Record
+Resource","RiC-R023 has genetic
+link to record
+resource"
+RiC-R013 ,"Record
+Resource ",RiC-E02 ,has reply ,RiC-E02 ,"Record
+Resource ",RiC-R013i is reply to
+"RiC-
+R012i","Record
+Resource ",RiC-E02 ,is copy of ,RiC-E02 ,"Record
+Resource ",RiC-R012 has copy
+RiC-R022 ,"Record
+Resource ",RiC-E02,"is record resource
+associated with
+record resource",RiC-E02 ,"Record
+Resource","RiC-R022 is record
+resource associated
+with record resource"
+"RiC-
+R013i","Record
+Resource ",RiC-E02 ,is reply to ,RiC-E02 ,"Record
+Resource ",RiC-R013 has reply
+RiC-R025 ,"Record
+Resource ",RiC-E02 ,"has or had
+instantiation ",RiC-E06 ,Instantiation ,"RiC-R025i is or was
+instantiation of"
+"RiC-
+R064i","Record
+Resource ",RiC-E02 ,"expresses or
+expressed ",RiC-E16 ,Rule ,"RiC-R064 is or was
+expressed by"
+RiC-R028,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has accumulator ,RiC-E07 ,Agent ,"RiC-R028i is
+accumulator of"
+RiC-R032,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has addressee ,RiC-E07 ,Agent ,"RiC-R032i is
+addressee of"
+RiC-R030,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has collector ,RiC-E07 ,Agent ,"RiC-R030i is collector
+of"
+RiC-R027,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has creator ,RiC-E07 ,Agent ,"RiC-R027i is creator
+of"
+"RiC-
+R039i","Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has or had holder ,RiC-E07 ,Agent ,"RiC-R039 is or was
+holder of"
+"RiC-
+R038i","Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06","has or had
+manager",RiC-E07 ,Agent ,"RiC-R038 is or was
+manager of"
+RiC-R026,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has provenance ,RiC-E07 ,Agent ,"RiC-R026i is
+provenance of"
+RiC-R029,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has receiver ,RiC-E07 ,Agent ,"RiC-R029i is receiver
+of"
+RiC-R031,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",has sender ,RiC-E07 ,Agent ,RiC-R031i is sender of
+"RiC-
+R040i","Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06","has or had
+intellectual
+property rights
+holder","RiC-E08;
+RiC-E09;
+RiC-E12",Agent,"RiC-R040 is or was
+holder of intellectual
+property rights of"
+RiC-R033,"Record
+Resource;
+Instantiation","RiC-E02;
+RiC-E06 ",documents ,RiC-E15 ,Activity ,"RiC-R033i
+documented by"
+RiC-R024 ,Record Set ,RiC-E03 ,"includes or
+included","RiC-E03;
+RiC-E04","Record Set;
+Record","RiC-R024i is or was
+included in"
+"RiC-
+R024i","Record Set;
+Record","RiC-E03;
+RiC-E04","is or was included
+in ",RiC-E03 ,Record Set ,"RiC-R024 includes or
+included"
+"RiC-
+R011i ",Record ,RiC-E04 ,has draft ,RiC-E04 ,Record ,RiC-R011 is draft of
+"RiC-
+R010i ",Record ,RiC-E04 ,has original ,RiC-E04 ,Record ,RiC-R010 is original of
+RiC-R011 ,Record ,RiC-E04 ,is draft of ,RiC-E04 ,Record ,RiC-R011i has draft
+RiC-R010 ,Record ,RiC-E04 ,is original of ,RiC-E04 ,Record ,RiC-R010i has original
+RiC-R003 ,Record ,RiC-E04 ,"has or had
+constituent ",RiC-E05 ,Record Part ,"RiC-R003i is or was
+constituent of"
+RiC-R079 ,Record ,RiC-E04 ,has author,"RiC-E08;
+RiC-E09;
+RiC-E012","Person;
+Group;
+Position",RiC-R079i is author of
+"RiC-
+R003i ",Record Part ,RiC-E05 ,"is or was
+constituent of ",RiC-E04 ,Record ,"RiC-R003 has or had
+constituent"
+"RiC-
+R025i ",Instantiation ,RiC-E06 ,"Is or was
+instantiation of ",RiC-E02 ,"Record
+Resource","RiC-R025 has or had
+instantiation"
+RiC-R014 ,Instantiation ,RiC-E06 ,"has or had derived
+instantiation ",RiC-E06 ,Instantiation,"RiC-R014i is or was
+derived from
+instantiation"
+RiC-R004 ,Instantiation ,RiC-E06 ,"has or had
+component",RiC-E06 ,Instantiation ,"RiC-R004i is or was
+component of"
+"RiC-
+R014i ",Instantiation ,RiC-E06 ,"is or was derived
+from instantiation ",RiC-E06 ,Instantiation ,"RiC-R014 has or had
+derived instantiation"
+RiC-R035 ,Instantiation ,RiC-E06 ,"is functionally
+equivalent to ",RiC-E06 ,Instantiation,"RiC-R035 is
+functionally
+equivalent to"
+RiC-R034 ,Instantiation ,RiC-E06,"is instantiation
+associated with
+instantiation",RiC-E06 ,Instantiation,"RiC-R034 is
+instantiation
+associated with
+instantiation"
+"RiC-
+R004i ",Instantiation ,RiC-E06 ,"is or was
+component of ",RiC-E06 ,Instantiation ,"RiC-R004 has or had
+component"
+"RiC-
+R015i ",Instantiation ,RiC-E06 ,migrated from ,RiC-E06 ,Instantiation ,"RiC-R015 migrated
+into"
+RiC-R015 ,Instantiation ,RiC-E06 ,migrated into ,RiC-E06 ,Instantiation ,"RiC-R015i migrated
+from"
+RiC-R036 ,Agent ,RiC-E07 ,"has or had
+authority over ",RiC-E01 ,Thing ,"RiC-R036i is or was
+under authority of"
+"RiC-
+R028i ",Agent ,RiC-E07 ,is accumulator of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation","RiC-R028 has
+accumulator"
+"RiC-
+R032i ",Agent ,RiC-E07 ,is addressee of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation","RiC-R032 has
+addressee"
+"RiC-
+R030i ",Agent ,RiC-E07 ,is collector of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation","RiC-R030 has
+collector"
+"RiC-
+R027i ",Agent ,RiC-E07 ,is creator of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation",RiC-R027 has creator
+RiC-R039 ,Agent ,RiC-E07 ,is or was holder of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation","RiC-R039i has or had
+holder"
+RiC-R038 ,Agent ,RiC-E07 ,"is or was manager
+of","RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation","RiC-R038i has or had
+manager"
+"RiC-
+R026i ",Agent ,RiC-E07 ,is provenance of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation","RiC-R026 has
+provenance"
+"RiC-
+R029i ",Agent ,RiC-E07 ,is receiver of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation",RiC-R029 has receiver
+"RiC-
+R031i ",Agent ,RiC-E07 ,is sender of ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation",RiC-R031 has sender
+"RiC-
+R041i ",Agent ,RiC-E07 ,"has or had
+controller ",RiC-E07 ,Agent ,"RiC-R041 is or was
+controller of"
+RiC-R045 ,Agent ,RiC-E07 ,"has or had
+subordinate ",RiC-E07 ,Agent ,"RiC-R045i is or was
+subordinate to"
+RiC-R046 ,Agent ,RiC-E07 ,"has or had work
+relation with ",RiC-E07 ,Agent ,"RiC-R046 has or had
+work relation with"
+RiC-R016 ,Agent ,RiC-E07 ,has successor ,RiC-E07 ,Agent ,"RiC-R016i is
+successor of"
+RiC-R044 ,Agent ,RiC-E07 ,"is agent associated
+with agent ",RiC-E07 ,Agent ,"RiC-R044 is agent
+associated with agent"
+RiC-R041 ,Agent ,RiC-E07 ,"is or was controller
+of ",RiC-E07 ,Agent ,"RiC-R041i has or had
+controller"
+"RiC-
+R045i ",Agent ,RiC-E07 ,"is or was
+subordinate to ",RiC-E07 ,Agent ,"RiC-R045 has or had
+subordinate"
+"RiC-
+R016i ",Agent ,RiC-E07 ,is successor of ,RiC-E07 ,Agent ,"RiC-R016 has
+successor"
+"RiC-
+R060i ",Agent ,RiC-E07 ,"performs or
+performed ",RiC-E15 ,Activity ,"RiC-R060 is or was
+performed by"
+"RiC-
+R066i ",Agent ,RiC-E07,"is or was
+responsible for
+enforcing",RiC-E16 ,Rule ,"RiC-R066 is or was
+enforced by"
+"RiC-
+R065i ",Agent ,RiC-E07 ,"is responsible for
+issuing ",RiC-E16 ,Rule ,RiC-R065 issued by
+"RiC-
+R067i ",Agent ,RiC-E07 ,authorized by ,RiC-E17 ,Mandate ,RiC-R067 authorizes
+"RiC-
+R076i ",Agent ,RiC-E07 ,"has or had
+jurisdiction ",RiC-E22 ,Place ,"RiC-R076 is or was
+jurisdiction of"
+"RiC-
+R017i ",Person ,RiC-E08 ,has ancestor ,RiC-E08 ,Person ,"RiC-R017 has
+descendant"
+RiC-R018 ,Person ,RiC-E08 ,has child ,RiC-E08 ,Person ,RiC-R018i is child of
+RiC-R017 ,Person ,RiC-E08 ,has descendant ,RiC-E08 ,Person ,"RiC-R017i has
+ancestor"
+RiC-R047 ,Person ,RiC-E08 ,"has family
+association with ",RiC-E08 ,Person ,"RiC-R047 has family
+association with"
+RiC-R052 ,Person ,RiC-E08 ,"has or had
+correspondent ",RiC-E08 ,Person ,"RiC-R052 has or had
+correspondent"
+RiC-R049 ,Person ,RiC-E08 ,has or had spouse ,RiC-E08 ,Person ,"RiC-R049 has or had
+spouse"
+"RiC-
+R053i ",Person ,RiC-E08 ,has or had student ,RiC-E08 ,Person ,"RiC-R053 has or had
+teacher"
+RiC-R053 ,Person ,RiC-E08 ,has or had teacher ,RiC-E08 ,Person ,"RiC-R053i has or had
+student"
+RiC-R048 ,Person ,RiC-E08 ,has sibling ,RiC-E08 ,Person ,RiC-R048 has sibling
+"RiC-
+R018i ",Person ,RiC-E08 ,is child of ,RiC-E08 ,Person ,RiC-R018 has child
+"RiC-
+R050i ",Person ,RiC-E08 ,known by ,RiC-E08 ,Person ,RiC-R050 knows of
+RiC-R051 ,Person ,RiC-E08 ,knows ,RiC-E08 ,Person ,RiC-R051 knows
+RiC-R050 ,Person ,RiC-E08 ,knows of ,RiC-E08 ,Person ,RiC-R050i known by
+RiC-R042 ,Person ,RiC-E08 ,is or was leader of ,RiC-E09 ,Group ,"RiC-R042i has or had
+leader"
+"RiC-
+R055i ",Person ,RiC-E08 ,"is or was member
+of ",RiC-E09 ,Group ,"RiC-R055 has or had
+member"
+RiC-R054 ,Person ,RiC-E08 ,"occupies or
+occupied ",RiC-E12 ,Position ,"RiC-R054i is or was
+occupied by"
+"RiC-
+R070i ",Person ,RiC-E08 ,has birth date ,RiC-E18 ,Date ,"RiC-R070 is birth date
+of"
+"RiC-
+R072i ",Person ,RiC-E08 ,has death date ,RiC-E18 ,Date ,"RiC-R072 is death
+date of"
+"RiC-
+R079i","Person;
+Group;
+Position","RiC-E08;
+RiC-E09;
+RiC-E012",is author of ,RiC-E04 ,Record ,RiC-R079 has author
+RiC-R037,"Person;
+Group;
+Position","RiC-E08;
+RiC-E09;
+RiC-E12",is or was owner of ,RiC-E01 ,Thing ,"RiC-R037i has or had
+owner"
+RiC-R040 ,Agent,"RiC-E08;
+RiC-E09;
+RiC-E12","is or was holder of
+intellectual
+property rights of","RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation","RiC-R040i has or had
+intellectual property
+rights holder"
+"RiC-
+R042i ",Group ,RiC-E09 ,has or had leader ,RiC-E08 ,Person ,"RiC-R042 is or was
+leader of"
+RiC-R055 ,Group ,RiC-E09 ,has or had member ,RiC-E08 ,Person ,"RiC-R055i is or was
+member of"
+RiC-R005 ,Group ,RiC-E09 ,"has or had
+subdivision ",RiC-E09 ,Group ,"RiC-R005i is or was
+subdivision of"
+"RiC-
+R005i ",Group ,RiC-E09 ,"is or was
+subdivision of ",RiC-E09 ,Group ,"RiC-R005 has or had
+subdivision"
+"RiC-
+R056i ",Group ,RiC-E09 ,has or had position ,RiC-E12 ,Position ,"RiC-R056 exists or
+existed in"
+"RiC-
+R054i ",Position ,RiC-E12 ,"is or was occupied
+by ",RiC-E08 ,Person ,"RiC-R054 occupies or
+occupied"
+RiC-R056 ,Position ,RiC-E12 ,exists or existed in ,RiC-E09 ,Group ,"RiC-R056i had or has
+position"
+RiC-R059 ,Event ,RiC-E14 ,affects or affected ,RiC-E01 ,Thing ,"RiC-R059i is or was
+affected by"
+RiC-R058 ,Event ,RiC-E14 ,"has or had
+participant ",RiC-E01 ,Thing ,"RiC-R058i is or was
+participant in"
+RiC-R057 ,Event ,RiC-E14 ,"is event associated
+with ",RiC-E01 ,Thing ,"RiC-R057i is
+associated with event"
+RiC-R061 ,Event ,RiC-E14 ,"results or resulted
+in ",RiC-E01 ,Thing ,"RiC-R061i results or
+resulted from"
+RiC-R006 ,Event ,RiC-E14 ,"has or had
+subevent ",RiC-E14 ,Event ,"RiC-R006i is or was
+subevent of"
+"RiC-
+R006i ",Event ,RiC-E14 ,"is or was subevent
+of ",RiC-E14 ,Event ,"RiC-R006 has or had
+subevent"
+"RiC-
+R033i ",Activity ,RiC-E15 ,documented by ,"RiC-E02;
+RiC-E06","Record
+Resource;
+Instantiation",RiC-R033 documents
+RiC-R060 ,Activity ,RiC-E15 ,"is or was
+performed by ",RiC-E07 ,Agent ,"RiC-R060i performs
+or performed"
+RiC-R062 ,Rule ,RiC-E16 ,"is rule associated
+with ",RiC-E01 ,Thing ,"RiC-R062i is
+associated with rule"
+RiC-R063 ,Rule ,RiC-E16 ,"regulates or
+regulated ",RiC-E01 ,Thing ,"RiC-R063i is or was
+regulated by"
+RiC-R064 ,Rule ,RiC-E16 ,"is or was expressed
+by ",RiC-E02 ,"Record
+Resource","RiC-R064i expresses
+or expressed"
+RiC-R066 ,Rule ,RiC-E16 ,"is or was enforced
+by ",RiC-E07 ,Agent,"RiC-R066i is or was
+responsible for
+enforcing"
+RiC-R065 ,Rule ,RiC-E16 ,issued by ,RiC-E07 ,Agent,"RiC-R065i is
+responsible for
+issuing"
+RiC-R067 ,Mandate ,RiC-E17 ,authorizes ,RiC-E07 ,Agent ,"RiC-R067i authorized
+by"
+RiC-R069 ,Date ,RiC-E18 ,is beginning date of ,RiC-E01 ,Thing ,"RiC-R069i has
+beginning date"
