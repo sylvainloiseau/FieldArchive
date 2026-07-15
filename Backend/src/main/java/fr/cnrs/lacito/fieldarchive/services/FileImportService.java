@@ -104,7 +104,7 @@ public class FileImportService {
                 }
             }
         } catch (Exception e) {
-            throw new ImportException("Impossible de lire l'archive : " + e.getMessage());
+            throw new ImportException("Cannot read the archive : " + e.getMessage());
         }
 
         if (trigContent == null || projectName == null) {

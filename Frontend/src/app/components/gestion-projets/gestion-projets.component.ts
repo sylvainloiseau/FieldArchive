@@ -86,8 +86,8 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.projectService.importTurtleSource(file).subscribe({
       next: (result) => {
         this.isLoading = false;
-        alert(`Imported ${result.tripleCount} triples into source .`);
-        // refresh whatever view shows sources/entities, if visible from here
+        //alert(`Imported ${result.tripleCount} triples into source .`);
+        alert(`Imported triples into internal datasource .`);
       },
       error: (err) => {
         this.isLoading = false;
@@ -107,9 +107,10 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.isLoading = true;
 
     this.projectService.importBackUpProject(file).subscribe({
-      next: () => {
+      next: (res) => {
         this.isLoading = false;
-        alert('Imported backup project.');
+        alert(res.message ?? 'Imported backup project.');
+        this.loadAll();      
       },
       error: (err) => {
         this.isLoading = false;
@@ -386,7 +387,7 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.projectService.createProject({ name, description, persistent, prefix })
       .pipe(takeUntil(this.destroy$), finalize(() => (this.isLoading = false)))
       .subscribe({
-        next:  () => { this.closeCreateModal(); this.router.navigate(['/gestion-sources']); },
+        next:  () => { this.closeCreateModal(); this.loadAll() },
         error: () => {}
       });
   }
