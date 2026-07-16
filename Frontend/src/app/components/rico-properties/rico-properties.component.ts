@@ -6,9 +6,11 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
 import {MatBadgeModule} from '@angular/material/badge';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
+
 
 @Component({
   selector: 'app-rico-properties',
@@ -20,22 +22,32 @@ import { GestionRessourcesService } from '../../services/gestion-ressources.serv
     MatButtonModule,
     MatChipsModule,
     MatIconModule,
-    MatBadgeModule
+    MatBadgeModule,
+    MatRadioModule
   ],
   templateUrl: './rico-properties.component.html',
   styleUrl: './rico-properties.component.scss'
 })
 export class RicoPropertiesComponent implements OnInit {
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any,private ontologyService: GestionRessourcesService) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any,
+    private ontologyService: GestionRessourcesService,
+  ) {
     this.predicates = data.predicates;
     this.association = data.association;
   }
 
   ngOnInit() {
-    console.log("All predicated : ", this.predicates);
+    console.log("All predicates : ", this.predicates);
     this.filteredPredicates = this.predicates;
+    this.allRanges = this.predicates.map((predicate : any) => predicate.range);
+    this.allRanges = [...new Set(this.allRanges)];
+    // this.allRangesLabels = this.ontologyService.getOntologyLabel_v2(this.allRanges);
+
+    console.log("All possibles ranges for all predicates ", this.allRanges);
   }
+
+  allRanges : any[] = []
   
   allPossibleRanges : any[] = [];
 
@@ -47,15 +59,66 @@ export class RicoPropertiesComponent implements OnInit {
 
   filteredPredicates: any[] = [];
 
+  allRangesLabels : any[] = [];
+
+  predefinedRanges = ['Activity', 'Person', 'Record', 'Instantiation', 'Place'];
+
+  rangeIcons: Record<string, string> = {
+    Activity: 'task',
+    Person: 'person',
+    Record: 'description',
+    Instantiation: 'category',
+    Place: 'place',
+  };
+
   association : any ; 
 
-  removeKindValueFilter() {
+  removeFilter(filter: string) {
+    if (filter === 'iri' || filter === 'literal'){
       const updated = this.filters.filter(
         item => item !== 'iri' && item !== 'literal'
       );
       this.filters = updated;
-      this.filteredPredicates = this.predicates;
-    
+      this.filteredPredicates = this.predicates;  
+    }
+    else{
+      this.filters = this.filters.filter(f => !f.startsWith('range :'));
+    }
+  }
+
+  getIconFor(range: string): string {
+    return this.rangeIcons[range] ?? 'label';
+  }
+
+  getNameOfRicoTypeFromURL(url : string) {
+    if (url.includes('#')){
+      return url.split('#').pop();
+    }
+    else return url;
+  }
+
+  onRangeChange(filterUrl : string) {
+    const entityType = this.getNameOfRicoTypeFromURL(filterUrl);
+    this.addRangeFilter(entityType);
+  }
+
+  filterRangesByFilters() : void {
+    for (let filter of this.filters) {
+      if (filter.startsWith("range : ")){  
+        let rangeName = filter.substring('range : '.length).trim();
+        this.filteredPredicates = this.predicates.filter(
+          p => this.getNameOfRicoTypeFromURL(p.range) === rangeName
+        );
+      }
+    }
+  }
+
+  addRangeFilter(range : any) : void {
+    if (this.filters.some(f => f.startsWith('range :'))) {      
+      this.filters = this.filters.filter(f => !f.startsWith('range :'));    
+    }
+    this.filters.push('range : '+range);
+    this.filterRangesByFilters();
   }
 
   filterPropertiesByKindValue(kindValue : string) {
@@ -98,6 +161,9 @@ export class RicoPropertiesComponent implements OnInit {
       console.log("Selected predicate: ", prop);
       this.onPredicateChange(null); 
     // }
+  }
+  cancelAddAssociation() {
+    this.association.predicate = null;
   }
 
 

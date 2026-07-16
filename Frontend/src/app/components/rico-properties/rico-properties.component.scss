@@ -1,9 +1,33 @@
 ::ng-deep .iri-badge .mat-badge-content {
-  background-color: #3b82f6; /* blue */
+  background-color: #3b82f6; 
   color: white;
+  margin-left : 20px;
 }
 
 ::ng-deep .literal-badge .mat-badge-content {
-  background-color: #10b981; /* green */
+  background-color: #10b981; 
   color: white;
+  margin-left : 20px;
+}
+
+mat-chip-row.big-chip {
+  --mdc-chip-outline-color: #3f51b5;
+  --mdc-chip-label-text-color: #3f51b5;
+  --mdc-chip-elevated-container-color: transparent;
+  border: 1px solid var(--mdc-chip-outline-color);
+}
+mat-chip-row.big-chip {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
+}
+
+mat-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }

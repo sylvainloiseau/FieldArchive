@@ -8,22 +8,13 @@
             {{filter}}
             <button 
                 matChipRemove [attr.aria-label]="'remove ' + filter"
-                (click)="removeKindValueFilter()">
+                (click)="removeFilter(filter)">
                 <mat-icon>cancel</mat-icon>
             </button>
         </mat-chip-row>
             
     </mat-chip-grid>
-    <!-- <select
-    [(ngModel)]="newAssociation!.predicate"
-    (change)="onPredicateChange($event)"
-    [ngModelOptions]="{standalone: true}"
-    class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
-    <option value="" disabled>Select a property...</option>
-    <option *ngFor="let prop of allPredicatesByType" [ngValue]="prop">
-        {{ prop }}
-    </option>
-    </select> -->
+
      <div class="flex gap-2">
         <button
             (click)="filterPropertiesByKindValue('iri')"
@@ -45,47 +36,111 @@
         </button>
     </div>
 
-    <section class="example-section">
-
-        <span>
-            <ul *ngFor="let prop of filteredPredicates" class="list-none p-0 m-0">
-            <mat-checkbox
-                [(ngModel)]="prop.selected"
-                (change)="onCheckboxChange(prop)">
-                {{ prop.label || prop.p }}
-                <span class="ml-5 iri-badge" *ngIf="prop.valueKind === 'iri'" matBadgeColor="primary" matBadge="iri" matBadgeSize="large"></span>
-                <span class="ml-5 literal-badge" *ngIf="prop.valueKind === 'literal'"  matBadgeColor="accent" matBadge="literal" matBadgeSize="large"></span>
-
-            </mat-checkbox>
-            </ul>
-            
-        </span>
-    </section>
-
-
-    <span *ngIf="association.predicate.range" class="block text-sm font-medium text-gray-500 mb-1">Range : {{ association.predicate.range }}</span>
-    
-        <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
-        <!-- Value -->
-        <div *ngIf="association.valueKind === 'iri'">
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              class="text-xs px-2 py-1 border border-gray-300 rounded-md bg-gray-100 hover:bg-gray-200">
-              +
-            </button>
-
-            <select
-              [(ngModel)]="association.value"
-              [ngModelOptions]="{standalone: true}"
-              class="flex-1 text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
-              <option value="" disabled>Select a value...</option>
-              <option *ngFor="let range of allPossibleRanges" [ngValue]="range.iri">
-                {{ range.label }}
-              </option>
-            </select>
-          </div>
-
+    <div class="gap-1 mt-4">  
+        <label class="block text-sm font-medium text-gray-600 mb-1">The object of the property is : </label>
+        <div class="flex gap-1">
+            <mat-chip-row (click)="addRangeFilter(predefinedRange)" class="big-chip" *ngFor="let predefinedRange of predefinedRanges">
+            <mat-icon matChipAvatar>{{ getIconFor(predefinedRange) }}</mat-icon>
+            {{ predefinedRange }}
+            </mat-chip-row>
         </div>
+    </div>
+
+    <div class="mt-4 w-full">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Other types : </label>
+        <select
+        [(ngModel)]="association.value"
+        (ngModelChange)="onRangeChange($event)"
+        [ngModelOptions]="{standalone: true}"
+        class="flex-1 w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+        <option value="" disabled>Select a type of object...</option>
+        <option *ngFor="let range of allRanges" >
+            {{ range }}
+        </option>
+        </select>
+    </div>
+
+    <div class="mt-4 w-full">
+        <label class="block text-sm font-medium text-gray-600 mb-1">Select a property towards this type : </label>
+
+    </div>
+
+    <mat-radio-group class="flex-col gap-1" [(ngModel)]="association.predicate">
+    <div *ngFor="let prop of filteredPredicates" class="list-none p-1.5 m-0">
+
+        <mat-radio-button [value]="prop" (change)="onCheckboxChange(prop)">
+
+            <span>
+                {{ prop.label || prop.p }}
+            </span>
+
+            <span class="iri-badge ml-2!"
+                *ngIf="prop.valueKind === 'iri'"
+                matBadge="iri"
+                matBadgeColor="primary"
+                matBadgeSize="large">
+            </span>
+
+            <span class="literal-badge ml-2!"
+                *ngIf="prop.valueKind === 'literal'"
+                matBadge="literal"
+                matBadgeColor="accent"
+                matBadgeSize="large">
+            </span>
+       
+
+        </mat-radio-button>
+
+        <div *ngIf="association.predicate && association.predicate.label === prop.label" class="border m-2 border-blue-300 p-3">
+            <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
+            <!-- Value -->
+            <div *ngIf="association.valueKind === 'iri'">
+
+                <div class="flex items-center gap-2">
+                    <button
+                    type="button"
+                    class="text-xs px-2 py-1 border border-gray-300 rounded-md bg-gray-100 hover:bg-gray-200">
+                    +
+                    </button>
+
+                    <select
+                    [(ngModel)]="association.value"
+                    [ngModelOptions]="{standalone: true}"
+                    class="flex-1 text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="" disabled>Select a value...</option>
+                    <option *ngFor="let range of allPossibleRanges" [ngValue]="range.iri">
+                        {{ range.label }}
+                    </option>
+                    </select>
+                </div>
+
+            </div>
+            <div *ngIf="association.valueKind === 'literal'">
+                <input
+                type="text"
+                [(ngModel)]="association.value"
+                [ngModelOptions]="{standalone: true}"
+                [placeholder]="'Enter a value'"
+                class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"/>
+            </div>
+
+            <div class="flex mt-2 gap-2 pt-1">
+                <button
+                    [disabled]="!association.mode || !association.value || !association.predicate"
+                    class="cursor-pointer! flex-1 text-sm py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium">
+                    Confirm
+                </button>
+                <button
+                    (click)="cancelAddAssociation()"
+                    class="cursor-pointer! flex-1 text-sm py-1.5 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-100 transition-colors font-medium">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+    </div>
+    </mat-radio-group>
+
+    
+        
 </div>

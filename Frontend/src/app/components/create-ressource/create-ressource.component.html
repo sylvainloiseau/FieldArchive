@@ -275,8 +275,6 @@
           </div>
         </div>
 
-        <span *ngIf="newAssociation.predicate.range" class="block text-sm font-medium text-gray-500 mb-1">Range : {{ newAssociation.predicate.range }}</span>
-
         <!-- Value -->
         <div *ngIf="newAssociation.mode === 'existing' && newAssociation.valueKind === 'iri'">
           <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
@@ -334,13 +332,12 @@
         </div>
 
         <!-- Confirm / Cancel -->
-        <div class="flex gap-2 pt-1">
+        <div *ngIf="newAssociation.mode === 'new'" class="flex gap-2 pt-1">
           <button
             (click)="confirmAddAssociation()"
             [disabled]="
               !newAssociation.mode || !newAssociation.value ||
-              (newAssociation.mode === 'existing' && !newAssociation.predicate) ||
-              (newAssociation.mode === 'new' && (!newAssociation.ontologyUrl || !newAssociation.customPredicate))
+              ((!newAssociation.ontologyUrl || !newAssociation.customPredicate))
             "
             class="cursor-pointer! flex-1 text-sm py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium">
             Confirm
