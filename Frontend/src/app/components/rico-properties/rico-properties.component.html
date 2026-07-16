@@ -1,0 +1,91 @@
+<div class="p-5 h-full! w-full overflow-y-scroll">
+    <label class="block text-xs font-medium text-gray-600 mb-1">Filters</label>
+
+    <mat-chip-grid #chipGrid>
+        <mat-chip-row
+            *ngFor="let filter of filters"
+        >
+            {{filter}}
+            <button 
+                matChipRemove [attr.aria-label]="'remove ' + filter"
+                (click)="removeKindValueFilter()">
+                <mat-icon>cancel</mat-icon>
+            </button>
+        </mat-chip-row>
+            
+    </mat-chip-grid>
+    <!-- <select
+    [(ngModel)]="newAssociation!.predicate"
+    (change)="onPredicateChange($event)"
+    [ngModelOptions]="{standalone: true}"
+    class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+    <option value="" disabled>Select a property...</option>
+    <option *ngFor="let prop of allPredicatesByType" [ngValue]="prop">
+        {{ prop }}
+    </option>
+    </select> -->
+     <div class="flex gap-2">
+        <button
+            (click)="filterPropertiesByKindValue('iri')"
+            [class.bg-blue-600]="filterByKindValue === 'iri'"
+            [class.text-white]="filterByKindValue === 'iri'"
+            [class.bg-white]="filterByKindValue !== 'iri'"
+            [class.text-gray-600]="filterByKindValue !== 'iri'"
+            class="cursor-pointer! flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium">
+            IRI 
+        </button>
+        <button
+            (click)="filterPropertiesByKindValue('literal')"
+            [class.bg-blue-600]="filterByKindValue === 'literal'"
+            [class.text-white]="filterByKindValue === 'literal'"
+            [class.bg-white]="filterByKindValue !== 'literal'"
+            [class.text-gray-600]="filterByKindValue !== 'literal'"
+            class="cursor-pointer! flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium">
+            Literal
+        </button>
+    </div>
+
+    <section class="example-section">
+
+        <span>
+            <ul *ngFor="let prop of filteredPredicates" class="list-none p-0 m-0">
+            <mat-checkbox
+                [(ngModel)]="prop.selected"
+                (change)="onCheckboxChange(prop)">
+                {{ prop.label || prop.p }}
+                <span class="ml-5 iri-badge" *ngIf="prop.valueKind === 'iri'" matBadgeColor="primary" matBadge="iri" matBadgeSize="large"></span>
+                <span class="ml-5 literal-badge" *ngIf="prop.valueKind === 'literal'"  matBadgeColor="accent" matBadge="literal" matBadgeSize="large"></span>
+
+            </mat-checkbox>
+            </ul>
+            
+        </span>
+    </section>
+
+
+    <span *ngIf="association.predicate.range" class="block text-sm font-medium text-gray-500 mb-1">Range : {{ association.predicate.range }}</span>
+    
+        <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
+        <!-- Value -->
+        <div *ngIf="association.valueKind === 'iri'">
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              class="text-xs px-2 py-1 border border-gray-300 rounded-md bg-gray-100 hover:bg-gray-200">
+              +
+            </button>
+
+            <select
+              [(ngModel)]="association.value"
+              [ngModelOptions]="{standalone: true}"
+              class="flex-1 text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
+              <option value="" disabled>Select a value...</option>
+              <option *ngFor="let range of allPossibleRanges" [ngValue]="range.iri">
+                {{ range.label }}
+              </option>
+            </select>
+          </div>
+
+        </div>
+</div>
