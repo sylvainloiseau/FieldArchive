@@ -2,11 +2,15 @@ import { Component, OnInit, Inject, Input, Output, EventEmitter, Optional, Chang
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
+
 import { EntityDetailsComponent } from '../entity-details/entity-details.component';
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
+import { RicoPropertiesComponent } from '../rico-properties/rico-properties.component';
+
 import { debounceTime } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
+import { MatDialog } from '@angular/material/dialog';
 
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
 
@@ -29,7 +33,8 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
     CommonModule, 
     EntityDetailsComponent, 
     MatSnackBarModule, 
-    FileViewerComponent
+    FileViewerComponent,
+    RicoPropertiesComponent
   ],
   
   templateUrl: './create-ressource.component.html',
@@ -93,6 +98,7 @@ export class CreateRessourceComponent implements OnInit {
     private ontologyService: GestionRessourcesService,
     private snackBar : MatSnackBar,
     private cdr: ChangeDetectorRef,
+    private dialog: MatDialog
   ) {
 
     this.personForm = this.fb.group({
@@ -120,6 +126,18 @@ export class CreateRessourceComponent implements OnInit {
     return ontologyName
       ? this.ontologyService.getTypeUrlByName(ontologyName) + entityType
       : '';
+  }
+
+  openRicoPropertiesDialog() {
+    this.newAssociation!.mode = 'existing';
+    this.dialog.open(RicoPropertiesComponent, {
+      width: '450px',
+      height:'300px',
+      data: {
+        predicates: this.allPredicatesByType,
+        association: this.newAssociation
+      }
+    });
   }
 
   extractEntityTypeFromIRI(iri :string ) : string {
