@@ -131,8 +131,8 @@ export class CreateRessourceComponent implements OnInit {
   openRicoPropertiesDialog() {
     this.newAssociation!.mode = 'existing';
     this.dialog.open(RicoPropertiesComponent, {
-      width: '450px',
-      height:'300px',
+      width: '600px',
+      height:'350px',
       data: {
         predicates: this.allPredicatesByType,
         association: this.newAssociation
@@ -147,7 +147,6 @@ export class CreateRessourceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
 
     if (!this.dialogData && this.inputData === undefined) {
       this.getAllRicoEntities();
