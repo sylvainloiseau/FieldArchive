@@ -8,6 +8,8 @@ import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
 import {MatBadgeModule} from '@angular/material/badge';
 import { MatRadioModule } from '@angular/material/radio';
+import {MatDividerModule} from '@angular/material/divider';
+
 import { Subscription } from 'rxjs';
 
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
@@ -27,6 +29,7 @@ import type { CreateRessourceComponent } from '../create-ressource/create-ressou
     MatIconModule,
     MatBadgeModule,
     MatRadioModule,
+    MatDividerModule,
     NgComponentOutlet 
   ],
   templateUrl: './rico-properties.component.html',
