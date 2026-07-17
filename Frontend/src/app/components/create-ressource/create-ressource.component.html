@@ -206,10 +206,6 @@
           </div>
         </div>
 
-        <!-- Mode: existing predicate -->
-        <div *ngIf="newAssociation.mode === 'existing'">
-          <p>hello</p>
-        </div>
 
         <!-- Mode: new predicate -->
         <ng-container *ngIf="newAssociation.mode === 'new'">
@@ -316,7 +312,7 @@
             (filePathChange)="receiveFilePath($event)">
             </app-file-viewer>
           } 
-          @else {
+          @else if (newAssociation.mode === 'new') {
             <!-- Input takes remaining space -->
             <div class="flex-1">
               <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
@@ -324,7 +320,7 @@
                 type="text"
                 [(ngModel)]="newAssociation.value"
                 [ngModelOptions]="{standalone: true}"
-                [placeholder]="newAssociation.valueKind === 'iri' ? 'https://...' : 'Enter a value'"
+                [placeholder]="'Enter a value'"
                 class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"/>
             </div>
           } 

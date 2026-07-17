@@ -1,6 +1,6 @@
 import { Component, Input,Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonModule} from '@angular/material/button';
 import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
@@ -32,6 +32,7 @@ export class RicoPropertiesComponent implements OnInit {
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
     private ontologyService: GestionRessourcesService,
+    private dialogRef: MatDialogRef<RicoPropertiesComponent>
   ) {
     this.predicates = data.predicates;
     this.association = data.association;
@@ -97,7 +98,8 @@ export class RicoPropertiesComponent implements OnInit {
     else return url;
   }
 
-  onRangeChange(filterUrl : string) {
+  onRangeChange(event : any) {
+    const filterUrl = (event.target as HTMLSelectElement)?.value;
     const entityType = this.getNameOfRicoTypeFromURL(filterUrl);
     this.addRangeFilter(entityType);
   }
@@ -137,14 +139,10 @@ export class RicoPropertiesComponent implements OnInit {
     
   }
 
-  onPredicateChange(event: any) {
-    if (!this.association) return;
+  getEntitiesByType(rangeUrl : string) {
+    if (!this.association) return;    
 
-
-    this.association.valueKind = this.association.predicate?.valueKind || 'literal';
-    
-
-    this.ontologyService.getAllEntitiesByType(this.association.predicate.range).subscribe({
+    this.ontologyService.getAllEntitiesByType(rangeUrl).subscribe({
       next: (res) => {
         this.allPossibleRanges = res;
         console.log("All possible ranges for this predicate : ", res);
@@ -157,13 +155,20 @@ export class RicoPropertiesComponent implements OnInit {
   }
   onCheckboxChange(prop: any) {
     // if (prop.selected) {
-      this.association.predicate = prop;
-      console.log("Selected predicate: ", prop);
-      this.onPredicateChange(null); 
+    this.association.predicate = prop;
+    this.association.valueKind = this.association.predicate?.valueKind || 'literal';
+
+    console.log("Selected predicate: ", prop);
+    this.getEntitiesByType(prop.range);
+      // this.onPredicateChange(null); 
     // }
   }
   cancelAddAssociation() {
     this.association.predicate = null;
+  }
+
+  confirm() {
+    this.dialogRef.close(this.data.association);
   }
 
 
