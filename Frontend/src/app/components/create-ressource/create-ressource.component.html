@@ -271,35 +271,6 @@
           </div>
         </div>
 
-        <!-- Value -->
-        <div *ngIf="newAssociation.mode === 'existing' && newAssociation.valueKind === 'iri'">
-          <label class="block text-xs font-medium text-gray-600 mb-1">Value</label>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              (click)="createSubEntityToggle()"
-              class="text-xs px-2 py-1 border border-gray-300 rounded-md bg-gray-100 hover:bg-gray-200">
-              +
-            </button>
-
-            <select
-              [(ngModel)]="newAssociation.value"
-              [ngModelOptions]="{standalone: true}"
-              class="flex-1 text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
-              <option value="" disabled>Select a value...</option>
-              <option *ngFor="let range of allPossibleRanges" [ngValue]="range.iri">
-                {{ range.label }}
-              </option>
-            </select>
-          </div>
-
-        </div>
-        <app-create-ressource *ngIf="createSubEntity" 
-          [inputData]="{ontology : 'rico', type : extractEntityTypeFromIRI(newAssociation.predicate.range)}"
-          (closed)="onChildClosed($event)"
-        >
-        </app-create-ressource>
 
         <div class="flex gap-2 items-end"
             *ngIf="newAssociation.mode === 'new' || newAssociation.valueKind === 'literal'">
