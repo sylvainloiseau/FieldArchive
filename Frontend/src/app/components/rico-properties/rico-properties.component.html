@@ -49,14 +49,15 @@
     <div class="mt-4 w-full">
         <label class="block text-sm font-medium text-gray-600 mb-1">Other types : </label>
         <select
-        [(ngModel)]="association.value"
-        (ngModelChange)="onRangeChange($event)"
-        [ngModelOptions]="{standalone: true}"
+        (change)="onRangeChange($event)"
         class="flex-1 w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
-        <option value="" disabled>Select a type of object...</option>
-        <option *ngFor="let range of allRanges" >
+
+        <option value="" disabled selected>Select a type of object...</option>
+
+        <option *ngFor="let range of allRanges" [value]="range">
             {{ range }}
         </option>
+
         </select>
     </div>
 
@@ -126,6 +127,7 @@
 
             <div class="flex mt-2 gap-2 pt-1">
                 <button
+                    (click)="confirm()"
                     [disabled]="!association.mode || !association.value || !association.predicate"
                     class="cursor-pointer! flex-1 text-sm py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium">
                     Confirm
