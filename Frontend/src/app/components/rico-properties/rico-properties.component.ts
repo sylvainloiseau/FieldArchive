@@ -1,5 +1,6 @@
-import { Component, Input,Inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input,Inject, OnInit, OnDestroy,
+  ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
+import { CommonModule, NgComponentOutlet  } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonModule} from '@angular/material/button';
@@ -7,9 +8,11 @@ import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
 import {MatBadgeModule} from '@angular/material/badge';
 import { MatRadioModule } from '@angular/material/radio';
+import { Subscription } from 'rxjs';
 
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
+import type { CreateRessourceComponent } from '../create-ressource/create-ressource.component';
 
 
 @Component({
@@ -23,7 +26,8 @@ import { GestionRessourcesService } from '../../services/gestion-ressources.serv
     MatChipsModule,
     MatIconModule,
     MatBadgeModule,
-    MatRadioModule
+    MatRadioModule,
+    NgComponentOutlet 
   ],
   templateUrl: './rico-properties.component.html',
   styleUrl: './rico-properties.component.scss'
@@ -44,9 +48,27 @@ export class RicoPropertiesComponent implements OnInit {
     this.allRanges = this.predicates.map((predicate : any) => predicate.range);
     this.allRanges = [...new Set(this.allRanges)];
     // this.allRangesLabels = this.ontologyService.getOntologyLabel_v2(this.allRanges);
-
+    
+    this.predefinedRanges = this.predefinedRanges.filter(range =>
+      this.allRanges.includes(
+        "https://www.ica.org/standards/RiC/ontology#" + range
+      )
+    );
+    this.allRanges = this.allRanges.filter((range : string) =>
+      !this.predefinedRanges.includes(this.getNameOfRicoTypeFromURL(range))
+    );
     console.log("All possibles ranges for all predicates ", this.allRanges);
+
   }
+
+  // anchor from the template — 'read: ViewContainerRef' gives us where to insert the component
+  @ViewChild('subEntityAnchor', { read: ViewContainerRef })
+  subEntityAnchor?: ViewContainerRef;
+
+  createSubEntity = false;
+  private subEntityRef?: ComponentRef<any>;
+  private childClosedSub?: Subscription;
+  
 
   allRanges : any[] = []
   
@@ -73,6 +95,49 @@ export class RicoPropertiesComponent implements OnInit {
   };
 
   association : any ; 
+async createSubEntityToggle() {
+    if (!this.subEntityAnchor) return;
+
+    // clear out any previous instance first
+    this.destroySubEntity();
+
+    const { CreateRessourceComponent } = await import('../create-ressource/create-ressource.component');
+
+    this.subEntityRef = this.subEntityAnchor.createComponent(CreateRessourceComponent);
+
+    // set the @Input()
+    this.subEntityRef.instance.inputData = {
+      ontology: 'rico',
+      type: this.getNameOfRicoTypeFromURL(this.association.predicate.range)
+    };
+
+    // subscribe directly to the real @Output(), no ambiguity
+    this.childClosedSub = this.subEntityRef.instance.closed.subscribe((event: any) => {
+      this.onChildClosed(event);
+    });
+
+    this.createSubEntity = true;
+    this.subEntityRef.changeDetectorRef.detectChanges();
+  }
+
+  onChildClosed(event: any) {
+    if (event === true) {
+      this.getEntitiesByType(this.association.predicate.range);
+    }
+    this.destroySubEntity();
+  }
+
+  private destroySubEntity() {
+    this.childClosedSub?.unsubscribe();
+    this.subEntityRef?.destroy();
+    this.subEntityRef = undefined;
+    this.createSubEntity = false;
+  }
+
+  ngOnDestroy() {
+    this.destroySubEntity();
+  }
+  
 
   removeFilter(filter: string) {
     if (filter === 'iri' || filter === 'literal'){
@@ -91,7 +156,7 @@ export class RicoPropertiesComponent implements OnInit {
     return this.rangeIcons[range] ?? 'label';
   }
 
-  getNameOfRicoTypeFromURL(url : string) {
+  getNameOfRicoTypeFromURL(url : string | any) {
     if (url.includes('#')){
       return url.split('#').pop();
     }
