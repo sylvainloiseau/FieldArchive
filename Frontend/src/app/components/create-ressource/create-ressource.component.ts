@@ -130,12 +130,23 @@ export class CreateRessourceComponent implements OnInit {
 
   openRicoPropertiesDialog() {
     this.newAssociation!.mode = 'existing';
-    this.dialog.open(RicoPropertiesComponent, {
+
+    const dialogRef = this.dialog.open(RicoPropertiesComponent, {
       width: '600px',
-      height:'350px',
+      height: '350px',
       data: {
         predicates: this.allPredicatesByType,
         association: this.newAssociation
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Dialog result:', result);
+        this.confirmAddAssociation();
+
+      } else {
+        console.log('Dialog closed without changes');
       }
     });
   }
