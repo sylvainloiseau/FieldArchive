@@ -15,7 +15,7 @@
             
     </mat-chip-grid>
 
-     <div class="flex gap-2">
+    <div class="flex gap-2">
         <button
             (click)="filterPropertiesByKindValue('iri')"
             [class.bg-blue-600]="filterByKindValue === 'iri'"
@@ -35,6 +35,8 @@
             Literal
         </button>
     </div>
+
+    <mat-divider class="my-4!"></mat-divider>
 
     <div class="gap-1 mt-4">  
         <label class="block text-sm font-medium text-gray-600 mb-1">The object of the property is : </label>
@@ -60,6 +62,8 @@
 
         </select>
     </div>
+
+    <mat-divider class="my-4!"></mat-divider>
 
     <div class="mt-4 w-full">
         <label class="block text-sm font-medium text-gray-600 mb-1">Select a property towards this type : </label>
