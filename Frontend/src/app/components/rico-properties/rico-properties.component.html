@@ -55,7 +55,7 @@
         <option value="" disabled selected>Select a type of object...</option>
 
         <option *ngFor="let range of allRanges" [value]="range">
-            {{ range }}
+            {{getNameOfRicoTypeFromURL(range)}}
         </option>
 
         </select>
@@ -63,7 +63,6 @@
 
     <div class="mt-4 w-full">
         <label class="block text-sm font-medium text-gray-600 mb-1">Select a property towards this type : </label>
-
     </div>
 
     <mat-radio-group class="flex-col gap-1" [(ngModel)]="association.predicate">
@@ -99,6 +98,7 @@
 
                 <div class="flex items-center gap-2">
                     <button
+                    (click)="createSubEntityToggle()"
                     type="button"
                     class="text-xs px-2 py-1 border border-gray-300 rounded-md bg-gray-100 hover:bg-gray-200">
                     +
@@ -115,7 +115,11 @@
                     </select>
                 </div>
 
+                <!-- anchor for the dynamically created component -->
+                <ng-container #subEntityAnchor></ng-container>
+
             </div>
+            
             <div *ngIf="association.valueKind === 'literal'">
                 <input
                 type="text"

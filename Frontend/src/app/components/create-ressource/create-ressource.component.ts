@@ -34,10 +34,10 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
     EntityDetailsComponent, 
     MatSnackBarModule, 
     FileViewerComponent,
-    RicoPropertiesComponent
   ],
   
   templateUrl: './create-ressource.component.html',
+  standalone: true,
   styleUrl: './create-ressource.component.scss'
 })
 export class CreateRessourceComponent implements OnInit {
@@ -57,9 +57,6 @@ export class CreateRessourceComponent implements OnInit {
   receiveFilePath(path: string) {
     this.newAssociation!.value = path;
   }
-
-  createSubEntity : boolean = false; 
-
 
   allPredicatesByType: any[] = [];
 
@@ -115,12 +112,6 @@ export class CreateRessourceComponent implements OnInit {
 
     this.ontologyList = this.getOntologyList();
   }
-  onChildClosed(event: any) {
-    if (event === true) {
-      this.createSubEntity = false;
-      this.onPredicateChange(null); // Refresh the list of possible ranges after the child entity is created
-    }
-  }
 
   getFullEntityPath(entityType : string, ontologyName: string): string {
     return ontologyName
@@ -128,8 +119,10 @@ export class CreateRessourceComponent implements OnInit {
       : '';
   }
 
-  openRicoPropertiesDialog() {
+  async openRicoPropertiesDialog() {
     this.newAssociation!.mode = 'existing';
+
+    const { RicoPropertiesComponent } = await import('../rico-properties/rico-properties.component');
 
     const dialogRef = this.dialog.open(RicoPropertiesComponent, {
       width: '600px',
@@ -144,7 +137,6 @@ export class CreateRessourceComponent implements OnInit {
       if (result) {
         console.log('Dialog result:', result);
         this.confirmAddAssociation();
-
       } else {
         console.log('Dialog closed without changes');
       }
@@ -204,10 +196,6 @@ export class CreateRessourceComponent implements OnInit {
     //   this.getAllRicoEntities();
     // }
 
-  }
-
-  createSubEntityToggle() {
-    this.createSubEntity = true;
   }
 
   onPredicateChange(event: any) {
