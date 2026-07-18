@@ -6,6 +6,7 @@ const http = require('http');
 
 let mainWindow;
 let backendProcess;
+const userDataPath = app.getPath('userData');
 
 
 function killExistingBackendOnPort(port) {
@@ -35,7 +36,12 @@ function startBackend() {
 
   backendProcess = spawn('java', ['-jar', jarPath], {
     cwd: path.join(projectRoot, 'Backend'),
-    stdio: 'pipe'
+    stdio: 'pipe',
+    env: {
+      ...process.env,
+      FIELD_ARCHIVE_DATA: userDataPath
+    }
+
   });
 
   backendProcess.stdout.on('data', (data) => {
