@@ -5,6 +5,7 @@ import fr.cnrs.lacito.fieldarchive.core.RdfContexts;
 import fr.cnrs.lacito.fieldarchive.core.RdfNamespaces;
 import fr.cnrs.lacito.fieldarchive.dtos.CreateInternalDataSourceRequest;
 import fr.cnrs.lacito.fieldarchive.dtos.ProjectDto;
+import fr.cnrs.lacito.fieldarchive.utils.ProjectsDirectory;
 import org.eclipse.rdf4j.model.IRI;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
@@ -32,6 +33,7 @@ import java.util.*;
 public class ProjectService {
 
     private final DataSourceService dsService ;
+    private final ProjectsDirectory projectsDirectory;
 
     private static final IRI TYPE_PROJECT = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance()
             .createIRI(RdfNamespaces.APP, "Project");
@@ -39,9 +41,13 @@ public class ProjectService {
     private static final IRI PROP_PREFIX = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance()
             .createIRI(RdfNamespaces.APP, "prefix");
 
-    public ProjectService(BuiltinOntologyService builtinOntologyService, DataSourceService dsService ) {
+    public ProjectService(BuiltinOntologyService builtinOntologyService,
+                          DataSourceService dsService,
+                          ProjectsDirectory projectsDirectory
+    ) {
         this.builtinOntologyService = builtinOntologyService;
         this.dsService = dsService;
+        this.projectsDirectory = projectsDirectory;
     }
 
     private IRI projectIri(String projectName, ValueFactory vf) {
@@ -63,7 +69,7 @@ public class ProjectService {
             throw new IllegalArgumentException("Project's name should not be empty !");
         }
 
-        Path path = Paths.get("projects", name);
+        Path path = projectsDirectory.getPublicPath().resolve(name);
         if (Files.exists(path)) {
             throw new IllegalArgumentException("A project with name \"" + name + "\" already exists.");
         }
@@ -144,8 +150,7 @@ public class ProjectService {
 
     private Repository createRepository(String projectName, boolean persistent) {
         // Ici on persiste sur disque (NativeStore). persistent=false pourrait être MemoryStore,
-        // mais on garde simple pour vous.
-        File dir = new File("projects/" + projectName + "/store");
+        File dir = projectsDirectory.getPublicPath().resolve(projectName).resolve("store").toFile(); // ✅
         dir.mkdirs();
         return new SailRepository(new NativeStore(dir));
     }
@@ -158,7 +163,7 @@ public class ProjectService {
             ProjectContext.close();
         }
 
-        Path path = Paths.get("projects", projectName);
+        Path path = projectsDirectory.getPublicPath().resolve(projectName);
 
         if (!Files.exists(path)) {
             throw new FileNotFoundException("Project not found");
@@ -248,8 +253,8 @@ public class ProjectService {
         // ─────────────────────────────────────────────
         // 1) Rename folder on disk
         // ─────────────────────────────────────────────
-        Path oldPath = Paths.get("projects", oldName);
-        Path newPath = Paths.get("projects", newName);
+        Path oldPath = projectsDirectory.getPublicPath().resolve(oldName);
+        Path newPath = projectsDirectory.getPublicPath().resolve(newName);
 
         if (!Files.exists(oldPath)) {
             throw new FileNotFoundException("Old project not found");
@@ -357,7 +362,7 @@ public class ProjectService {
      * Liste simple : retourne juste les noms des projets existants sur le disque
      */
     public List<String> listProjects() {
-        File projectsDir = new File("projects");
+        File projectsDir = projectsDirectory.getPublicPath().toFile();
 
         if (!projectsDir.exists() || !projectsDir.isDirectory()) {
             return List.of();
@@ -378,7 +383,7 @@ public class ProjectService {
      * Liste détaillée : retourne nom + date de modification + si ouvert actuellement
      */
     public List<Map<String, Object>> listProjectsDetailed() {
-        File projectsDir = new File("projects");
+        File projectsDir = projectsDirectory.getPublicPath().toFile();
 
         if (!projectsDir.exists() || !projectsDir.isDirectory()) {
             return List.of();
