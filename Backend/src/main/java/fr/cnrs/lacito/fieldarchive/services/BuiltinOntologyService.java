@@ -115,7 +115,6 @@ public class BuiltinOntologyService {
                 }
                 ORDER BY LCASE(STR(?label))
                 """.formatted(RdfNamespaces.APP, RdfContexts.CTX_META);
-
         List<OntologyLabelDto> out = new ArrayList<>();
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
