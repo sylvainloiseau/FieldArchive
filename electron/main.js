@@ -17,6 +17,18 @@ async function killExistingBackendOnPort(port) {
   }
 }
 
+
+function killExistingBackendOnPort(port) {
+  try {
+    const pid = execSync(`lsof -ti :${port}`).toString().trim();
+    if (pid) {
+      console.log(`[Electron] Port ${port} déjà utilisé par PID ${pid}, arrêt...`);
+      execSync(`kill -9 ${pid}`);
+    }
+  } catch (e) {
+    console.log(`[Electron] Aucun process existant sur le port ${port} (ou lsof indisponible).`);
+  }
+}
 // ─────────────────────────────────────────────
 // 1. Starting the backend Server SPRING BOOT
 // ─────────────────────────────────────────────
