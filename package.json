@@ -5,9 +5,9 @@
   "main": "electron/main.js",
   "scripts": {
     "electron": "electron .",
-    "electron:dev": "electron .",
-    "build:frontend": "cd Frontend && ng build --output-path ../electron/dist/frontend",
-    "build:backend": "cd RDF_Back && mvn clean package -DskipTests",
+    "electron:dev": "NODE_ENV=development electron .",
+    "build:frontend": "cd Frontend && ng build --output-path ../electron/dist/frontend --base-href ./",
+    "build:backend": "cd Backend && mvn clean package -DskipTests",
     "build:all": "npm run build:frontend && npm run build:backend",
     "start": "npm run build:all && electron .",
     "package": "npm run build:all && electron-builder --dir",
@@ -15,7 +15,7 @@
   },
   "build": {
     "appId": "com.uspn.projet-rdf",
-    "productName": "Gestionnaire RDF",
+    "productName": "FieldArchive",
     "directories": {
       "output": "dist-electron"
     },
@@ -25,8 +25,12 @@
     ],
     "extraResources": [
       {
-        "from": "RDF_Back/target/RDF_Back-0.0.1-SNAPSHOT.jar",
-        "to": "RDF_Back/target/RDF_Back-0.0.1-SNAPSHOT.jar"
+        "from": "electron/dist/frontend",
+        "to": "frontend"
+      },
+      {
+        "from": "Backend/target/Backend-0.0.1-SNAPSHOT.jar",
+        "to": "Backend-0.0.1-SNAPSHOT.jar"
       },
       {
         "from": "data",
@@ -35,6 +39,10 @@
       {
         "from": "projects",
         "to": "projects"
+      },
+      {
+        "from": "jre",
+        "to": "jre"
       }
     ],
     "win": {
@@ -53,5 +61,8 @@
   "devDependencies": {
     "electron": "^29.0.0",
     "electron-builder": "^24.0.0"
+  },
+  "dependencies": {
+    "find-process": "^2.1.1"
   }
 }

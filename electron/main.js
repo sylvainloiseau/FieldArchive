@@ -1,6 +1,7 @@
 // electron/main.js
 const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const { spawn, execSync } = require('child_process');
+const findProcess = require('find-process').default;
 const path = require('path');
 const http = require('http');
 
@@ -9,39 +10,39 @@ let backendProcess;
 const userDataPath = app.getPath('userData');
 
 
-function killExistingBackendOnPort(port) {
-  try {
-    const pid = execSync(`lsof -ti :${port}`).toString().trim();
-    if (pid) {
-      console.log(`[Electron] Port ${port} déjà utilisé par PID ${pid}, arrêt...`);
-      execSync(`kill -9 ${pid}`);
-    }
-  } catch (e) {
-    console.log(`[Electron] Aucun process existant sur le port ${port} (ou lsof indisponible).`);
+async function killExistingBackendOnPort(port) {
+  const list = await findProcess('port', port);
+  for (const p of list) {
+    try { process.kill(p.pid, 'SIGKILL'); } catch (e) {}
   }
 }
+
 // ─────────────────────────────────────────────
-// 1. DÉMARRAGE DU BACKEND SPRING BOOT
+// 1. Starting the backend Server SPRING BOOT
 // ─────────────────────────────────────────────
 
-function startBackend() {
-  killExistingBackendOnPort(8080);
+async function startBackend() {
+  await killExistingBackendOnPort(8080);
   // __dirname = Projet-RDF-App_V1/electron/
   // On remonte d'un niveau pour atteindre la racine du projet
   const projectRoot = path.join(__dirname, '..');
-  const jarPath = path.join(projectRoot, 'Backend', 'target', 'Backend-0.0.1-SNAPSHOT.jar');
+  const jarPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'Backend-0.0.1-SNAPSHOT.jar')
+    : path.join(projectRoot, 'Backend', 'target', 'Backend-0.0.1-SNAPSHOT.jar');
+  
+  const backendCwd = app.isPackaged
+  ? process.resourcesPath
+  : path.join(projectRoot, 'Backend');
 
   console.log('[Electron] Chemin JAR :', jarPath);
   console.log('[Electron] Démarrage du backend Spring Boot...');
 
-  backendProcess = spawn('java', ['-jar', jarPath], {
-    cwd: path.join(projectRoot, 'Backend'),
-    stdio: 'pipe',
-    env: {
-      ...process.env,
-      FIELD_ARCHIVE_DATA: userDataPath
-    }
+  console.log('[Electron] Backend cwd :', backendCwd);
 
+  backendProcess = spawn('java', ['-jar', jarPath], {
+    cwd: backendCwd,
+    stdio: 'pipe',
+    env: { ...process.env, FIELD_ARCHIVE_DATA: userDataPath }
   });
 
   backendProcess.stdout.on('data', (data) => {
@@ -101,24 +102,28 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       preload: path.join(__dirname, 'electron-preload.js'),
-      webSecurity: false   // ⚠️ allows file:// access
+      webSecurity: false   // allows file:// access
     }
   });
 
   // app.isPackaged = false en dev, true en production buildée
-  // Pas besoin de définir NODE_ENV manuellement
   const isDev = !app.isPackaged;
 
+  const indexPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'frontend', 'browser', 'index.html')
+    : path.join(__dirname, 'dist', 'frontend', 'browser', 'index.html');
+
   if (isDev) {
-    // MODE DEV : Angular doit tourner sur ng serve (port 4200)
+    // MODE DEV :  ng serve (port 4200)
     console.log('[Electron] Mode développement — chargement depuis http://localhost:4200');
     mainWindow.loadURL('http://localhost:4200');
     mainWindow.webContents.openDevTools();
   } else {
     // MODE PROD : charger le build Angular statique
-    const indexPath = path.join(__dirname, 'dist', 'frontend', 'browser', 'index.html');
     console.log('[Electron] Mode production — chargement depuis', indexPath);
     mainWindow.loadFile(indexPath);
+
+    //mainWindow.webContents.openDevTools();
   }
 
   // Ouvrir les liens externes dans le navigateur système
@@ -145,7 +150,7 @@ ipcMain.handle('select-file', async () => {
     return null;
   }
 
-  return result.filePaths[0]; // ✅ FULL DESKTOP PATH
+  return result.filePaths[0];
 });
 
 // ─────────────────────────────────────────────
@@ -179,7 +184,7 @@ ipcMain.handle('save-file', async (event, data, suggestedName) => {
 
 app.whenReady().then(async () => {
   try {
-    startBackend();
+    await startBackend();
 
     console.log('[Electron] Attente du démarrage du backend...');
     await waitForBackend('http://localhost:8080/api/datasources');
@@ -207,7 +212,10 @@ app.on('activate', () => {
 
 app.on('before-quit', () => {
   if (backendProcess) {
-    console.log('[Electron] Arrêt du backend...');
-    backendProcess.kill();
+    if (process.platform === 'win32') {
+      execSync(`taskkill /pid ${backendProcess.pid} /f /t`);
+    } else {
+      backendProcess.kill('SIGTERM');
+    }
   }
 });

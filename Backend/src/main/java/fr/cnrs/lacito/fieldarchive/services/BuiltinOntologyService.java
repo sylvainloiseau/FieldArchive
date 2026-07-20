@@ -101,20 +101,20 @@ public class BuiltinOntologyService {
         requireProjectOpen();
 
         String query = """
-                PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                PREFIX app: <%s>
-                SELECT ?url ?label ?graph
-                WHERE {
-                  GRAPH <%s> {
-                    ?url rdf:type app:OntologyNamespace ;
-                         rdfs:label ?label ;
-                         app:graph ?graph ;
-                         app:builtIn true .
-                  }
-                }
-                ORDER BY LCASE(STR(?label))
-                """.formatted(RdfNamespaces.APP, RdfContexts.CTX_META);
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX app: <%s>
+        SELECT ?url ?label ?graph
+        WHERE {
+          GRAPH <%s> {
+            ?url rdf:type app:OntologyNamespace ;
+                 rdfs:label ?label ;
+                 app:graph ?graph ;
+                 app:builtIn true .
+          }
+        }
+        ORDER BY LCASE(STR(?label))
+        """.formatted(RdfNamespaces.APP, RdfContexts.CTX_META);
 
         List<OntologyLabelDto> out = new ArrayList<>();
 
@@ -168,27 +168,27 @@ public class BuiltinOntologyService {
             }
 
             String query = """
-                    PREFIX owl: <http://www.w3.org/2002/07/owl#>
-                    PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-                    SELECT ?type (SAMPLE(?lbl) AS ?label)
-                    WHERE {
-                      GRAPH <%s> {
-                        { ?type a owl:Class . }
-                        UNION
-                        { ?type a rdfs:Class . }
-
-                        FILTER(isIRI(?type))
-                        FILTER(STRSTARTS(STR(?type), "%s"))
-
-                        OPTIONAL {
-                          ?type rdfs:label ?lbl .
-                          FILTER(lang(?lbl) = "" || langMatches(lang(?lbl), "en") || langMatches(lang(?lbl), "fr"))
-                        }
-                      }
+                PREFIX owl: <http://www.w3.org/2002/07/owl#>
+                PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+                SELECT ?type (SAMPLE(?lbl) AS ?label)
+                WHERE {
+                  GRAPH <%s> {
+                    { ?type a owl:Class . }
+                    UNION
+                    { ?type a rdfs:Class . }
+        
+                    FILTER(isIRI(?type))
+                    FILTER(STRSTARTS(STR(?type), "%s"))
+        
+                    OPTIONAL {
+                      ?type rdfs:label ?lbl .
+                      FILTER(lang(?lbl) = "" || langMatches(lang(?lbl), "en") || langMatches(lang(?lbl), "fr"))
                     }
-                    GROUP BY ?type
-                    ORDER BY ?type
-                    """.formatted(graphIri, ontology.stringValue());
+                  }
+                }
+                GROUP BY ?type
+                ORDER BY ?type
+                """.formatted(graphIri, ontology.stringValue());
 
             List<OntologyClassDto> out = new ArrayList<>();
             TupleQuery tupleQuery = conn.prepareTupleQuery(query);
