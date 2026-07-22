@@ -1,0 +1,128 @@
+{
+  "ontologies": {
+    "https://www.ica.org/standards/RiC/ontology": {
+      "name" : "rico",
+      "mainTypes" : {
+        "name": "Main Types",
+        "value": [
+          "Activity",
+          "Person",
+          "Record",
+          "Instantiation",
+          "Place"
+        ]
+      },
+      "mainTerminologies" : {
+        "name": "Main Terminologies",
+        "value": [
+          "ActivityType",
+          "DocumentaryFormType",
+          "ContentFormType",
+          "Language",
+          "PlaceType",
+          "RoleType"]
+      },
+      "mainProperty": {
+        "Activity": [
+          "hasOrHadParticipant",
+          "hasBeginningDate",
+          "hasEndDate"
+        ],
+        "Record": [
+          "isAssociatedWithDate",
+          "hasCreator"
+        ],
+        "Agent": [
+          "hasName",
+          "hasOrHadOccupation"
+        ],
+        "RecordResource": [
+          "hasCreator",
+          "isAssociatedWithDate"
+        ]
+      },
+      "removeProperty": [
+        "isOrWasParticipantIn",
+        "isCreatorOf",
+        "hasSuccessor",
+        "hasPredecessor"
+      ],
+      "contextProperty": {
+        "PerformanceRelation": {
+          "displayName": "Participation (with role)",
+          "mainProperty": ["performanceWithRole"],
+          "domain": "Activity",
+          "range": "Agent"
+        },
+        "CreationRelation": {
+          "displayName": "Creation (with role)",
+          "mainProperty": ["creationWithRole"],
+          "domain": "RecordResource",
+          "range": "Agent"
+        },
+        "SequentialRelation": {
+          "displayName": "Sequence relation",
+          "mainProperty": ["follows", "precedes"],
+          "domain": "Activity",
+          "range": "Activity"
+        },
+        "TypeRelation": {
+          "displayName": "Typing relation",
+          "mainProperty": ["hasType"],
+          "domain": "Record",
+          "range": "Type"
+        },
+        "ActivityDocumentationRelation": {
+          "displayName": "Activity documentation",
+          "mainProperty": ["documents"],
+          "domain": "Record",
+          "range": "Activity"
+        }
+      }
+    },
+
+    "http://xmlns.com/foaf/0.1/": {
+      "name" : "foaf",
+      "mainTypes": [
+        "Person",
+        "Organization",
+        "Document"
+      ],
+      "mainProperty": {
+        "Person": [
+          "name",
+          "firstName",
+          "lastName",
+          "mbox",
+          "knows"
+        ],
+        "Organization": [
+          "name",
+          "member"
+        ],
+        "Document": [
+          "title",
+          "maker"
+        ]
+      },
+      "removeProperty": [
+        "depiction",
+        "thumbnail"
+      ],
+      "contextProperty": {
+        "MembershipRelation": {
+          "displayName": "Membership",
+          "mainProperty": ["member"],
+          "domain": "Organization",
+          "range": "Person"
+        },
+        "SocialRelation": {
+          "displayName": "Knows (with context)",
+          "mainProperty": ["knows"],
+          "domain": "Person",
+          "range": "Person"
+        }
+      }
+    }
+  }
+}

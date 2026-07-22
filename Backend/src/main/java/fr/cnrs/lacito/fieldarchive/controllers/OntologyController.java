@@ -5,6 +5,7 @@ import fr.cnrs.lacito.fieldarchive.dtos.SaveOntologyLabelRequest;
 import fr.cnrs.lacito.fieldarchive.services.OntologyService;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 import fr.cnrs.lacito.fieldarchive.dtos.OntologyClassDto;
 import fr.cnrs.lacito.fieldarchive.services.BuiltinOntologyService;
@@ -26,7 +27,7 @@ public class OntologyController {
     // TYPES RDF
     // =============================
     @GetMapping("/types")
-    public List<String> getTypes() {
+    public Map<String, Object> getTypes() {
         return ontologyService.getAllTypes();
     }
 
