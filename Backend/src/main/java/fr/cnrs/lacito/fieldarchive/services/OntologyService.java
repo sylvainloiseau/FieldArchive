@@ -1,5 +1,6 @@
 package fr.cnrs.lacito.fieldarchive.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.cnrs.lacito.fieldarchive.core.ProjectContext;
 import fr.cnrs.lacito.fieldarchive.core.RdfContexts;
 import fr.cnrs.lacito.fieldarchive.core.RdfNamespaces;
@@ -19,10 +20,15 @@ import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class OntologyService {
@@ -36,6 +42,43 @@ public class OntologyService {
     private IRI ontologyType() {
         return vf.createIRI(RdfNamespaces.APP, "OntologyNamespace");
     }
+
+    public OntologyService() {
+        loadConfig();
+    }
+
+    private Map<String, Object> ontologyConfig;
+
+    private static String extractPrefix(String uri) {
+        if (uri.contains("#")) {
+            return uri.substring(0, uri.indexOf("#"));
+        } else {
+            int lastSlash = uri.lastIndexOf("/");
+            return (lastSlash != -1) ? uri.substring(0, lastSlash) : uri;
+        }
+    }
+    private static String extractType(String uri) {
+        if (uri.contains("#")) {
+            return uri.substring(uri.indexOf("#") +1);
+        } else {
+            int lastSlash = uri.lastIndexOf("/");
+            return (lastSlash != -1) ? uri.substring(lastSlash+1) : uri;
+        }
+    }
+
+    private void loadConfig() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            InputStream is = new ClassPathResource("ontologies/configuration.json").getInputStream();
+
+            ontologyConfig = mapper.readValue(is, Map.class);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     private void requireProjectOpen() {
         if (!ProjectContext.isOpen()) {
@@ -74,9 +117,9 @@ public class OntologyService {
     }
 
     // =============================
-    // TYPES RDF
+    // ALL TYPES GROUPED BY ONTOLOGY
     // =============================
-    public List<String> getAllTypes() {
+    public Map<String, Object> getAllTypes() {
 
         String query = """
         PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -103,7 +146,45 @@ public class OntologyService {
             }
         }
 
-        return types;
+        Map<String, List<String>> grouped = types.stream()
+                .collect(Collectors.groupingBy(
+                        OntologyService::extractPrefix,
+                        Collectors.mapping(
+                                OntologyService::extractType,
+                                Collectors.toList()
+                        )
+                ));
+
+        // print
+        grouped.forEach((prefix, list) -> {
+            System.out.println(prefix + " :");
+            list.forEach(v -> System.out.println("   - " + v));
+        });
+
+        Map<String, Object> ontologies =
+                (Map<String, Object>) ontologyConfig.get("ontologies");
+
+
+        Map<String, Object> data = new HashMap<>();
+
+        grouped.forEach((prefix, list) -> {
+            Map<String, Object> ontologyData = (Map<String, Object>) ontologies.get(prefix);
+            if (ontologyData != null) {
+
+                // A copy of the data in the json config file
+                Map<String, Object> merged = new HashMap<>(ontologyData);
+
+                Map<String, Object> usedTypes = new HashMap<>();
+                usedTypes.put("name", "Used Types" );
+                usedTypes.put("value", list);
+
+                merged.put("usedTypes", usedTypes);
+
+                data.put(prefix, merged);
+            }
+        });
+
+        return data;
     }
 
     // =============================

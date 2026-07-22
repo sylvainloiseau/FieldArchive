@@ -75,11 +75,7 @@ export class GestionRessourcesComponent implements OnInit {
 
   showPersonForm: boolean = false;
 
-  accordion_items = [
-    { title: 'Main Entity Types', values: ['Activity', 'Person', 'Record', 'Instantiation', 'Place'] },
-    { title: 'Used Types', values: [] },
-    { title: 'Main Terminologies', values: ['ActivityType', 'DocumentaryFormType', 'ContentFormType', 'Language', 'PlaceType', 'RoleType'] }
-  ];
+
   expandedIndex = 0;
 
 
@@ -90,10 +86,12 @@ export class GestionRessourcesComponent implements OnInit {
 
   ) {}
 
-  openOntologyManagerDialog() {
-  //   this.dialog.open(OntologyManagerDialogComponent, {
-  //     width: '1500px'
-  //   });
+  getOntologySections(ontology: any) {
+    return [
+      ontology.mainTypes,
+      ontology.usedTypes,
+      ontology.mainTerminologies
+    ].filter(section => section);
   }
 
   ngOnInit() {
@@ -134,31 +132,24 @@ export class GestionRessourcesComponent implements OnInit {
     
   
     this.ontologyService.getTypes().subscribe({
-    next: (data) => {
-      console.log("Types d'ontology ", data);
-      this.ontologyLabels = this.ontologyService.getOntologyLabel(data);
-      console.log("Labels d'ontology ", this.ontologyLabels);
-      this.cdr.markForCheck();
-    }
+      next: (data) => {
+        console.log("Ontology Config and Data ", data);
+        this.ontologyLabels = data;
+        this.cdr.markForCheck();
+      }
     });
 
     this.projetService.getProject().subscribe({
-    next: (data) => {
-      this.projectName = data.name;
-      this.cdr.markForCheck();
-    },
+      next: (data) => {
+        this.projectName = data.name;
+        this.cdr.markForCheck();
+      },
       error: (err) => {
         console.error(err);
       }
-      }
+    }
     );
-
-
   
-  }
-
-  getKey(obj: Record<string, any>): string {
-    return Object.keys(obj)[0];
   }
 
   handleChildData(data: any) {
@@ -168,10 +159,10 @@ export class GestionRessourcesComponent implements OnInit {
     this.cdr.markForCheck();            
   }
 
-  getValuesOfKey(obj: Record<string, any>): any[] {
-    const key = this.getKey(obj);
-    return obj[key];
-  }
+  // getValuesOfKey(obj: Record<string, any>): any[] {
+  //   const key = this.getKey(obj);
+  //   return obj[key];
+  // }
 
   // Update entity type counts based on actual data
   // updateEntityTypeCounts() {
