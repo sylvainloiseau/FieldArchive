@@ -8,10 +8,7 @@ import fr.cnrs.lacito.fieldarchive.dtos.OntologyLabelDto;
 import fr.cnrs.lacito.fieldarchive.dtos.SaveOntologyLabelRequest;
 import fr.cnrs.lacito.fieldarchive.exception.BadRequestException;
 import fr.cnrs.lacito.fieldarchive.exception.NotFoundException;
-import org.eclipse.rdf4j.model.IRI;
-import org.eclipse.rdf4j.model.Statement;
-import org.eclipse.rdf4j.model.Value;
-import org.eclipse.rdf4j.model.ValueFactory;
+import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
@@ -20,14 +17,15 @@ import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
+import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.Rio;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +40,69 @@ public class OntologyService {
     private IRI ontologyType() {
         return vf.createIRI(RdfNamespaces.APP, "OntologyNamespace");
     }
+
+    private final Map<String, List<Map<String, String>>> definedTypesCache = new ConcurrentHashMap<>();
+
+    private List<Map<String, String>> getDefinedTypes(String namespacePrefix, Map<String, Object> ontologyData) {
+        return definedTypesCache.computeIfAbsent(namespacePrefix, p -> {
+            String file = (String) ontologyData.get("file");
+            if (file == null || file.isBlank()) {
+                return List.of();
+            }
+            return loadDefinedTypesFromFile(file, namespacePrefix);
+        });
+    }
+
+    private List<Map<String, String>> loadDefinedTypesFromFile(String classpathFile, String namespacePrefix) {
+        ClassPathResource resource = new ClassPathResource(classpathFile);
+        if (!resource.exists()) {
+            return List.of(); // no local definition shipped for this ontology, nothing to add
+        }
+
+        Model model;
+        try (InputStream is = resource.getInputStream()) {
+            RDFFormat format = Rio.getParserFormatForFileName(classpathFile).orElse(RDFFormat.RDFXML);
+            model = Rio.parse(is, "", format);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+
+        IRI owlClass = vf.createIRI("http://www.w3.org/2002/07/owl#Class");
+        IRI rdfsClass = vf.createIRI("http://www.w3.org/2000/01/rdf-schema#Class");
+
+        Set<Resource> classSubjects = new LinkedHashSet<>();
+        classSubjects.addAll(model.filter(null, RDF.TYPE, owlClass).subjects());
+        classSubjects.addAll(model.filter(null, RDF.TYPE, rdfsClass).subjects());
+
+        List<Map<String, String>> result = new ArrayList<>();
+        for (Resource subject : classSubjects) {
+            if (!(subject instanceof IRI typeIri)) continue;
+            if (!typeIri.stringValue().startsWith(namespacePrefix)) continue;
+
+            String label = model.filter(typeIri, RDFS.LABEL, null).stream()
+                    .map(Statement::getObject)
+                    .filter(v -> v instanceof Literal)
+                    .map(v -> (Literal) v)
+                    .filter(lit -> {
+                        String lang = lit.getLanguage().orElse("");
+                        return lang.isEmpty() || lang.equals("en") || lang.equals("fr");
+                    })
+                    .findFirst()
+                    .map(Literal::getLabel)
+                    .orElse(extractType(typeIri.stringValue()));
+
+            Map<String, String> entry = new HashMap<>();
+            entry.put("uri", typeIri.stringValue());
+            entry.put("localName", extractType(typeIri.stringValue()));
+            entry.put("label", label);
+            result.add(entry);
+        }
+
+        result.sort(Comparator.comparing(m -> m.get("localName")));
+        return result;
+    }
+
 
     public OntologyService() {
         loadConfig();
@@ -117,7 +178,7 @@ public class OntologyService {
     }
 
     // =============================
-    // ALL TYPES GROUPED BY ONTOLOGY
+    // ALL USED TYPES GROUPED BY ONTOLOGY
     // =============================
     public Map<String, Object> getAllTypes() {
 
@@ -150,7 +211,7 @@ public class OntologyService {
                 .collect(Collectors.groupingBy(
                         OntologyService::extractPrefix,
                         Collectors.mapping(
-                                OntologyService::extractType,
+                                Function.identity(),
                                 Collectors.toList()
                         )
                 ));
@@ -161,30 +222,79 @@ public class OntologyService {
             list.forEach(v -> System.out.println("   - " + v));
         });
 
-        Map<String, Object> ontologies =
-                (Map<String, Object>) ontologyConfig.get("ontologies");
+//        Map<String, Object> ontologies =
+//                (Map<String, Object>) ontologyConfig.get("ontologies");
+//
+//
+//        Map<String, Object> data = new HashMap<>();
+//
+//        grouped.forEach((prefix, list) -> {
+//            Map<String, Object> ontologyData = (Map<String, Object>) ontologies.get(prefix);
+//            if (ontologyData != null) {
+//
+//                // A copy of the data in the json config file
+//                Map<String, Object> merged = new HashMap<>(ontologyData);
+//
+//                Map<String, Object> usedTypes = new HashMap<>();
+//                usedTypes.put("name", "Used Types" );
+//                usedTypes.put("value", list);
+//
+//                merged.put("usedTypes", usedTypes);
+//
+//                data.put(prefix, merged);
+//            }
+//        });
 
-
+        Map<String, Object> ontologies = (Map<String, Object>) ontologyConfig.get("ontologies");
         Map<String, Object> data = new HashMap<>();
 
-        grouped.forEach((prefix, list) -> {
-            Map<String, Object> ontologyData = (Map<String, Object>) ontologies.get(prefix);
-            if (ontologyData != null) {
+        ontologies.forEach((prefix, rawOntologyData) -> {
+            Map<String, Object> ontologyData = (Map<String, Object>) rawOntologyData;
+            Map<String, Object> merged = new HashMap<>(ontologyData);
+            merged.remove("file");
 
-                // A copy of the data in the json config file
-                Map<String, Object> merged = new HashMap<>(ontologyData);
+            List<String> used = grouped.getOrDefault(prefix, List.of());
+            merged.put("usedTypes", Map.of("name", "Used Types", "value", used));
 
-                Map<String, Object> usedTypes = new HashMap<>();
-                usedTypes.put("name", "Used Types" );
-                usedTypes.put("value", list);
+            // Local names already surfaced via mainTypes, mainTerminologies, or usedTypes
+            Set<String> alreadyCovered = new HashSet<>();
+            used.forEach(u -> alreadyCovered.add(extractType(u)));
+            alreadyCovered.addAll(extractConfiguredNames(ontologyData, "mainTypes"));
+            alreadyCovered.addAll(extractConfiguredNames(ontologyData, "mainTerminologies"));
 
-                merged.put("usedTypes", usedTypes);
+            List<Map<String, String>> defined = getDefinedTypes(prefix, ontologyData).stream()
+                    .filter(t -> !alreadyCovered.contains(t.get("localName")))
+                    .collect(Collectors.toList());
+            merged.put("definedTypes", Map.of("name", "Defined Types", "value", defined));
 
+            if (!used.isEmpty() || !defined.isEmpty()) {
                 data.put(prefix, merged);
             }
         });
 
         return data;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set<String> extractConfiguredNames(Map<String, Object> ontologyData, String sectionKey) {
+        Object section = ontologyData.get(sectionKey);
+        if (section == null) {
+            return Set.of();
+        }
+
+        List<?> rawValues;
+        if (section instanceof List<?> list) {
+            rawValues = list;
+        } else if (section instanceof Map<?, ?> map && map.get("value") instanceof List<?> list) {
+            rawValues = list;
+        } else {
+            return Set.of();
+        }
+
+        return rawValues.stream()
+                .map(String::valueOf)
+                .map(OntologyService::extractType)
+                .collect(Collectors.toSet());
     }
 
     // =============================

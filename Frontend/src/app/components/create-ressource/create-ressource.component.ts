@@ -381,39 +381,39 @@ export class CreateRessourceComponent implements OnInit {
 
     console.log('Final payload:', payload);
 
-    this.ontologyService.createEntity(payload).subscribe({
-      next: (res) => {
-        console.log('✅ Entity created:', res);
+    // this.ontologyService.createEntity(payload).subscribe({
+    //   next: (res) => {
+    //     console.log('✅ Entity created:', res);
 
-        this.snackBar.open(
-          "✅ Entity created: was successfully created.",
-          'Close',
-          {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['snackbar-success']
-          }
-        );
-        // const dataToSend = { status: 'closed', reason: 'user clicked button' };
-        this.closed.emit(true);
-        // optional UX improvements
-        this.personForm.reset();
-        this.properties = [];
-      },
-      error: (err) => {
-        this.snackBar.open(
-          "❌ Error creating entity.",
-          'Close',
-          {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['snackbar-error']
-          }
-        );      
-      }
-    });
+    //     this.snackBar.open(
+    //       "✅ Entity created: was successfully created.",
+    //       'Close',
+    //       {
+    //         duration: 5000,
+    //         horizontalPosition: 'center',
+    //         verticalPosition: 'top',
+    //         panelClass: ['snackbar-success']
+    //       }
+    //     );
+    //     // const dataToSend = { status: 'closed', reason: 'user clicked button' };
+    //     this.closed.emit(true);
+    //     // optional UX improvements
+    //     this.personForm.reset();
+    //     this.properties = [];
+    //   },
+    //   error: (err) => {
+    //     this.snackBar.open(
+    //       "❌ Error creating entity.",
+    //       'Close',
+    //       {
+    //         duration: 5000,
+    //         horizontalPosition: 'center',
+    //         verticalPosition: 'top',
+    //         panelClass: ['snackbar-error']
+    //       }
+    //     );      
+    //   }
+    // });
 
   
   }
