@@ -79,13 +79,13 @@
                         </option>
                     </optgroup>
 
-                    <optgroup *ngIf="selectedOntology.mainTypes" label="Used Types">
+                    <optgroup *ngIf="selectedOntology.usedTypes" label="Used Types">
                         <option *ngFor="let t of selectedOntology.usedTypes.value" [value]="t">
                             {{ extractEntityTypeFromIRI(t) }}
                         </option>
                     </optgroup>
 
-                    <optgroup *ngIf="selectedOntology.mainTypes" label="Main Terminologies">
+                    <optgroup *ngIf="selectedOntology.mainTerminologies" label="Main Terminologies">
                         <option *ngFor="let t of selectedOntology.mainTerminologies.value" [value]="t">
                             {{ extractEntityTypeFromIRI(t) }}
                         </option>

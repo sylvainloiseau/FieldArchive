@@ -87,11 +87,10 @@ export class GestionRessourcesComponent implements OnInit {
   ) {}
 
   getOntologySections(ontology: any) {
-    return [
-      ontology.mainTypes,
-      ontology.usedTypes,
-      ontology.mainTerminologies
-    ].filter(section => section);
+    return [ontology.mainTypes, ontology.usedTypes, ontology.mainTerminologies]
+      .filter(section => section)
+      .map(section => Array.isArray(section) ? { name: '', value: section } : section)
+      .filter(section => section.value?.length);
   }
 
   extractEntityTypeFromIRI(iri : any ) : string {
@@ -101,37 +100,14 @@ export class GestionRessourcesComponent implements OnInit {
     else return iri;
   }
 
+  getLength(ontology: any): number {
+    return (ontology.mainTypes?.value?.length ?? 0) +
+          (ontology.mainTerminologies?.value?.length ?? 0) +
+          (ontology.usedTypes?.value?.length ?? 0);
+  }
+
   ngOnInit() {
     
-    this.ontologyService.getAllRicoClasses().subscribe({
-      next: (data) => {
-        try {
-          // Step 1: Map to type strings
-          const allRicoClassesNotFormatted = this.ontologyService.getOntologyLabel(
-            data.map((d: any) => d.type)
-          );
-
-          // Step 2: Extract the RIC-O array
-          let ricOClasses = allRicoClassesNotFormatted[0]['rico'];
-
-          // Step 3: Remove duplicates
-          // Assuming each element is a string; if it's an object, use a key like `type`
-          ricOClasses = Array.from(new Set(ricOClasses));
-
-          this.allRicoClasses = ricOClasses;
-          console.log("Classes RICO (no duplicates) ", this.allRicoClasses);
-
-        } catch (e) {
-          console.error("ERROR in getOntologyLabel:", e);
-        }
-
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error(err);
-      }
-    });
-
     // this.filteredEntities = [...this.allEntities];
     // this.filteredEntityTypes = [...this.entityTypes];
     // this.updateEntityTypeCounts();
@@ -201,9 +177,10 @@ export class GestionRessourcesComponent implements OnInit {
 
   getAllEntitiesByPath(ontology_name : string ,entity_type: string) : void {
     this.selectedType = entity_type;
+    console.log("ENTITTTTTY :", entity_type);
     this.selectedOntology = ontology_name;
     const typeUrl = this.ontologyService.getTypeUrlByName(ontology_name ?? '');
-    if (typeUrl) {
+    //if (typeUrl) {
       this.ontologyService.getAllEntitiesByType(entity_type).subscribe({
         next: (data : any) => {
           console.log("Entities for type ", entity_type, " : ", data);  
@@ -217,7 +194,7 @@ export class GestionRessourcesComponent implements OnInit {
           console.error(err);
         }
       });
-    }
+    //}
   }
 
   // getEntityById(id: number): Entity | undefined {

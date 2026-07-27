@@ -180,6 +180,13 @@ public class OntologyService {
     // =============================
     // ALL USED TYPES GROUPED BY ONTOLOGY
     // =============================
+    private static String normalizeNamespace(String ns) {
+        if (ns != null && (ns.endsWith("#") || ns.endsWith("/"))) {
+            return ns.substring(0, ns.length() - 1);
+        }
+        return ns;
+    }
+
     public Map<String, Object> getAllTypes() {
 
         String query = """
@@ -209,11 +216,8 @@ public class OntologyService {
 
         Map<String, List<String>> grouped = types.stream()
                 .collect(Collectors.groupingBy(
-                        OntologyService::extractPrefix,
-                        Collectors.mapping(
-                                Function.identity(),
-                                Collectors.toList()
-                        )
+                        t -> normalizeNamespace(extractPrefix(t)),
+                        Collectors.mapping(Function.identity(), Collectors.toList())
                 ));
 
         // print
@@ -222,53 +226,31 @@ public class OntologyService {
             list.forEach(v -> System.out.println("   - " + v));
         });
 
-//        Map<String, Object> ontologies =
-//                (Map<String, Object>) ontologyConfig.get("ontologies");
-//
-//
-//        Map<String, Object> data = new HashMap<>();
-//
-//        grouped.forEach((prefix, list) -> {
-//            Map<String, Object> ontologyData = (Map<String, Object>) ontologies.get(prefix);
-//            if (ontologyData != null) {
-//
-//                // A copy of the data in the json config file
-//                Map<String, Object> merged = new HashMap<>(ontologyData);
-//
-//                Map<String, Object> usedTypes = new HashMap<>();
-//                usedTypes.put("name", "Used Types" );
-//                usedTypes.put("value", list);
-//
-//                merged.put("usedTypes", usedTypes);
-//
-//                data.put(prefix, merged);
-//            }
-//        });
 
         Map<String, Object> ontologies = (Map<String, Object>) ontologyConfig.get("ontologies");
         Map<String, Object> data = new HashMap<>();
 
         ontologies.forEach((prefix, rawOntologyData) -> {
+            String normalizedPrefix = normalizeNamespace(prefix);
             Map<String, Object> ontologyData = (Map<String, Object>) rawOntologyData;
             Map<String, Object> merged = new HashMap<>(ontologyData);
             merged.remove("file");
 
-            List<String> used = grouped.getOrDefault(prefix, List.of());
+            List<String> used = grouped.getOrDefault(normalizedPrefix, List.of());
             merged.put("usedTypes", Map.of("name", "Used Types", "value", used));
 
-            // Local names already surfaced via mainTypes, mainTerminologies, or usedTypes
             Set<String> alreadyCovered = new HashSet<>();
             used.forEach(u -> alreadyCovered.add(extractType(u)));
             alreadyCovered.addAll(extractConfiguredNames(ontologyData, "mainTypes"));
             alreadyCovered.addAll(extractConfiguredNames(ontologyData, "mainTerminologies"));
 
-            List<Map<String, String>> defined = getDefinedTypes(prefix, ontologyData).stream()
+            List<Map<String, String>> defined = getDefinedTypes(normalizedPrefix, ontologyData).stream()
                     .filter(t -> !alreadyCovered.contains(t.get("localName")))
                     .collect(Collectors.toList());
             merged.put("definedTypes", Map.of("name", "Defined Types", "value", defined));
 
             if (!used.isEmpty() || !defined.isEmpty()) {
-                data.put(prefix, merged);
+                data.put(prefix, merged); // keep original config key as the output key
             }
         });
 

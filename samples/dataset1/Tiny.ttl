@@ -1,10 +1,14 @@
 @prefix rico: <https://www.ica.org/standards/RiC/ontology#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
 
-<http://www.test.com/People/Martin> a rico:Person ;
-    rico:name "Martin" .
+<http://www.test.com/People/Martin> a rico:Person , foaf:Person ;
+    rico:name "Martin" ;
+    foaf:name "Martin" ;
+    foaf:knows <http://www.test.com/People/Elaisa> .
 
-<http://www.test.com/People/Elaisa> a rico:Person ;
-    rico:name "Elaisa" .
+<http://www.test.com/People/Elaisa> a rico:Person , foaf:Person ;
+    rico:name "Elaisa" ;
+    foaf:name "Elaisa" .
 
 <http://www.test.com/Sessions/190625__08_19_49> a rico:Activity ;
     rico:name "A data session about infinitive forms" ;
@@ -41,71 +45,6 @@
     rico:hasDocumentaryFormType <http://www.test.com/documentaryFormType/AudioRecording> ;
     rico:hasContentOfType <http://www.test.com/ContentType/AudioSpeechRecording> ;
     rico:hasOrHadLanguage <http://www.test.com/Sessions/Language/tww> ;
-    rico:hasInstantiation  <http://www.test.com/Sessions/190625__08_19_49/P1250769.MOV> ;
-    rico:hasInstantiation  <http://www.test.com/Sessions/190625__08_19_49/P1250769.eaf> ;
-    rico:hasInstantiation  <http://www.test.com/Sessions/190625__08_19_49/P1250769.pfsx> ;
-    rico:hasInstantiation  <http://www.test.com/Sessions/190625__08_19_49/P1250770.MOV> ;
-    rico:hasInstantiation  <http://www.test.com/Sessions/190625__08_19_49/P1250771.MOV> ;
-    rico:hasInstantiation  <http://www.test.com/Sessions/190625__08_19_49/P1250771.eaf> ;
-    rico:hasInstantiation  <http://www.test.com/Sessions/190625__08_19_49/P1250771.pfsx> .
-
-<http://www.test.com/Sessions/190625__08_19_49/FieldNote/booknote> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/2015/NoteBook/page32.png" ;
-    rico:identifier "/media/sylvain/TerrainBure/2015/NoteBook/page33.png" ;
-    rico:identifier "/media/sylvain/TerrainBure/2015/NoteBook/page34.png" .
-
-<http://www.test.com/Sessions/190625__08_19_49/P1250769.MOV> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/SayMore/Tuwari/Sessions/190625__08_19_49/P1250769.MOV" .
-
-<http://www.test.com/Sessions/190625__08_19_49/P1250769.eaf> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/SayMore/Tuwari/Sessions/190625__08_19_49/P1250769.eaf" .
-
-<http://www.test.com/Sessions/190625__08_19_49/P1250769.pfsx> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/SayMore/Tuwari/Sessions/190625__08_19_49/P1250769.pfsx" .
-
-<http://www.test.com/Sessions/190625__08_19_49/P1250770.MOV> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/SayMore/Tuwari/Sessions/190625__08_19_49/P1250770.MOV" .
-
-<http://www.test.com/Sessions/190625__08_19_49/P1250771.MOV> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/SayMore/Tuwari/Sessions/190625__08_19_49/P1250771.MOV" .
-
-<http://www.test.com/Sessions/190625__08_19_49/P1250771.eaf> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/SayMore/Tuwari/Sessions/190625__08_19_49/P1250771.eaf" .
-
-<http://www.test.com/Sessions/190625__08_19_49/P1250771.pfsx> a rico:Instantiation ;
-    rico:identifier "/media/sylvain/TerrainBure/SayMore/Tuwari/Sessions/190625__08_19_49/P1250771.pfsx" .
-
-<http://www.test.com/Sessions/PerformanceRelation/1> a rico:PerformanceRelation ;
-    rico:relationHasSource <http://www.test.com/Sessions/190625__08_19_49> ;
-    rico:relationHasTarget <http://www.test.com/People/Elaisa> ;
-    rico:hasOrHadType <http://www.test.com/Type/Informant> .
-
-<http://www.test.com/Sessions/PerformanceRelation/1> a rico:PerformanceRelation ;
-    rico:relationHasSource <http://www.test.com/Sessions/190625__08_19_49> ;
-    rico:relationHasTarget <http://www.test.com/People/Martin> ;
-    rico:hasOrHadType <http://www.test.com/Type/Speaker> .
-
-<http://www.test.com/Sessions/ActivityDocumentationRelation/1> a rico:ActivityDocumentationRelation;
-    rico:relationHasSource <http://www.test.com/Sessions/190625__08_19_49/Record/002>;
-    rico:relationHasTarget <http://www.test.com/Sessions/190625__08_19_49> .
-
-<http://www.test.com/Type/Informant> a rico:Type ;
-   rico:name "Informant" .
-
-<http://www.test.com/Type/Speaker> a rico:Type ;
-   rico:name "Speaker" .
-
-<http://www.test.com/Place/Tau> a rico:Place ;
-   rico:hasOrHadPhysicalLocation <http://www.test.com/PhysicalLocation/Tau> ;
-   rico:hasOrHadPlaceType <http://www.test.com/PlaceType/Village>;
-   rico:name "Tau village of Sandaun Province, Papua New Guinea" .
-
-<http://www.test.com/PlaceType/Village> a rico:PlaceType ;
-   rico:name "village" .
-
-<http://www.test.com/PhysicalLocation/Tau> a rico:PhysicalLocation ;
-    rico:hasOrHadCoordinates <http://www.test.com/Coordinates/Tau> .
-
-<http://www.test.com/Coordinates/Tau> a rico:Coordinates ;
-    rico:latitude "43.6" ;
-    rico:longitude "43.6" .
+    rico:hasInstantiation <http://www.test.com/Sessions/190625__08_19_49/P1250769.MOV> ;
+    rico:hasInstantiation <http://www.test.com/Sessions/190625__08_19_49/P1250769.eaf> ;
+    rico:hasInstantiation <http://www.test.com/Sessions/190625__08_19_49/P1250769.pfsx> .

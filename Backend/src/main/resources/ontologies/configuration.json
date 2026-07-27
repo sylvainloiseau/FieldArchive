@@ -85,11 +85,15 @@
 
     "http://xmlns.com/foaf/0.1/": {
       "name" : "foaf",
-      "mainTypes": [
-        "Person",
-        "Organization",
-        "Document"
-      ],
+      "file" : "ontologies/foaf.ttl",
+      "mainTypes": {
+      "name": "Main Types",
+      "value": [
+        "http://xmlns.com/foaf/0.1/Person",
+        "http://xmlns.com/foaf/0.1/Organization",
+        "http://xmlns.com/foaf/0.1/Document"
+      ]
+    },
       "mainProperty": {
         "Person": [
           "name",
