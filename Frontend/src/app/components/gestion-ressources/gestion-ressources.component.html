@@ -121,12 +121,12 @@
               <mat-panel-title class="text-sm font-medium text-gray-700">
                 {{ ontology.value.name }}
               </mat-panel-title>
-              <mat-panel-description *ngIf="ontology.value.name !== 'rico'" class="justify-end">
-                <span class="text-xs text-gray-400">{{ ontology.value.types.length }}</span>
+              <mat-panel-description class="justify-end">
+                <span class="text-xs text-gray-400">{{ getLength(ontology.value)}} </span>
               </mat-panel-description>
             </mat-expansion-panel-header>
 
-            <cdk-accordion *ngIf="ontology.value.name === 'rico'" class="example-accordion">
+            <cdk-accordion class="example-accordion">
               @for (item of getOntologySections(ontology.value); track item; let index = $index) {
               <cdk-accordion-item #accordionItem="cdkAccordionItem" class="example-accordion-item">
                 <button
