@@ -1,12 +1,17 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { Entity } from '../../models/ressource';
 import { CommonModule } from '@angular/common';
-import { CreateRessourceComponent } from '../create-ressource/create-ressource.component';
+// import { CreateRessourceComponent } from '../create-ressource/create-ressource.component';
+import { CreateEntityComponent } from '../create-entity/create-entity.component';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-liste-entites',
-  imports: [CommonModule,MatDialogModule],
+  imports: [
+    CommonModule,
+    MatDialogModule
+  ],
+  standalone : true,
   templateUrl: './liste-entites.component.html',
   styleUrl: './liste-entites.component.scss'
 })
@@ -14,6 +19,7 @@ export class ListeEntitesComponent {
 
   // selectedType: string | null = '';
   @Input() allEntities:  any [] = [];
+  @Input() ontologiesData: any;
   @Input() selectedType: string | null = '';
   @Output() selectedEntity = new EventEmitter<any>();
 
@@ -33,11 +39,12 @@ export class ListeEntitesComponent {
 
     const [ontology, type] = this.selectedType.split(':');
 
-    this.dialog.open(CreateRessourceComponent, {
+    this.dialog.open(CreateEntityComponent, {
       width: '600px',
       data: {
         ontology,
-        type
+        type,
+        ontologiesData: this.ontologiesData
       }
     });
   }
@@ -47,9 +54,11 @@ export class ListeEntitesComponent {
 
     // const [ontology, type] = this.selectedType.split(':');
 
-    this.dialog.open(CreateRessourceComponent, {
+    this.dialog.open(CreateEntityComponent, {
       width: '600px',
-      data: null
+      data: {
+        ontologiesData: this.ontologiesData
+      }
     });
   }
 
@@ -154,5 +163,12 @@ export class ListeEntitesComponent {
     if (this.sortColumn) {
       this.applyAllFilters();
     }
+  }
+
+  extractEntityTypeFromIRI(iri : any ) : string {
+    if (iri === null ) return "" ;
+    if (iri.includes('#')) return iri.substring(iri.lastIndexOf('#') + 1)
+    else if (iri.includes('/')) return iri.substring(iri.lastIndexOf('/') + 1);
+    else return iri;
   }
 }

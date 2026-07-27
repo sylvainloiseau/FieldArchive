@@ -110,45 +110,6 @@
         
         <mat-accordion class="flex flex-col gap-2">
 
-          <!--mat-expansion-panel 
-            class="!border-none !shadow-none !rounded-lg overflow-hidden transition-all duration-200"
-            [class.!bg-gray-50]="panelOpenState()"
-            (opened)="panelOpenState.set(true)" 
-            (closed)="panelOpenState.set(false)">
-            
-            <mat-expansion-panel-header class="!px-3 !py-2 hover:!bg-gray-50 transition-colors duration-150 rounded-lg">
-              <mat-panel-title class="text-sm font-medium text-gray-700">
-                RIC-O 
-              </mat-panel-title>
-              <mat-panel-description class="justify-end">
-                <span class="text-xs text-gray-400">{{allRicoClasses?.length}}</span>
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            
-            <div class="pt-1 pb-2">
-              <div class="space-y-0.5">
-                <button 
-                  *ngFor="let entityType of allRicoClasses" 
-                  [class.bg-blue-50]="selectedType === entityType.type" 
-                  [class.border-l-3]="selectedType === entityType.type"
-                  [class.border-l-blue-500]="selectedType === entityType.type"
-                  [class.text-blue-700]="selectedType === entityType.type"
-                  class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-50 transition-all duration-150 group relative"
-                  [attr.aria-pressed]="selectedType === entityType.type"
-                  (click)="getAllEntitiesByPath('rico', entityType)">
-                  
-                  <div class="flex items-center justify-between">
-                    <span class="text-sm font-medium group-hover:text-gray-900 transition-colors duration-150">
-                      {{ entityType }}
-                    </span>
-                    <span *ngIf="selectedType === entityType" class="text-blue-500 text-xs">●</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </mat-expansion-panel-->
- 
-
           <mat-expansion-panel 
             *ngFor="let ontology of ontologyLabels | keyvalue" 
             class="border-none! shadow-none! rounded-lg! overflow-hidden transition-all duration-200"
@@ -215,7 +176,7 @@
 
                     <div class="flex items-center justify-between">
                       <span class="text-sm font-medium group-hover:text-gray-900">
-                        {{ entityType }}
+                        {{ extractEntityTypeFromIRI(entityType) }}
                       </span>
 
                       <span *ngIf="selectedType === entityType" class="text-blue-500 text-xs">
@@ -248,7 +209,7 @@
 
     <div  *ngIf="activeView === 'tableau'" class="p-0! w-[85%]!" [@slideIn]>
       <div class="p-1! flex-1 overflow-y-auto bg-gray-50 ">
-        <app-liste-entites *ngIf="formattedEntities" [selectedType]="`${selectedOntology}:${selectedType}`" [allEntities]="formattedEntities" (selectedEntity)="handleChildData($event)"></app-liste-entites>
+        <app-liste-entites [ontologiesData]="ontologyLabels" *ngIf="formattedEntities" [selectedType]="`${selectedOntology}:${selectedType}`" [allEntities]="formattedEntities" (selectedEntity)="handleChildData($event)"></app-liste-entites>
       </div>    
     </div>
 

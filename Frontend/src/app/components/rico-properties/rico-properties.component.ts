@@ -14,8 +14,6 @@ import { Subscription } from 'rxjs';
 
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
-import type { CreateRessourceComponent } from '../create-ressource/create-ressource.component';
-
 
 @Component({
   selector: 'app-rico-properties',

@@ -94,6 +94,13 @@ export class GestionRessourcesComponent implements OnInit {
     ].filter(section => section);
   }
 
+  extractEntityTypeFromIRI(iri : any ) : string {
+    if (iri === null ) return "" ;
+    if (iri.includes('#')) return iri.substring(iri.lastIndexOf('#') + 1)
+    else if (iri.includes('/')) return iri.substring(iri.lastIndexOf('/') + 1);
+    else return iri;
+  }
+
   ngOnInit() {
     
     this.ontologyService.getAllRicoClasses().subscribe({
@@ -197,7 +204,7 @@ export class GestionRessourcesComponent implements OnInit {
     this.selectedOntology = ontology_name;
     const typeUrl = this.ontologyService.getTypeUrlByName(ontology_name ?? '');
     if (typeUrl) {
-      this.ontologyService.getAllEntitiesByType(typeUrl+entity_type).subscribe({
+      this.ontologyService.getAllEntitiesByType(entity_type).subscribe({
         next: (data : any) => {
           console.log("Entities for type ", entity_type, " : ", data);  
           // this.allEntities = data;

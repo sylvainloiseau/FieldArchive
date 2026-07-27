@@ -2,35 +2,37 @@
   "ontologies": {
     "https://www.ica.org/standards/RiC/ontology": {
       "name" : "rico",
+      "file": "ontologies/rico.rdf",
       "mainTypes" : {
         "name": "Main Types",
         "value": [
-          "Activity",
-          "Person",
-          "Record",
-          "Instantiation",
-          "Place"
+          "https://www.ica.org/standards/RiC/ontology#Activity",
+          "https://www.ica.org/standards/RiC/ontology#Person",
+          "https://www.ica.org/standards/RiC/ontology#Record",
+          "https://www.ica.org/standards/RiC/ontology#Instantiation",
+          "https://www.ica.org/standards/RiC/ontology#Place"
         ]
       },
       "mainTerminologies" : {
         "name": "Main Terminologies",
         "value": [
-          "ActivityType",
-          "DocumentaryFormType",
-          "ContentFormType",
-          "Language",
-          "PlaceType",
-          "RoleType"]
+          "https://www.ica.org/standards/RiC/ontology#ActivityType",
+          "https://www.ica.org/standards/RiC/ontology#DocumentaryFormType",
+          "https://www.ica.org/standards/RiC/ontology#ContentFormType",
+          "https://www.ica.org/standards/RiC/ontology#Language",
+          "https://www.ica.org/standards/RiC/ontology#PlaceType",
+          "https://www.ica.org/standards/RiC/ontology#RoleType"
+        ]
       },
       "mainProperty": {
         "Activity": [
-          "hasOrHadParticipant",
-          "hasBeginningDate",
-          "hasEndDate"
+          "https://www.ica.org/standards/RiC/ontology#hasOrHadParticipant",
+          "https://www.ica.org/standards/RiC/ontology#hasBeginningDate",
+          "https://www.ica.org/standards/RiC/ontology#hasEndDate"
         ],
         "Record": [
-          "isAssociatedWithDate",
-          "hasCreator"
+          "https://www.ica.org/standards/RiC/ontology#isAssociatedWithDate",
+          "https://www.ica.org/standards/RiC/ontology#hasCreator"
         ],
         "Agent": [
           "hasName",
