@@ -119,10 +119,15 @@ export class CreateEntityComponent implements OnInit {
 
   removeChip(typeName: string) {
     this.listSelectedTypes = this.listSelectedTypes.filter(t => t.label !== typeName);
+    this.setSelectedOntology(this.selectedOntology);
   }
 
   getName(ontology: any): string {
     return ontology?.value?.name;
+  }
+
+  checkOneTypePerOntology(ontologyName : string) : boolean {
+    return (this.listSelectedTypes.some(item => item.label.startsWith(ontologyName+':')));
   }
 
   ngOnInit(): void {
@@ -132,12 +137,17 @@ export class CreateEntityComponent implements OnInit {
     this.entityForm.get('entityType')?.valueChanges
     .subscribe(value => {
       console.log('Selected type:', value);
-      if (value) this.listSelectedTypes.push(
-        {
-          label: this.extractEntityTypeFromIRI(value),
-          iri :value
-        }
-      );
+
+      if (value && !this.entityForm.get('entityType')?.disabled){
+        this.listSelectedTypes.push(
+          {
+            label: this.typeMode+':'+this.extractEntityTypeFromIRI(value),
+            iri :value
+          }
+        );
+        this.entityForm.get('entityType')?.disable();
+      }
+
     });
 
 
@@ -178,8 +188,14 @@ export class CreateEntityComponent implements OnInit {
     this.selectedOntology = ontology;
     if (ontology === null ) {
       this.setTypeMode("custom");
+      return ;
     }
-    else this.setTypeMode(ontology.name.value);
+    else this.setTypeMode(ontology.name);
+
+    if (this.checkOneTypePerOntology(ontology.name)) {
+      this.entityForm?.get('entityType')?.disable();
+    }
+    else this.entityForm?.get('entityType')?.enable();
   }
 
   setTypeMode(mode: string) {
