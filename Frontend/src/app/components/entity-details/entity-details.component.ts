@@ -1,7 +1,8 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, inject, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges, Inject, inject, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import {MatTabsModule} from '@angular/material/tabs';
 
 import {GestionRessourcesService} from '../../services/gestion-ressources.service';
 import { MatDialogModule, MatDialogRef, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -18,14 +19,22 @@ import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 @Component({
   selector: 'app-entity-details',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatDialogModule, MatSnackBarModule, FileViewerComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    MatTabsModule,
+    ReactiveFormsModule, 
+    MatDialogModule, 
+    MatSnackBarModule, 
+    FileViewerComponent
+  ],
   templateUrl: './entity-details.component.html',
   styleUrl: './entity-details.component.scss'
 })
-export class EntityDetailsComponent implements OnInit, OnChanges {
+export class EntityDetailsComponent implements OnInit {
 
-  @Input() selectedEntityId: string = "";  
-  @Input() ontologyLabels: Record<string, string>[] = [];
+  selectedEntityId: string = "";  
+  ontologyLabels: Record<string, any>[] = [];
   @Output() close = new EventEmitter<void>();
 
   stack = new Stack<any>();
@@ -49,7 +58,10 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
   private snackBar = inject(MatSnackBar);
 
 
-  // constructor(private gestionRessourceService : GestionRessourcesService ) {}
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any) {
+    this.ontologyLabels = data.ontologyLabels;
+    this.selectedEntityId = data.selectedEntityId;
+  }
 
   copyToClipboard(text: string | undefined) {
     if (text && navigator.clipboard) {
@@ -62,58 +74,16 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-
-    if (changes['selectedEntityId'] && this.selectedEntityId) {
-      this.gestionRessourceService
-        .getEntityDetails(this.selectedEntityId)
-        .subscribe({
-          next: (data) => {
-            console.log("DATA:", data);
-            this.selectedEntity = data;
-            this.getEntityPropertiesDict();
-            this.cdr.markForCheck();
-          },
-          error: (err) => console.error("ERROR:", err)
-        });
-    }
-  }
-
-  getEntityPropertiesDict() : void {
-    const entityProperties = this.selectedEntity.properties || [];
-    let entityPropertiesDict : any [] = [];
-    if (entityProperties.length > 0) {
-      for (let prop of entityProperties) {
-        if (prop.predicate.includes('#')) {
-          let ontologyUrl = prop.predicate.substring(0, prop.predicate.lastIndexOf('#') + 1);
-          let ontologyName = this.gestionRessourceService.getTypeNameByUrl(ontologyUrl);
-          console.log("ONTOLOGYy NAME : ", ontologyName);
-          
-          let propertyName = prop.predicate.substring(prop.predicate.lastIndexOf('#') + 1, prop.predicate.length);
-          entityPropertiesDict.push({ name : prop.name,key: propertyName, value: prop.value, kind: prop.kind, predicate : prop.predicate, ontology: ontologyName });
-        }
-        else {
-          let propertyName = prop.predicate.substring(prop.predicate.lastIndexOf('/') + 1, prop.predicate.length);
-          entityPropertiesDict.push({ name : prop.name,key: propertyName, value: prop.value, kind : prop.kind, predicate : prop.predicate  });
-        }
-      }
-
-    }
-    console.log("I'm here ", entityPropertiesDict);
-    this.entityPropertiesDict = entityPropertiesDict;
-  }
-
   changeSelectedEntity(entityIri : string) {
     if (entityIri) {
-      // const entityKey = entityIri.substring(entityIri.lastIndexOf('/') + 1, entityIri.length);
-      // console.log("Reference entity key : ",entityKey);
-      // this.previousSelectedEntity = this.selectedEntity;
       this.stack.push(this.selectedEntity);
       this.gestionRessourceService.getEntityDetails(entityIri).subscribe({
         next: (data) => {
           console.log("DATA:", data);
           this.selectedEntity = data;
-          this.getEntityPropertiesDict();
+          // this.getEntityPropertiesDict();
+          this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
+
           this.cdr.markForCheck();
         },
         error: (err) => console.error("ERROR:", err)
@@ -122,11 +92,55 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
 
   }
 
+  extractPropertyNameFromIRI(iri :string ) : string {
+    if (iri.includes('#')) return iri.substring(iri.lastIndexOf('#') + 1)
+    else if (iri.includes('/')) return iri.substring(iri.lastIndexOf('/') + 1);
+    else return iri;
+  }
+
+  buildEntityDetails(properties : any[], ontologyLabels : any[]) : void {
+
+    for (const [key, value] of Object.entries(ontologyLabels)) {
+      value.entities = [];
+    }
+
+
+    for (const property of properties) {
+
+      for(const [key, value] of Object.entries(ontologyLabels)){
+        if (property.predicate.startsWith(key)){
+          property.key = this.extractPropertyNameFromIRI(property.predicate);
+          value.entities.push(property);
+        }
+
+      }
+    }
+
+    console.log("ONTOLOGY LABELS NEW :" ,ontologyLabels);
+  }
+
 
   ngOnInit(): void {
-
     this.detailTab = 'rico';
-    console.log("All ontology labels : ", this.ontologyLabels);
+
+    this.ontologyLabels = this.data.ontologyLabels;
+    this.selectedEntityId = this.data.selectedEntityId;
+
+    console.log("Dialog data:", this.data);
+    if (this.selectedEntityId) {
+      this.gestionRessourceService
+        .getEntityDetails(this.selectedEntityId)
+        .subscribe({
+          next: (data) => {
+            console.log("Entity Details Data:", data);
+            this.buildEntityDetails(data.properties, this.ontologyLabels);
+            this.selectedEntity = data;
+            this.cdr.markForCheck();
+          },
+          error: (err) => console.error("ERROR:", err)
+        });
+    }
+
   }
 
 
@@ -147,14 +161,15 @@ export class EntityDetailsComponent implements OnInit, OnChanges {
 
   selectEntity(entity: any) {
     this.selectedEntity = entity;
-    this.getEntityPropertiesDict(); // ← ajouter
+    // this.getEntityPropertiesDict(); // ← ajouter
+    this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
     this.detailTab = 'rico';
     this.cdr.markForCheck();
   }
 
   closeDetail() {
     console.log("CLOSING Details view ");
-    this.close.emit();
+    // this.close.emit();
 
   }
 

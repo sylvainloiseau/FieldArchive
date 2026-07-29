@@ -19,7 +19,6 @@ import { GestionProjetsComponent } from '../gestion-projets/gestion-projets.comp
 import { GestionProjetsService } from '../../services/gestion-projets.service';
 import { error } from 'console';
 
-import { OntologyManagerDialogComponent } from '../ontology-manager-dialog/ontology-manager-dialog.component';
 import { Router } from '@angular/router';
 
 import { MatDialogRef } from '@angular/material/dialog';
@@ -77,6 +76,20 @@ export class GestionRessourcesComponent implements OnInit {
 
 
   expandedIndex = 0;
+
+  openEntityDetailsDialog() {
+
+    this.dialog.open(EntityDetailsComponent, {
+      width: '95vw',
+      maxWidth: '100vw',
+      maxHeight: '80vh',
+      height: '80vh',
+        data : {
+        "ontologyLabels" : this.ontologyLabels,
+        "selectedEntityId" : this.selectedEntity.iri
+      }
+    });
+  }
 
 
   constructor(public dialog: MatDialog, private ontologyService: GestionRessourcesService,
@@ -137,27 +150,13 @@ export class GestionRessourcesComponent implements OnInit {
 
   handleChildData(data: any) {
     console.log('Received from child:', data);
-      this.selectedEntity = { ...data }; // nouvelle ref
+    this.selectedEntity = { ...data }; // nouvelle ref
+    this.openEntityDetailsDialog();
     this.detailTab = 'ric';
     this.cdr.markForCheck();            
   }
 
-  // getValuesOfKey(obj: Record<string, any>): any[] {
-  //   const key = this.getKey(obj);
-  //   return obj[key];
-  // }
 
-  // Update entity type counts based on actual data
-  // updateEntityTypeCounts() {
-  //   this.entityTypes.forEach(entityType => {
-  //     entityType.count = this.allEntities.filter(e => e.type === entityType.type).length;
-  //   });
-  // }
-
-  // Get total count of entities
-  // getTotalCount(): number {
-  //   return this.allEntities.length;
-  // }
 
   backToPreviousEntity() {
     if (this.previousSelectedEntity) {
@@ -166,14 +165,6 @@ export class GestionRessourcesComponent implements OnInit {
       this.selectEntity(prev);
     }
   }
-
-  // to be returned to the child component
-  // get formattedEntities(): Record<string, any[]> {
-  //   return this.selectedType
-  //     ? { [this.selectedType]: this.allEntities }
-  //     : {};
-  // }
-
 
   getAllEntitiesByPath(ontology_name : string ,entity_type: string) : void {
     this.selectedType = entity_type;
@@ -196,11 +187,6 @@ export class GestionRessourcesComponent implements OnInit {
       });
     //}
   }
-
-  // getEntityById(id: number): Entity | undefined {
-  //   const id_str = id.toString();
-  //   return this.allEntities.find(entity => entity.id === id_str);
-  // }
 
   // Select entity
   selectEntity(entity: Entity) {
