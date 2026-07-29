@@ -219,14 +219,6 @@
       </div>
     </div>
 
-    <!-- Detail Panel -->
-    <aside *ngIf="selectedEntity && activeView !== 'sparql'" [@slideIn] class="w-200! bg-white border-l border-gray-200 overflow-y-auto shadow-xl">
-
-      <div class="p-6">
-        <app-entity-details (close)="selectedEntity = null" [ontologyLabels]="ontologyLabels" [selectedEntityId]="selectedEntity.iri"></app-entity-details>
-      </div>
-
-    </aside>
   </div>
 
 </div>
