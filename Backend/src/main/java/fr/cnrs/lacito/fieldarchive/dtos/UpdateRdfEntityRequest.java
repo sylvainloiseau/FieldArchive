@@ -6,4 +6,5 @@ import java.util.List;
 public class UpdateRdfEntityRequest {
     // IMPORTANT: on remplace uniquement les prédicats fournis
     public List<RdfPropertyDto> properties = new ArrayList<>();
+    public List<String> types = new ArrayList<>();
 }

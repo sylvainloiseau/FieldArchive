@@ -15,6 +15,9 @@ import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 
+import {MatChipsModule} from '@angular/material/chips';
+import {MatIconModule} from '@angular/material/icon';
+import { KeyValue } from '@angular/common';
 
 @Component({
   selector: 'app-entity-details',
@@ -26,7 +29,9 @@ import { FileViewerComponent } from '../file-viewer/file-viewer.component';
     ReactiveFormsModule, 
     MatDialogModule, 
     MatSnackBarModule, 
-    FileViewerComponent
+    FileViewerComponent,
+    MatChipsModule,
+    MatIconModule
   ],
   templateUrl: './entity-details.component.html',
   styleUrl: './entity-details.component.scss'
@@ -41,7 +46,6 @@ export class EntityDetailsComponent implements OnInit {
 
   selectedEntity : any = null ;
   entityPropertiesDict : any[] = [];
-  detailTab: string = 'rico';
   myNewEntites : Entity[] = [];
   newAssociation: {
   mode: 'existing' | 'new' | null;  // which sub-mode
@@ -51,6 +55,8 @@ export class EntityDetailsComponent implements OnInit {
   kind: 'literal' | 'iri';
   value: string;
   } | null = null;
+
+  allEntityTypesChips : any[] = [];
 
   private gestionRessourceService = inject(GestionRessourcesService);
   private cdr = inject(ChangeDetectorRef); 
@@ -98,6 +104,31 @@ export class EntityDetailsComponent implements OnInit {
     else return iri;
   }
 
+  // Chips 
+
+  buildTypesChips(entityTypes : string[], ontologies : any[]) : void {
+
+    for (let type of entityTypes) {
+      for (const [key, value] of Object.entries(ontologies)) {
+        if (type.startsWith(key)) {
+          this.allEntityTypesChips.push(
+            {
+              "label" : value.name+":"+this.extractPropertyNameFromIRI(type),
+              "iri" : type
+            }
+
+          );
+        }
+      }
+    }
+
+  }
+
+  removeChip(typeUrl: string) {
+    this.allEntityTypesChips = this.allEntityTypesChips.filter(t => t.iri !== typeUrl);
+    this.editEntity();
+  }
+
   buildEntityDetails(properties : any[], ontologyLabels : any[]) : void {
 
     for (const [key, value] of Object.entries(ontologyLabels)) {
@@ -119,10 +150,20 @@ export class EntityDetailsComponent implements OnInit {
     console.log("ONTOLOGY LABELS NEW :" ,ontologyLabels);
   }
 
+  ontologyOrderComparator = (
+    a: KeyValue<string, any>,
+    b: KeyValue<string, any>
+  ): number => {
+    const priorityKey = 'https://www.ica.org/standards/RiC/ontology';
+
+    if (a.key === priorityKey) return -1;
+    if (b.key === priorityKey) return 1;
+
+    return a.value.name.localeCompare(b.value.name);
+  };
+
 
   ngOnInit(): void {
-    this.detailTab = 'rico';
-
     this.ontologyLabels = this.data.ontologyLabels;
     this.selectedEntityId = this.data.selectedEntityId;
 
@@ -135,6 +176,7 @@ export class EntityDetailsComponent implements OnInit {
             console.log("Entity Details Data:", data);
             this.buildEntityDetails(data.properties, this.ontologyLabels);
             this.selectedEntity = data;
+            this.buildTypesChips(data.types, this.ontologyLabels);
             this.cdr.markForCheck();
           },
           error: (err) => console.error("ERROR:", err)
@@ -163,7 +205,6 @@ export class EntityDetailsComponent implements OnInit {
     this.selectedEntity = entity;
     // this.getEntityPropertiesDict(); // ← ajouter
     this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
-    this.detailTab = 'rico';
     this.cdr.markForCheck();
   }
 
@@ -221,13 +262,19 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   editEntity() : void {
+
     const payload = {
-      properties: this.entityPropertiesDict.map(({ value, predicate, kind }) => ({
-        value,
-        predicate,
-        kind
-      }))
+      types : this.allEntityTypesChips.map(type => type.iri),
+      properties: this.selectedEntity.properties.map(
+        ({ value, predicate, kind }: { value: string; predicate: string; kind: 'iri' | 'literal' }) => ({
+          value,
+          predicate,
+          kind
+        })
+      )
     };
+    console.log("ENTITY TO BE UPDATED : ", payload);
+
     this.gestionRessourceService.editEntity(this.selectedEntity.iri, payload).subscribe({
       next: () => {
         this.snackBar.open(
@@ -256,7 +303,6 @@ export class EntityDetailsComponent implements OnInit {
         );
       }
     });
-    console.log("Edited properties : ", payload);
 
   }
 
@@ -289,12 +335,6 @@ export class EntityDetailsComponent implements OnInit {
     });
 
     }
-  }
-
-
-  // Computed list of ontology entries for the dropdown
-  get ontologyEntries(): { label: string; url: string }[] {
-    return Object.entries(ONTOLOGY_LABELS).map(([url, label]) => ({ url, label: label as string }));
   }
 
   addAssociation() {
