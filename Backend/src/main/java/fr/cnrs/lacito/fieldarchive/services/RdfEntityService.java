@@ -182,6 +182,13 @@ public class RdfEntityService {
 
     }
 
+    private void addType(RepositoryConnection conn, IRI subject, String type){
+        if (type == null) return ;
+        IRI CTX_INTERNAL = internalCtx();
+        IRI typeIri = vf.createIRI(expand(type));
+        conn.add(subject, RDF.TYPE, typeIri, CTX_INTERNAL);
+    }
+
     private void addProperty(RepositoryConnection conn, IRI subject, RdfPropertyDto p) {
         if (p == null) return;
         if (p.predicate == null || p.predicate.isBlank()) {
@@ -392,17 +399,17 @@ public class RdfEntityService {
     //  UPDATE
     // =========================
     // =========================
-//  UPDATE (interne uniquement)
+//  UPDATE (Only internal)
 // =========================
     public RdfEntityDto updateByKey(String entityIri, UpdateRdfEntityRequest req) {
 
         requireProjectOpen();
 
         if (entityIri == null || entityIri.isBlank()) {
-            throw new BadRequestException("entityKey manquant.");
+            throw new BadRequestException("entityKey is missing.");
         }
         if (req == null) {
-            throw new BadRequestException("Body manquant.");
+            throw new BadRequestException("Request Body is missing.");
         }
 
         IRI subject = vf.createIRI(entityIri);
@@ -429,6 +436,8 @@ public class RdfEntityService {
 
             // 3 Remplacer uniquement les prédicats fournis
             if (req.properties != null) {
+                IRI CTX_INTERNAL = internalCtx();
+
                 for (RdfPropertyDto p : req.properties) {
 
                     if (p == null || p.predicate == null || p.predicate.isBlank()) {
@@ -436,14 +445,24 @@ public class RdfEntityService {
                     }
 
                     IRI pred = vf.createIRI(expand(p.predicate));
-                    IRI CTX_INTERNAL = internalCtx();
-                    // Supprimer anciennes valeurs dans le graphe interne
+                    // Remove old values from internal DS
                     conn.remove(subject, pred, null, CTX_INTERNAL);
 
-                    // Ajouter la nouvelle valeur si présente
                     if (p.value != null && !p.value.isBlank()) {
                         addProperty(conn, subject, p);
                     }
+                }
+            }
+
+            if(req.types != null ){
+                IRI CTX_INTERNAL = internalCtx();
+                conn.remove(subject, RDF.TYPE, null, CTX_INTERNAL);
+
+                for (String type : req.types) {
+
+                    if(type == null) continue;
+                    addType(conn, subject, type);
+
                 }
             }
 
