@@ -147,7 +147,7 @@
                             class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-200 transition-all duration-200"
                             style="width: 20%;">
                             <div class="flex items-center gap-2">
-                                <span>Date</span>
+                                <span>Creation Date</span>
                                 <svg *ngIf="sortColumn === 'date'" 
                                      class="w-4 h-4 transition-transform duration-200" 
                                      [class.rotate-180]="!sortAscending" 
@@ -201,7 +201,7 @@
                         <!-- Date column -->
                         <td class="px-6 py-4">
                             <span class="text-sm text-gray-600 block truncate" [title]="entity.date">
-                                {{ entity.date }}
+                                {{ entity.creationDate | date:'short' }}
                             </span>
                         </td>
                         <!-- Access column -->
