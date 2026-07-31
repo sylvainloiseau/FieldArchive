@@ -151,6 +151,20 @@ public class RdfEntityService {
         return subject.stringValue();
     }
 
+    private String getModificationDate(RepositoryConnection conn, IRI subject) {
+        IRI modified = vf.createIRI("http://purl.org/dc/terms/modified");
+
+        try (var st = conn.getStatements(subject, modified, null)) {
+            if (st.hasNext()) {
+                Value o = st.next().getObject();
+                if (o.isLiteral()) {
+                    return o.stringValue();
+                }
+            }
+        }
+        return null;
+    }
+
     private String getCreationDate(RepositoryConnection conn, IRI subject) {
         IRI created = vf.createIRI("http://purl.org/dc/terms/created");
 
@@ -163,21 +177,6 @@ public class RdfEntityService {
             }
         }
         return null;
-    }
-
-    // =========================
-    //  API TYPES
-    // =========================
-    public List<String> listTypes() {
-        // MVP : on renvoie un set de types “courants”
-        // (tu peux plus tard les détecter via l’ontologie chargée)
-        return List.of(
-                "ric:Event",
-                "ric:Person",
-                "ric:Record",
-                "ric:Place",
-                "foaf:Person"
-        );
     }
 
     // =========================
@@ -297,6 +296,7 @@ public class RdfEntityService {
                     dto.editable = internal;
                     dto.label = bestLabel(conn, subject);
                     dto.creationDate = getCreationDate(conn, subject);
+                    dto.modificationDate = getModificationDate(conn, subject);
 
                     out.add(dto);
                 }
@@ -307,17 +307,7 @@ public class RdfEntityService {
         out.sort(Comparator.comparing(a -> a.label == null ? "" : a.label));
         return out;
     }
-    // =========================
-    //  READ ONE
-    // =========================
-//    public RdfEntityDto getByKey(String key) {
-//        requireProjectOpen();
-//        if (key == null || key.isBlank()) {
-//            throw new BadRequestException("entityKey manquant.");
-//        }
-//        IRI subject = iriFromKey(key);
-//        return getByIri(subject);
-//    }
+
 
     public String getNameOfEntityByIri(IRI subject) {
             requireProjectOpen();
@@ -469,15 +459,15 @@ public class RdfEntityService {
             // 2 Vérifier éditable
             if (!isInternalEntity(conn, subject)) {
                 throw new BadRequestException(
-                        "Modification interdite : entité provenant d'une source externe."
+                        "Modification is not allowed : Entity belongs to an external dataSource."
                 );
             }
 
             conn.begin();
 
             // 3 Remplacer uniquement les prédicats fournis
+            IRI CTX_INTERNAL = internalCtx();
             if (req.properties != null) {
-                IRI CTX_INTERNAL = internalCtx();
 
                 for (RdfPropertyDto p : req.properties) {
 
@@ -496,7 +486,6 @@ public class RdfEntityService {
             }
 
             if(req.types != null ){
-                IRI CTX_INTERNAL = internalCtx();
                 conn.remove(subject, RDF.TYPE, null, CTX_INTERNAL);
 
                 for (String type : req.types) {
@@ -506,6 +495,11 @@ public class RdfEntityService {
 
                 }
             }
+
+            IRI modifiedPredicate = vf.createIRI("http://purl.org/dc/terms/modified");
+            conn.remove(subject, modifiedPredicate, null, CTX_INTERNAL);
+            Literal modifiedLiteral = vf.createLiteral(Instant.now().toString(), XSD.DATETIME);
+            conn.add(subject, modifiedPredicate, modifiedLiteral, CTX_INTERNAL);
 
             // 4 Mettre à jour lastSync de la source interne
             touchInternalDataSource(conn);

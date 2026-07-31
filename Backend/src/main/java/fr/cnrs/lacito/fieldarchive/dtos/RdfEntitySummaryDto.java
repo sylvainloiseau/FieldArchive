@@ -7,4 +7,6 @@ public class RdfEntitySummaryDto {
     public String source;     // internal/external
     public boolean editable;
     public String creationDate;
+    public String modificationDate;
+
 }
