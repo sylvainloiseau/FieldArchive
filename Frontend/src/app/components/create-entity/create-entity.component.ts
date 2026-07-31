@@ -3,9 +3,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Va
 import { CommonModule } from '@angular/common';
 import { Entity } from '../../models/ressource';
 
-import { EntityDetailsComponent } from '../entity-details/entity-details.component';
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
-import { RicoPropertiesComponent } from '../rico-properties/rico-properties.component';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatIconModule} from '@angular/material/icon';
 
@@ -15,7 +13,7 @@ import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 import { MatDialog } from '@angular/material/dialog';
 
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
-import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
+import {MatChipsModule} from '@angular/material/chips';
 
 export type OntologyLabels = Record<string, string>;
 
@@ -34,7 +32,6 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
   imports: [FormsModule,
     ReactiveFormsModule,
     CommonModule, 
-    EntityDetailsComponent, 
     MatSnackBarModule, 
     FileViewerComponent,
     MatButtonToggleModule,
@@ -151,16 +148,19 @@ export class CreateEntityComponent implements OnInit {
     });
 
 
-    // else if (this.dialogData.type && this.dialogData.ontology || this.inputData.type && this.inputData.ontology ) {
     if (this.dialogData || this.inputData) {
 
       this.data = this.inputData ?? this.dialogData;
 
       console.log("RECEIVED DATA : ", this.data);
 
-      this.availableTypes =  this.data?.type && this.data?.ontology
-        ? [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]
-        : [];
+      if(this.data?.types){
+        this.listSelectedTypes =  this.data?.types
+      }
+      else if (this.data?.type && this.data?.ontology){
+        this.availableTypes = [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]
+      }
+      else this.availableTypes = [];
     }
 
     if (this.data) {
@@ -312,6 +312,11 @@ export class CreateEntityComponent implements OnInit {
     });
 
   
+  }
+
+  closeWithData() {
+    const data = this.listSelectedTypes;
+    this.dialogRef?.close(data);
   }
 
 }

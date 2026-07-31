@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
+import { CreateEntityComponent } from '../create-entity/create-entity.component';
 
 import {MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
@@ -30,6 +31,7 @@ import { KeyValue } from '@angular/common';
     MatDialogModule, 
     MatSnackBarModule, 
     FileViewerComponent,
+    CreateEntityComponent,
     MatChipsModule,
     MatIconModule
   ],
@@ -64,7 +66,10 @@ export class EntityDetailsComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any) {
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private dialogRef: MatDialogRef<EntityDetailsComponent>
+  ) {
     this.ontologyLabels = data.ontologyLabels;
     this.selectedEntityId = data.selectedEntityId;
   }
@@ -78,6 +83,26 @@ export class EntityDetailsComponent implements OnInit {
         console.error('Failed to copy:', err);
       });
     }
+  }
+
+  openCreateEntityDialog() {  
+
+    const types = this.allEntityTypesChips;
+
+    const dialogRef = this.dialog.open(CreateEntityComponent, {
+      width: '600px',
+      data: {
+        types,
+        ontologiesData: this.ontologyLabels
+      }
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        console.log('Received from child:', result);
+        this.allEntityTypesChips = result;
+        this.editEntity();
+      }
+    });
   }
 
   changeSelectedEntity(entityIri : string) {
@@ -209,9 +234,8 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   closeDetail() {
-    console.log("CLOSING Details view ");
+    this.dialogRef.close();
     // this.close.emit();
-
   }
 
   deleteEntity() {

@@ -1,17 +1,20 @@
 <div class="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+
   <form [formGroup]="entityForm" class="space-y-6">
 
     <!-- Entity Type -->
     <div class="w-full flex flex-col gap-2">
 
         <div class="flex items-center justify-between mb-3">
+            
             <label class="flex items-center gap-3 text-xs font-medium text-gray-700">
-                Select one or more type (one maximum for each ontology), then give the entity a name
+                Select one or more type (one maximum for each ontology)<span *ngIf="!data.types">, then give the entity a name</span>
 
                 <button
-                type="button"
-                class="grid place-items-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition leading-none"
-                title="Add new type"
+                    *ngIf="!data.types"
+                    type="button"
+                    class="grid place-items-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition leading-none"
+                    title="Add new type"
                 >
                 <svg
                     class="w-5 h-5"
@@ -127,9 +130,7 @@
     </div>
     }
 
-    <!-- Associations section -->
-    <div class="flex flex-col gap-2">
-      <!-- Inline form -->
+    <div *ngIf="!data.types" class="flex flex-col gap-2">
       <div class="mt-3 p-3 border border-blue-200 bg-blue-50 rounded-lg flex flex-col gap-3!">
         <div class="flex-1">
             <label class="block text-xs font-medium text-gray-600 mb-1">Entity Name</label>
@@ -148,9 +149,14 @@
         class="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
         Cancel
       </button>
-      <button (click)="saveNewEntity()" type="submit" [disabled]="entityForm.invalid"
-        class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-        Create
+
+      <button *ngIf="!data.types" (click)="saveNewEntity()" type="submit" [disabled]="entityForm.invalid"
+            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+            Create
+      </button>
+        <button *ngIf="data.types" (click)="closeWithData()" type="submit"
+            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+            Save
       </button>
     </div>
 
