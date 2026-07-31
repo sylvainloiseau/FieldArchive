@@ -11,9 +11,11 @@ import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
+import org.eclipse.rdf4j.model.vocabulary.XSD;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
 
@@ -33,6 +35,16 @@ public class RdfEntityService {
         String projectName = projectService.readCurrentProject().name;
         return dsService.getGraphIri(projectName + "_internal");
     }
+
+    private static final Map<String, String> PREFIX = Map.of(
+            "app", RdfNamespaces.APP,
+            "ric", RdfNamespaces.RICO,
+            "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+            "rdfs", "http://www.w3.org/2000/01/rdf-schema#",
+            "xsd", "http://www.w3.org/2001/XMLSchema#",
+            "dcterms", "http://purl.org/dc/terms/",
+            "foaf", "http://xmlns.com/foaf/0.1/"
+    );
 
     private IRI iriFromKey(String entityIri, String key) {
         String entityTypeName = entityIri.replace(RdfNamespaces.RICO,"");
@@ -57,19 +69,6 @@ public class RdfEntityService {
 
         return s.substring(lastSlash + 1);
     }
-
-
-
-    // Prefixes acceptés par l’API (CURIE -> IRI)
-    private static final Map<String, String> PREFIX = Map.of(
-            "app", RdfNamespaces.APP,
-            "ric", RdfNamespaces.RICO,
-            "rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
-            "rdfs", "http://www.w3.org/2000/01/rdf-schema#",
-            "xsd", "http://www.w3.org/2001/XMLSchema#",
-            "dcterms", "http://purl.org/dc/terms/",
-            "foaf", "http://xmlns.com/foaf/0.1/"
-    );
 
     private void requireProjectOpen() {
         if (!ProjectContext.isOpen()) throw new BadRequestException("Aucun projet ouvert.");
@@ -114,19 +113,56 @@ public class RdfEntityService {
     }
 
     private String bestLabel(RepositoryConnection conn, IRI subject) {
-        // 1) rdfs:label si présent
+
+        // 0) rico:name (TOP PRIORITY)
+        IRI ricoName = vf.createIRI("https://www.ica.org/standards/RiC/ontology#name");
+        try (var st = conn.getStatements(subject, ricoName, null)) {
+            if (st.hasNext()) return st.next().getObject().stringValue();
+        }
+
+        // 1) rdfs:label
         try (var st = conn.getStatements(subject, RDFS.LABEL, null)) {
             if (st.hasNext()) return st.next().getObject().stringValue();
         }
-        // 2) sinon, première valeur littérale trouvée
+
+        // 2) dcterms:title
+        IRI title = vf.createIRI("http://purl.org/dc/terms/title");
+        try (var st = conn.getStatements(subject, title, null)) {
+            if (st.hasNext()) return st.next().getObject().stringValue();
+        }
+
+        // 3) foaf:name
+        IRI name = vf.createIRI("http://xmlns.com/foaf/0.1/name");
+        try (var st = conn.getStatements(subject, name, null)) {
+            if (st.hasNext()) return st.next().getObject().stringValue();
+        }
+
+        // 4) fallback: ANY literal except dates
         try (var st = conn.getStatements(subject, null, null)) {
             while (st.hasNext()) {
                 Value o = st.next().getObject();
-                if (o.isLiteral()) return o.stringValue();
+                if (o.isLiteral() && !(o instanceof Literal l && l.getDatatype().equals(XSD.DATETIME))) {
+                    return o.stringValue();
+                }
             }
         }
-        // 3) sinon, fallback: fragment/IRI
+
+        // 5) final fallback
         return subject.stringValue();
+    }
+
+    private String getCreationDate(RepositoryConnection conn, IRI subject) {
+        IRI created = vf.createIRI("http://purl.org/dc/terms/created");
+
+        try (var st = conn.getStatements(subject, created, null)) {
+            if (st.hasNext()) {
+                Value o = st.next().getObject();
+                if (o.isLiteral()) {
+                    return o.stringValue();
+                }
+            }
+        }
+        return null;
     }
 
     // =========================
@@ -167,6 +203,10 @@ public class RdfEntityService {
                 IRI typeIri = vf.createIRI(expand(t));
                 conn.add(subject, RDF.TYPE, typeIri, CTX_INTERNAL);
             }
+
+            IRI createdPredicate = vf.createIRI("http://purl.org/dc/terms/created");
+            Literal createdLiteral = vf.createLiteral(Instant.now().toString(), XSD.DATETIME);
+            conn.add(subject, createdPredicate, createdLiteral, CTX_INTERNAL);
 
             // properties
             if (req.properties != null) {
@@ -256,6 +296,7 @@ public class RdfEntityService {
                     dto.source = internal ? "internal" : "external";
                     dto.editable = internal;
                     dto.label = bestLabel(conn, subject);
+                    dto.creationDate = getCreationDate(conn, subject);
 
                     out.add(dto);
                 }
