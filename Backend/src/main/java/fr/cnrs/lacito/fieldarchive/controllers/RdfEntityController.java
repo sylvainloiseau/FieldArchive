@@ -23,14 +23,6 @@ public class RdfEntityController {
     }
 
     // =========================
-    // Types RDF disponibles
-    // =========================
-    @GetMapping("/types")
-    public List<String> listTypes() {
-        return service.listTypes();
-    }
-
-    // =========================
     // Liste des entités par type (vue tableau)
     // =========================
     @GetMapping("/entities")

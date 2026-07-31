@@ -8,25 +8,7 @@
         <div class="flex items-center justify-between mb-3">
             
             <label class="flex items-center gap-3 text-xs font-medium text-gray-700">
-                Select one or more type (one maximum for each ontology)<span *ngIf="!data.types">, then give the entity a name</span>
-
-                <button
-                    *ngIf="!data.types"
-                    type="button"
-                    class="grid place-items-center w-8 h-8 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition leading-none"
-                    title="Add new type"
-                >
-                <svg
-                    class="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
-                </svg>
-                </button>
-
+                <span>Select one or more type (one maximum for each ontology)<span *ngIf="!data.types">, then give the entity a name</span></span>
             </label>
         </div>
 
