@@ -86,6 +86,12 @@ export class GestionRessourcesService {
     return this.http.get<any>(`${this.ontologyUrl}/types`);
   }
 
+  getOntologyTypesAndProperties(namespace: string): Observable<any> {
+    const params = new HttpParams().set('namespace', namespace);
+
+    return this.http.get<any>(`${this.ontologyUrl}/schema`, { params });
+  }
+
   /**
    * Récupère l'URL d'une ontologie à partir de son label
    */

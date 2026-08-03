@@ -92,7 +92,9 @@ export class GestionRessourcesComponent implements OnInit {
   }
 
 
-  constructor(public dialog: MatDialog, private ontologyService: GestionRessourcesService,
+  constructor(
+    public dialog: MatDialog,
+    private ontologyService: GestionRessourcesService,
     private projetService: GestionProjetsService,
     private cdr: ChangeDetectorRef,
     public  router:         Router
@@ -117,6 +119,21 @@ export class GestionRessourcesComponent implements OnInit {
     return (ontology.mainTypes?.value?.length ?? 0) +
           (ontology.mainTerminologies?.value?.length ?? 0) +
           (ontology.usedTypes?.value?.length ?? 0);
+  }
+
+  getOntologyTypesAndProperties(namespace: string) : any {
+    this.ontologyService
+      .getOntologyTypesAndProperties(namespace)
+      .subscribe({
+        next: (res) => {
+          console.log('Schemaaaaaa:', res);
+          return res;
+        },
+        error: (err) => {
+          console.error('Error:', err);
+          return null;
+        }
+      });
   }
 
   ngOnInit() {
@@ -145,6 +162,7 @@ export class GestionRessourcesComponent implements OnInit {
       }
     }
     );
+
   
   }
 

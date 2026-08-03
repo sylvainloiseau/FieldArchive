@@ -1,6 +1,7 @@
 package fr.cnrs.lacito.fieldarchive.controllers;
 
 import fr.cnrs.lacito.fieldarchive.dtos.OntologyLabelDto;
+import fr.cnrs.lacito.fieldarchive.dtos.OntologySchemaDto;
 import fr.cnrs.lacito.fieldarchive.dtos.SaveOntologyLabelRequest;
 import fr.cnrs.lacito.fieldarchive.services.OntologyService;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,11 @@ public class OntologyController {
                               BuiltinOntologyService builtinOntologyService) {
         this.ontologyService = ontologyService;
         this.builtinOntologyService = builtinOntologyService;
+    }
+
+    @GetMapping("/schema")
+    public OntologySchemaDto getOntologySchema(@RequestParam String namespace) {
+        return ontologyService.getOntologySchema(namespace);
     }
 
     // =============================
