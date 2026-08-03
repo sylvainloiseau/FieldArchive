@@ -14,4 +14,15 @@ public class OntologyClassDto {
         this.label = label;
     }
 
+    public String getIri() {
+        return iri;
+    }
+
+    public String getLocalName() {
+        return localName;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 }

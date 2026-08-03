@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.cnrs.lacito.fieldarchive.core.ProjectContext;
 import fr.cnrs.lacito.fieldarchive.core.RdfContexts;
 import fr.cnrs.lacito.fieldarchive.core.RdfNamespaces;
-import fr.cnrs.lacito.fieldarchive.dtos.OntologyLabelDto;
-import fr.cnrs.lacito.fieldarchive.dtos.SaveOntologyLabelRequest;
+import fr.cnrs.lacito.fieldarchive.dtos.*;
 import fr.cnrs.lacito.fieldarchive.exception.BadRequestException;
 import fr.cnrs.lacito.fieldarchive.exception.NotFoundException;
 import org.eclipse.rdf4j.model.*;
@@ -41,17 +40,17 @@ public class OntologyService {
         return vf.createIRI(RdfNamespaces.APP, "OntologyNamespace");
     }
 
-    private final Map<String, List<Map<String, String>>> definedTypesCache = new ConcurrentHashMap<>();
+//    private final Map<String, List<Map<String, String>>> definedTypesCache = new ConcurrentHashMap<>();
 
-    private List<Map<String, String>> getDefinedTypes(String namespacePrefix, Map<String, Object> ontologyData) {
-        return definedTypesCache.computeIfAbsent(namespacePrefix, p -> {
-            String file = (String) ontologyData.get("file");
-            if (file == null || file.isBlank()) {
-                return List.of();
-            }
-            return loadDefinedTypesFromFile(file, namespacePrefix);
-        });
-    }
+//    private List<Map<String, String>> getDefinedTypes(String namespacePrefix, Map<String, Object> ontologyData) {
+//        return definedTypesCache.computeIfAbsent(namespacePrefix, p -> {
+//            String file = (String) ontologyData.get("file");
+//            if (file == null || file.isBlank()) {
+//                return List.of();
+//            }
+//            return loadDefinedTypesFromFile(file, namespacePrefix);
+//        });
+//    }
 
     private List<Map<String, String>> loadDefinedTypesFromFile(String classpathFile, String namespacePrefix) {
         ClassPathResource resource = new ClassPathResource(classpathFile);
@@ -106,7 +105,9 @@ public class OntologyService {
 
     public OntologyService() {
         loadConfig();
+        preloadSchemas();
     }
+
 
     private Map<String, Object> ontologyConfig;
 
@@ -244,14 +245,27 @@ public class OntologyService {
             alreadyCovered.addAll(extractConfiguredNames(ontologyData, "mainTypes"));
             alreadyCovered.addAll(extractConfiguredNames(ontologyData, "mainTerminologies"));
 
-            List<Map<String, String>> defined = getDefinedTypes(normalizedPrefix, ontologyData).stream()
-                    .filter(t -> !alreadyCovered.contains(t.get("localName")))
-                    .collect(Collectors.toList());
-            merged.put("definedTypes", Map.of("name", "Defined Types", "value", defined));
 
-            if (!used.isEmpty() || !defined.isEmpty()) {
-                data.put(prefix, merged); // keep original config key as the output key
+            OntologySchemaDto ontologySchemaDto = this.getOntologySchema(prefix);
+
+            // All Defined Types
+            List<OntologyClassDto> ontologyFilteredTypes = ontologySchemaDto.getTypes().stream()
+                    .filter(t -> !alreadyCovered.contains(t.getLocalName()))
+                    .collect(Collectors.toList());
+
+            merged.put("definedTypes", Map.of("name", "Defined Types", "value", ontologyFilteredTypes) );
+
+            if (!used.isEmpty() || ontologySchemaDto != null) {
+                data.put(prefix, merged);
             }
+
+            // All Defined Properties
+            List<OntologyPropertyDto> ontologyProperties = ontologySchemaDto.getProperties();
+            merged.put("properties", Map.of("name", "properties", "value", ontologyProperties) );
+            if (ontologyProperties != null) {
+                data.put(prefix, merged);
+            }
+
         });
 
         return data;
@@ -440,6 +454,43 @@ public class OntologyService {
             conn.remove(ontology, null, null, ctxMeta);
             conn.commit();
         }
+    }
+
+
+
+    @SuppressWarnings("unchecked")
+    private void preloadSchemas() {
+        if (ontologyConfig == null) return;
+        Map<String, Object> ontologies = (Map<String, Object>) ontologyConfig.get("ontologies");
+        if (ontologies == null) return;
+        ontologies.keySet().forEach(this::getOntologySchema);
+    }
+    private final Map<String, OntologySchemaDto> schemaCache = new ConcurrentHashMap<>();
+
+    @SuppressWarnings("unchecked")
+    public OntologySchemaDto getOntologySchema(String namespacePrefix) {
+        return schemaCache.computeIfAbsent(namespacePrefix, p -> {
+            Map<String, Object> ontologies = (Map<String, Object>) ontologyConfig.get("ontologies");
+            Map<String, Object> ontologyData = ontologies != null ? (Map<String, Object>) ontologies.get(p) : null;
+            if (ontologyData == null) return new OntologySchemaDto(List.of(), List.of());
+
+            String file = (String) ontologyData.get("file");
+            if (file == null || file.isBlank()) return new OntologySchemaDto(List.of(), List.of());
+
+            ClassPathResource resource = new ClassPathResource(file);
+            if (!resource.exists()) return new OntologySchemaDto(List.of(), List.of());
+
+            Model model;
+            try (InputStream is = resource.getInputStream()) {
+                RDFFormat format = Rio.getParserFormatForFileName(file).orElse(RDFFormat.RDFXML);
+                model = Rio.parse(is, "", format);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return new OntologySchemaDto(List.of(), List.of());
+            }
+
+            return OntologySchemaExtractor.extract(model, normalizeNamespace(p));
+        });
     }
 
 }

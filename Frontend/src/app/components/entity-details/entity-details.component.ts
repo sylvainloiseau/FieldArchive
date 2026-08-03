@@ -20,6 +20,7 @@ import {MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
 import { KeyValue } from '@angular/common';
 
+
 @Component({
   selector: 'app-entity-details',
   standalone: true,
@@ -64,6 +65,8 @@ export class EntityDetailsComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef); 
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+
+  public listOfAllRanges : any[] = [];
 
 
   constructor(
@@ -114,7 +117,8 @@ export class EntityDetailsComponent implements OnInit {
           this.selectedEntity = data;
           // this.getEntityPropertiesDict();
           this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
-
+          this.buildTypesChips(data.types, this.ontologyLabels);
+          this.buildMainProperties(this.ontologyLabels);
           this.cdr.markForCheck();
         },
         error: (err) => console.error("ERROR:", err)
@@ -132,6 +136,8 @@ export class EntityDetailsComponent implements OnInit {
   // Chips 
 
   buildTypesChips(entityTypes : string[], ontologies : any[]) : void {
+
+    this.allEntityTypesChips = []; // Clear existing chips
 
     for (let type of entityTypes) {
       for (const [key, value] of Object.entries(ontologies)) {
@@ -152,6 +158,157 @@ export class EntityDetailsComponent implements OnInit {
   removeChip(typeUrl: string) {
     this.allEntityTypesChips = this.allEntityTypesChips.filter(t => t.iri !== typeUrl);
     this.editEntity();
+  }
+
+  buildMainProperties(ontologyLabels: any[]): void {
+    const labelSet = new Set(this.allEntityTypesChips.map(t => t.label));
+
+    for (const value of Object.values(ontologyLabels)) {
+      const ontologyPrefix = value.name;
+
+      if (value.mainProperty) {
+        value.mainProperties = {}; // 👈 object now, same shape as mainProperty
+
+        for (const [keyMP, valueMP] of Object.entries(value.mainProperty)) {
+          const entityType = this.extractPropertyNameFromIRI(keyMP);
+          const fullKey = `${ontologyPrefix}:${entityType}`;
+
+          if (labelSet.has(fullKey)) {
+
+            if (value.mainProperties[entityType]) {
+              // append to existing array for that type
+              value.mainProperties[entityType].push(
+                ...(Array.isArray(valueMP) ? valueMP : [valueMP])
+              );
+            } else {
+              // create the key, same as mainProperty[entityType]
+              value.mainProperties[entityType] = Array.isArray(valueMP)
+                ? [...valueMP]
+                : [valueMP];
+            }
+          }
+        }
+      }
+    }
+
+    console.log("WATATATATA :", ontologyLabels);
+  }
+
+  checkIfEntityPropertyIsInMainProperties(selectedEntity: any, ontologyLabels: any) {
+
+    for (const [namespaceUri, ontologyData] of Object.entries<any>(ontologyLabels)) {
+
+      const mainPropertyMap = ontologyData?.mainProperties;
+      const propertyDefs: any[] = ontologyData?.properties?.value || [];
+      const entities: any[] = ontologyData?.entities || []; // <-- the array to match against & remove from
+
+      if (!mainPropertyMap || typeof mainPropertyMap !== 'object') {
+        continue;
+      }
+
+      for (const [typeName, propList] of Object.entries<any>(mainPropertyMap)) {
+
+        if (!Array.isArray(propList)) {
+          continue;
+        }
+
+        mainPropertyMap[typeName] = propList.map((propIdentifier: any) => {
+
+          if (typeof propIdentifier === 'object' && propIdentifier !== null) {
+            return propIdentifier;
+          }
+
+          const propDef = propertyDefs.find((p: any) =>
+            p.uri === propIdentifier ||
+            this.extractPropertyNameFromIRI(p.uri) === propIdentifier
+          ) || {};
+
+          // Find the matching entity (by predicate, full IRI or local name) and its index.
+          let matchedEntity: any = null;
+          let matchedIndex = -1;
+
+          for (let i = 0; i < entities.length; i++) {
+            const entity = entities[i];
+            const localName = this.extractPropertyNameFromIRI(entity.predicate);
+            if (entity.predicate === propIdentifier || localName === propIdentifier) {
+              matchedEntity = entity;
+              matchedIndex = i;
+              break;
+            }
+          }
+
+          // Remove it from ontologyLabels[namespaceUri].entities now that it's
+          // been captured into mainProperty.
+          if (matchedIndex !== -1) {
+            entities.splice(matchedIndex, 1);
+          }
+
+          if (matchedEntity) {
+            return {
+              ...matchedEntity,
+              uri: propIdentifier,
+              label: propDef.label,
+              cardinality: propDef.cardinality,
+              rangeLocalName: propDef.rangeLocalName,
+              rangeUri: propDef.rangeUri,
+              domainUri: propDef.domainUri,
+              domainLocalName: propDef.domainLocalName,
+              datatypeCategory: propDef.datatypeCategory,
+              datatypeUri: propDef.datatypeUri,
+              lang: propDef.lang,
+            };
+          }
+
+          return {
+            uri: propIdentifier,
+            label: propDef.label,
+            cardinality: propDef.cardinality,
+            rangeLocalName: propDef.rangeLocalName,
+            rangeUri: propDef.rangeUri,
+            domainUri: propDef.domainUri,
+            domainLocalName: propDef.domainLocalName,
+            datatypeCategory: propDef.datatypeCategory,
+            datatypeUri: propDef.datatypeUri,
+            lang: propDef.lang,
+            value: null,
+            kind: propDef.kind === 'OBJECT_PROPERTY' ? 'iri' : 'literal',
+          };
+        });
+      }
+    }
+  }
+
+  cleanProperties(ontologyLabels: any, selectedEntity: any) {
+    selectedEntity.properties = selectedEntity.properties.map((property: any) => {
+
+      for (const value of Object.values(ontologyLabels) as any[]) {
+        for (const propvalue of value.properties.value) {
+          if (property.predicate === propvalue.uri) {
+            return {
+              ...property,
+              label: propvalue.label,
+              cardinality : propvalue.cardinality,
+              rangeLocalName : propvalue.rangeLocalName,
+              rangeUri : propvalue.rangeUri,
+              domainUri : propvalue.domainUri,
+              domainLocalName : propvalue.domainLocalName,
+              datatypeCategory : propvalue.datatypeCategory,
+              datatypeUri : propvalue.datatypeUri,
+              lang : propvalue.lang,
+            };
+          }
+        }
+      }
+
+      // if no match, keep original
+      return property;
+    });
+
+    // Enrich mainProperties once
+    this.checkIfEntityPropertyIsInMainProperties(selectedEntity, ontologyLabels);
+
+    console.log("NEW CLEANED SELECTED OBJECT :", selectedEntity);
+    console.log("NEW CLEANED ONTOLOGY OBJECT :", ontologyLabels);
   }
 
   buildEntityDetails(properties : any[], ontologyLabels : any[]) : void {
@@ -202,6 +359,10 @@ export class EntityDetailsComponent implements OnInit {
             this.buildEntityDetails(data.properties, this.ontologyLabels);
             this.selectedEntity = data;
             this.buildTypesChips(data.types, this.ontologyLabels);
+            this.buildMainProperties(this.ontologyLabels);
+
+            this.cleanProperties(this.ontologyLabels, this.selectedEntity);
+
             this.cdr.markForCheck();
           },
           error: (err) => console.error("ERROR:", err)
@@ -230,6 +391,9 @@ export class EntityDetailsComponent implements OnInit {
     this.selectedEntity = entity;
     // this.getEntityPropertiesDict(); // ← ajouter
     this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
+    this.buildTypesChips(this.selectedEntity.types, this.ontologyLabels);
+
+    this.buildMainProperties(this.ontologyLabels);
     this.cdr.markForCheck();
   }
 
@@ -285,11 +449,36 @@ export class EntityDetailsComponent implements OnInit {
     });
   }
 
-  editEntity() : void {
+  editEntity(): void {
+
+    const allEntities: any[] = [];
+
+    for (const ontologyData of Object.values<any>(this.ontologyLabels)) {
+
+      // Leftover properties that were NOT captured into mainProperties
+      if (Array.isArray(ontologyData?.entities)) {
+        allEntities.push(...ontologyData.entities);
+      }
+
+      // Properties that WERE captured into mainProperties — only the ones with
+      // a real matched entity (they carry a "predicate" field from the spread);
+      // the "no match" placeholders only have a bare "uri" and no predicate.
+      if (ontologyData?.mainProperties && typeof ontologyData.mainProperties === 'object') {
+        for (const propList of Object.values<any>(ontologyData.mainProperties)) {
+          if (Array.isArray(propList)) {
+            for (const prop of propList) {
+              if (prop?.predicate) {
+                allEntities.push(prop);
+              }
+            }
+          }
+        }
+      }
+    }
 
     const payload = {
-      types : this.allEntityTypesChips.map(type => type.iri),
-      properties: this.selectedEntity.properties.map(
+      types: this.allEntityTypesChips.map(type => type.iri),
+      properties: allEntities.map(
         ({ value, predicate, kind }: { value: string; predicate: string; kind: 'iri' | 'literal' }) => ({
           value,
           predicate,
@@ -297,6 +486,7 @@ export class EntityDetailsComponent implements OnInit {
         })
       )
     };
+
     console.log("ENTITY TO BE UPDATED : ", payload);
 
     this.gestionRessourceService.editEntity(this.selectedEntity.iri, payload).subscribe({
@@ -370,6 +560,18 @@ export class EntityDetailsComponent implements OnInit {
       kind: 'literal',
       value: ''
     };
+  }
+
+  getEntitiesByType(entityType : string) : void {
+    this.gestionRessourceService.getAllEntitiesByType(entityType).subscribe({
+      next: (res) => {
+        console.log("All possible ranges for this predicate : ", res);
+        this.listOfAllRanges = res;
+      },
+      error: (err) => {
+        console.error("Error fetching possible ranges: ", err);
+      } 
+    });
   }
 
   confirmAddAssociation() {
