@@ -259,28 +259,18 @@ export class CreateEntityComponent implements OnInit {
       }
     }
 
-    // 2. Build properties (remove "key" and add lang if literal)
-    // const formattedProperties = this.properties.map(prop => {
-    //   const base: any = {
-    //     predicate: prop.predicate,
-    //     kind: prop.kind,
-    //     value: prop.value
-    //   };
-
-    //   // Add lang only for literals
-    //   if (prop.kind === 'literal') {
-    //     base.lang = ''; // you can make this dynamic later
-    //   }
-
-    //   return base;
-    // });
     const property: any = {
       predicate: "https://www.ica.org/standards/RiC/ontology#name",
       kind: 'literal',
-      value: this.entityForm.get('propertyValue')?.value
+      values: [
+        {
+          value: this.entityForm.get('propertyValue')?.value,
+          datatype: null,
+          lang: null
+        }
+      ]
     };
 
-    // 3. Final payload
     const payload = {
       types: types,
       properties: [property]
@@ -302,9 +292,7 @@ export class CreateEntityComponent implements OnInit {
             panelClass: ['snackbar-success']
           }
         );
-        // const dataToSend = { status: 'closed', reason: 'user clicked button' };
         this.closed.emit(true);
-        // optional UX improvements
         this.entityForm.reset();
       },
       error: (err) => {
@@ -321,7 +309,6 @@ export class CreateEntityComponent implements OnInit {
       }
     });
 
-  
   }
 
   closeWithData() {

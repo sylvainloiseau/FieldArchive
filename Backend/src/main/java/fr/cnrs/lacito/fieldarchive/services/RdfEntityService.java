@@ -26,10 +26,12 @@ public class RdfEntityService {
 
     private final ProjectService projectService;
     private final DataSourceService dsService;
+    private final OntologyService ontologyService;
 
-    public RdfEntityService(ProjectService projectService, DataSourceService dsService) {
+    public RdfEntityService(ProjectService projectService, DataSourceService dsService, OntologyService ontologyService) {
         this.projectService = projectService;
         this.dsService = dsService;
+        this.ontologyService = ontologyService;
     }
     private IRI internalCtx() {
         String projectName = projectService.readCurrentProject().name;
@@ -364,6 +366,7 @@ public class RdfEntityService {
         }
         return getByIri(vf.createIRI(key));
     }
+
     public RdfEntityDto getByIri(IRI subject) {
         requireProjectOpen();
         if (subject == null) {
@@ -405,6 +408,7 @@ public class RdfEntityService {
                     RdfPropertyDto p = byPredicate.computeIfAbsent(predKey, k -> {
                         RdfPropertyDto newP = new RdfPropertyDto();
                         newP.predicate = predKey;
+                        newP.schema = ontologyService.getPropertyByUri(predKey);
                         return newP;
                     });
 
@@ -438,7 +442,6 @@ public class RdfEntityService {
             return dto;
         }
     }
-
     //  UPDATE
     // =========================
     // =========================
