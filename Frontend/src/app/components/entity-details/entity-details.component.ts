@@ -49,7 +49,6 @@ export class EntityDetailsComponent implements OnInit {
 
   selectedEntity : any = null ;
   entityPropertiesDict : any[] = [];
-  myNewEntites : Entity[] = [];
   newAssociation: {
   mode: 'existing' | 'new' | null;  // which sub-mode
   predicate: string;                 // for 'existing': full predicate URI
@@ -104,6 +103,19 @@ export class EntityDetailsComponent implements OnInit {
         console.log('Received from child:', result);
         this.allEntityTypesChips = result;
         this.editEntity();
+      }
+    });
+  }
+
+  openCreateEntityDialogForRange(rangeTypeIRI : string) {
+
+    const type = this.extractPropertyNameFromIRI(rangeTypeIRI);
+
+    this.dialog.open(CreateEntityComponent, {
+      width: '600px',
+      data: {
+        fullType : rangeTypeIRI,
+        ontologiesData: this.ontologyLabels
       }
     });
   }
@@ -565,13 +577,13 @@ export class EntityDetailsComponent implements OnInit {
   getEntitiesByType(entityType : string) : void {
     this.gestionRessourceService.getAllEntitiesByType(entityType).subscribe({
       next: (res) => {
-        console.log("All possible ranges for this predicate : ", res);
         this.listOfAllRanges = res;
       },
       error: (err) => {
         console.error("Error fetching possible ranges: ", err);
       } 
     });
+    console.log("NEW ONTOLOGY VALUES : ", this.ontologyLabels);
   }
 
   confirmAddAssociation() {

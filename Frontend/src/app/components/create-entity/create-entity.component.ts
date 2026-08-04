@@ -160,6 +160,9 @@ export class CreateEntityComponent implements OnInit {
       else if (this.data?.type && this.data?.ontology){
         this.availableTypes = [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]
       }
+      else if (this.data?.fullType){
+        this.availableTypes = [this.data.fullType]
+      }
       else this.availableTypes = [];
     }
 
@@ -237,7 +240,14 @@ export class CreateEntityComponent implements OnInit {
   }
 
   saveNewEntity() {
-    let types: string[] = this.listSelectedTypes.map(t => t.iri);
+
+    let types: string[]
+    if(this.data.fullType) {
+      types = [this.data.fullType];
+    }
+    else {
+      types = this.listSelectedTypes.map(t => t.iri);
+    }
 
     if (!this.selectedOntology) {
       const customType = this.customSource === 'url'
@@ -317,6 +327,7 @@ export class CreateEntityComponent implements OnInit {
   closeWithData() {
     const data = this.listSelectedTypes;
     this.dialogRef?.close(data);
+    this.saveNewEntity();
   }
 
 }

@@ -8,7 +8,7 @@
         <div class="flex items-center justify-between mb-3">
             
             <label class="flex items-center gap-3 text-xs font-medium text-gray-700">
-                <span>Select one or more type (one maximum for each ontology)<span *ngIf="!data.types">, then give the entity a name</span></span>
+                <span>Select one or more type (one maximum for each ontology)<span *ngIf="!data.types && !data.fullType">, then give the entity a name</span></span>
             </label>
         </div>
 
@@ -27,7 +27,7 @@
         <div class="flex flex-col gap-3">
 
             <div>
-            @if(dialogData.ontologiesData && !dialogData.type){
+            @if(dialogData.ontologiesData && !dialogData.type && !dialogData.fullType){
                 <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
 
                     <mat-button-toggle
@@ -77,7 +77,7 @@
                     </optgroup>
 
                     <optgroup *ngIf="selectedOntology.definedTypes" label="Other">
-                        <option *ngFor="let t of selectedOntology.definedTypes.value" [value]="t.uri">
+                        <option *ngFor="let t of selectedOntology.definedTypes.value" [value]="t.iri">
                             {{ t.label }}
                         </option>
                     </optgroup>
@@ -102,7 +102,7 @@
 
     </div>
 
-    @if (dialogData.type || inputData ){
+    @if (dialogData.type || inputData || dialogData.fullType) {
     <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
         <label class="block text-xs font-medium text-gray-700 mb-2">Selected type</label>
 
@@ -132,13 +132,17 @@
         Cancel
       </button>
 
-      <button *ngIf="!data.types" (click)="saveNewEntity()" type="submit" [disabled]="entityForm.invalid"
+      <button *ngIf="!data.types && !data.fullType" (click)="saveNewEntity()" type="submit" [disabled]="entityForm.invalid"
             class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
             Create
       </button>
         <button *ngIf="data.types" (click)="closeWithData()" type="submit"
             class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
             Save
+      </button>
+        <button *ngIf="data.fullType" (click)="saveNewEntity()" type="submit"
+            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+            Create
       </button>
     </div>
 
