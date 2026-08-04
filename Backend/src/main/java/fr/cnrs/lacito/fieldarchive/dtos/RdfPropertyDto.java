@@ -7,4 +7,7 @@ public class RdfPropertyDto {
     public String predicate;           // ex: "ric:hasName" ou IRI complet
     public String kind;        // "literal" | "iri" | "other"
     public List<RdfValueDto> values = new ArrayList<>();
+
+    public OntologyPropertyDto schema; // metadata from the ontology definition (cardinality, range, domain, etc.), null if unknown
+
 }

@@ -456,6 +456,20 @@ public class OntologyService {
         }
     }
 
+    public OntologyPropertyDto getPropertyByUri(String propertyUri) {
+        if (propertyUri == null || propertyUri.isBlank()) return null;
+
+        String namespace = normalizeNamespace(extractPrefix(propertyUri));
+
+        OntologySchemaDto schema = getOntologySchema(namespace);
+        if (schema == null || schema.getProperties() == null) return null;
+
+        return schema.getProperties().stream()
+                .filter(p -> propertyUri.equals(p.getUri()))
+                .findFirst()
+                .orElse(null);
+    }
+
 
 
     @SuppressWarnings("unchecked")

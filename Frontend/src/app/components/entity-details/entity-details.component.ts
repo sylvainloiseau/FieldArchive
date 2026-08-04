@@ -67,6 +67,8 @@ export class EntityDetailsComponent implements OnInit {
 
   public listOfAllRanges : any[] = [];
 
+  private lastLoadedRangeUri: string = '';
+
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: any,
@@ -107,9 +109,42 @@ export class EntityDetailsComponent implements OnInit {
     });
   }
 
-  openCreateEntityDialogForRange(rangeTypeIRI : string) {
+  // onRangeSelected(selectedIri: string, propertyValues: any[]): void {
+  //   if (!selectedIri) return;
 
-    const type = this.extractPropertyNameFromIRI(rangeTypeIRI);
+    
+  //   const selectedRange = this.listOfAllRanges.find(t => t.iri === selectedIri);
+  //   console.log("Values so far for this property:", propertyValues);
+
+  //   propertyValues.push(selectedRange)
+  // }
+  trackByIri(index: number, item: { iri: string; label: string }): string {
+    return item.iri;
+  }
+
+  onRangeSelected(event: Event, property: any): void {
+    const selectedIri = (event.target as HTMLSelectElement).value;
+    if (!selectedIri) return;
+
+    const selectedRange = this.listOfAllRanges.find(t => t.iri === selectedIri);
+    if (!selectedRange) return;
+
+    // Push a proper RdfValueDto-shaped object into this property's values,
+    // not the raw entity, and NOT into selectedEntity.properties.
+    property.values = property.values || [];
+    property.values.push({
+      value: selectedRange.iri,
+      name: selectedRange.label,
+      datatype: null,
+      lang: null
+    });
+
+    this.editEntity();
+
+    (event.target as HTMLSelectElement).value = '';
+  }
+
+  openCreateEntityDialogForRange(rangeTypeIRI : string) {
 
     this.dialog.open(CreateEntityComponent, {
       width: '600px',
@@ -212,7 +247,7 @@ export class EntityDetailsComponent implements OnInit {
 
       const mainPropertyMap = ontologyData?.mainProperties;
       const propertyDefs: any[] = ontologyData?.properties?.value || [];
-      const entities: any[] = ontologyData?.entities || []; // <-- the array to match against & remove from
+      const entities: any[] = ontologyData?.entities || [];
 
       if (!mainPropertyMap || typeof mainPropertyMap !== 'object') {
         continue;
@@ -235,7 +270,6 @@ export class EntityDetailsComponent implements OnInit {
             this.extractPropertyNameFromIRI(p.uri) === propIdentifier
           ) || {};
 
-          // Find the matching entity (by predicate, full IRI or local name) and its index.
           let matchedEntity: any = null;
           let matchedIndex = -1;
 
@@ -249,15 +283,12 @@ export class EntityDetailsComponent implements OnInit {
             }
           }
 
-          // Remove it from ontologyLabels[namespaceUri].entities now that it's
-          // been captured into mainProperty.
           if (matchedIndex !== -1) {
             entities.splice(matchedIndex, 1);
           }
 
           if (matchedEntity) {
-            return {
-              ...matchedEntity,
+            matchedEntity.schema = {
               uri: propIdentifier,
               label: propDef.label,
               cardinality: propDef.cardinality,
@@ -269,52 +300,58 @@ export class EntityDetailsComponent implements OnInit {
               datatypeUri: propDef.datatypeUri,
               lang: propDef.lang,
             };
+            return matchedEntity;
           }
 
-          return {
-            uri: propIdentifier,
-            label: propDef.label,
-            cardinality: propDef.cardinality,
-            rangeLocalName: propDef.rangeLocalName,
-            rangeUri: propDef.rangeUri,
-            domainUri: propDef.domainUri,
-            domainLocalName: propDef.domainLocalName,
-            datatypeCategory: propDef.datatypeCategory,
-            datatypeUri: propDef.datatypeUri,
-            lang: propDef.lang,
-            value: null,
+          // No existing value yet — build a placeholder, give it a real
+          // predicate, and register it in selectedEntity.properties so
+          // it's tracked from the start (not orphaned once a value is added).
+          const predicateUri = propDef.uri || propIdentifier;
+
+          const placeholder: any = {
+            predicate: predicateUri,
             kind: propDef.kind === 'OBJECT_PROPERTY' ? 'iri' : 'literal',
+            values: [],
+            schema: {
+              uri: predicateUri,
+              label: propDef.label,
+              cardinality: propDef.cardinality,
+              rangeLocalName: propDef.rangeLocalName,
+              rangeUri: propDef.rangeUri,
+              domainUri: propDef.domainUri,
+              domainLocalName: propDef.domainLocalName,
+              datatypeCategory: propDef.datatypeCategory,
+              datatypeUri: propDef.datatypeUri,
+              lang: propDef.lang,
+            },
           };
+
+          selectedEntity.properties.push(placeholder);
+
+          return placeholder;
         });
       }
     }
   }
 
   cleanProperties(ontologyLabels: any, selectedEntity: any) {
-    selectedEntity.properties = selectedEntity.properties.map((property: any) => {
-
+    for (const property of selectedEntity.properties) {
       for (const value of Object.values(ontologyLabels) as any[]) {
         for (const propvalue of value.properties.value) {
           if (property.predicate === propvalue.uri) {
-            return {
-              ...property,
-              label: propvalue.label,
-              cardinality : propvalue.cardinality,
-              rangeLocalName : propvalue.rangeLocalName,
-              rangeUri : propvalue.rangeUri,
-              domainUri : propvalue.domainUri,
-              domainLocalName : propvalue.domainLocalName,
-              datatypeCategory : propvalue.datatypeCategory,
-              datatypeUri : propvalue.datatypeUri,
-              lang : propvalue.lang,
-            };
+            property.label = propvalue.label;
+            property.cardinality = propvalue.cardinality;
+            property.rangeLocalName = propvalue.rangeLocalName;
+            property.rangeUri = propvalue.rangeUri;
+            property.domainUri = propvalue.domainUri;
+            property.domainLocalName = propvalue.domainLocalName;
+            property.datatypeCategory = propvalue.datatypeCategory;
+            property.datatypeUri = propvalue.datatypeUri;
+            property.lang = propvalue.lang;
           }
         }
       }
-
-      // if no match, keep original
-      return property;
-    });
+    }
 
     // Enrich mainProperties once
     this.checkIfEntityPropertyIsInMainProperties(selectedEntity, ontologyLabels);
@@ -462,41 +499,24 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   editEntity(): void {
-
-    const allEntities: any[] = [];
-
-    for (const ontologyData of Object.values<any>(this.ontologyLabels)) {
-
-      // Leftover properties that were NOT captured into mainProperties
-      if (Array.isArray(ontologyData?.entities)) {
-        allEntities.push(...ontologyData.entities);
-      }
-
-      // Properties that WERE captured into mainProperties — only the ones with
-      // a real matched entity (they carry a "predicate" field from the spread);
-      // the "no match" placeholders only have a bare "uri" and no predicate.
-      if (ontologyData?.mainProperties && typeof ontologyData.mainProperties === 'object') {
-        for (const propList of Object.values<any>(ontologyData.mainProperties)) {
-          if (Array.isArray(propList)) {
-            for (const prop of propList) {
-              if (prop?.predicate) {
-                allEntities.push(prop);
-              }
-            }
-          }
-        }
-      }
-    }
+    const properties = (this.selectedEntity.properties || [])
+      .filter((p: any) => p && p.predicate && p.kind) // drop anything malformed/corrupted
+      .map((p: any) => ({
+        predicate: p.predicate,
+        kind: p.kind,
+        values: (p.values || [])
+          .filter((v: any) => v && v.value != null)
+          .map((v: any) => ({
+            value: v.value,
+            datatype: v.datatype ?? null,
+            lang: v.lang ?? null
+          }))
+      }))
+      .filter((p: any) => p.values.length > 0); // drop properties left with no values
 
     const payload = {
       types: this.allEntityTypesChips.map(type => type.iri),
-      properties: allEntities.map(
-        ({ value, predicate, kind }: { value: string; predicate: string; kind: 'iri' | 'literal' }) => ({
-          value,
-          predicate,
-          kind
-        })
-      )
+      properties
     };
 
     console.log("ENTITY TO BE UPDATED : ", payload);
@@ -506,30 +526,18 @@ export class EntityDetailsComponent implements OnInit {
         this.snackBar.open(
           `"${this.selectedEntity.iri}" was successfully updated.`,
           'Close',
-          {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['snackbar-success']
-          }
+          { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: ['snackbar-success'] }
         );
-        console.log('Entity updated:', this.selectedEntity.iri);
       },
       error: (err) => {
         console.error('Edit failed:', err);
         this.snackBar.open(
           `Failed to update "${this.selectedEntity.iri}".`,
           'Close',
-          {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['snackbar-error']
-          }
+          { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: ['snackbar-error'] }
         );
       }
     });
-
   }
 
   removeProperty(property: any) {
@@ -574,8 +582,13 @@ export class EntityDetailsComponent implements OnInit {
     };
   }
 
-  getEntitiesByType(entityType : string) : void {
-    this.gestionRessourceService.getAllEntitiesByType(entityType).subscribe({
+  getEntitiesByType(rangeUri: string): void {
+    this.listOfAllRanges = []; 
+    if (this.lastLoadedRangeUri === rangeUri && this.listOfAllRanges?.length) {
+      return; // already loaded, don't refetch/reassign
+    }
+    this.lastLoadedRangeUri = rangeUri;
+    this.gestionRessourceService.getAllEntitiesByType(rangeUri).subscribe({
       next: (res) => {
         this.listOfAllRanges = res;
       },
@@ -583,7 +596,6 @@ export class EntityDetailsComponent implements OnInit {
         console.error("Error fetching possible ranges: ", err);
       } 
     });
-    console.log("NEW ONTOLOGY VALUES : ", this.ontologyLabels);
   }
 
   confirmAddAssociation() {
