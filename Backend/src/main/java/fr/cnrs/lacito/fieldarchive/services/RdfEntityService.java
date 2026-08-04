@@ -236,36 +236,46 @@ public class RdfEntityService {
         if (p.kind == null || p.kind.isBlank()) {
             throw new BadRequestException("Predicate's kind is mandatory (literal|iri).");
         }
+        if (p.values == null || p.values.isEmpty()) {
+            throw new BadRequestException("At least one value is mandatory for predicate: " + p.predicate);
+        }
+
         IRI CTX_INTERNAL = internalCtx();
         IRI pred = vf.createIRI(expand(p.predicate));
 
-        if ("iri".equalsIgnoreCase(p.kind)) {
-            if (p.value == null || p.value.isBlank()) throw new BadRequestException("value obligatoire pour kind=iri.");
-            IRI obj = vf.createIRI(expand(p.value));
-            conn.add(subject, pred, obj, CTX_INTERNAL);
+        for (RdfValueDto v : p.values) {
+            addValue(conn, subject, pred, CTX_INTERNAL, p.kind, v);
+        }
+    }
+
+    private void addValue(RepositoryConnection conn, IRI subject, IRI pred, IRI ctx, String kind, RdfValueDto v) {
+        if (v == null) return;
+
+        if ("iri".equalsIgnoreCase(kind)) {
+            if (v.value == null || v.value.isBlank()) throw new BadRequestException("value obligatoire pour kind=iri.");
+            IRI obj = vf.createIRI(expand(v.value));
+            conn.add(subject, pred, obj, ctx);
             return;
         }
 
-        if (!"literal".equalsIgnoreCase(p.kind)) {
-            throw new BadRequestException("kind invalide: " + p.kind);
+        if (!"literal".equalsIgnoreCase(kind)) {
+            throw new BadRequestException("kind invalide: " + kind);
         }
 
-        if (p.value == null) throw new BadRequestException("value obligatoire pour kind=literal.");
+        if (v.value == null) throw new BadRequestException("value obligatoire pour kind=literal.");
 
         Literal lit;
-        if (p.lang != null && !p.lang.isBlank()) {
-            lit = vf.createLiteral(p.value, p.lang.trim());
-        } else if (p.datatype != null && !p.datatype.isBlank()) {
-            IRI dt = vf.createIRI(expand(p.datatype));
-            lit = vf.createLiteral(p.value, dt);
+        if (v.lang != null && !v.lang.isBlank()) {
+            lit = vf.createLiteral(v.value, v.lang.trim());
+        } else if (v.datatype != null && !v.datatype.isBlank()) {
+            IRI dt = vf.createIRI(expand(v.datatype));
+            lit = vf.createLiteral(v.value, dt);
         } else {
-            lit = vf.createLiteral(p.value);
+            lit = vf.createLiteral(v.value);
         }
 
-        conn.add(subject, pred, lit, CTX_INTERNAL);
+        conn.add(subject, pred, lit, ctx);
     }
-
-
     //  READ LIST (vue tableau)
     public List<RdfEntitySummaryDto> listByType(String typeCurieOrIri) {
 
@@ -354,8 +364,6 @@ public class RdfEntityService {
         }
         return getByIri(vf.createIRI(key));
     }
-
-
     public RdfEntityDto getByIri(IRI subject) {
         requireProjectOpen();
         if (subject == null) {
@@ -363,75 +371,79 @@ public class RdfEntityService {
         }
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
-            // vérifier existence (au moins un statement sur ce sujet dans le repo)
             boolean exists;
             try (var st = conn.getStatements(subject, null, null)) {
                 exists = st.hasNext();
             }
             if (!exists) throw new NotFoundException("Entité introuvable: " + subject.stringValue());
-            // Déterminer si elle est interne ou externe
+
             boolean internal = isInternalEntity(conn, subject);
-            // Construire le DTO
+
             RdfEntityDto dto = new RdfEntityDto();
             dto.entityKey = keyFromIri(subject);
             dto.iri = subject.stringValue();
             dto.source = internal ? "internal" : "external";
             dto.editable = internal;
 
-            // Lire les rdf:type
             for (String t : readTypes(conn, subject)) {
                 dto.types.add(t);
             }
 
-            // properties (on renvoie tout ce qu’on trouve)
-            // Lire toutes les propriétés
             IRI CTX_INTERNAL = internalCtx();
+
+            Map<String, RdfPropertyDto> byPredicate = new LinkedHashMap<>();
+
             try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
                 while (stmts.hasNext()) {
                     Statement st = stmts.next();
                     IRI pred = st.getPredicate();
                     Value obj = st.getObject();
 
-                    // Ignorer rdf:type (déjà traité)
                     if (pred.equals(RDF.TYPE)) continue;
 
-                    RdfPropertyDto p = new RdfPropertyDto();
-                    p.predicate = pred.stringValue();
+                    String predKey = pred.stringValue();
+                    RdfPropertyDto p = byPredicate.computeIfAbsent(predKey, k -> {
+                        RdfPropertyDto newP = new RdfPropertyDto();
+                        newP.predicate = predKey;
+                        return newP;
+                    });
+
+                    RdfValueDto v = new RdfValueDto();
 
                     if (obj.isIRI()) {
-                        p.kind = "iri";
-                        p.value = obj.stringValue();
-                        p.name = this.getNameOfEntityByIri((IRI) obj);
+                        if (p.kind == null) p.kind = "iri";
+                        v.value = obj.stringValue();
+                        v.name = this.getNameOfEntityByIri((IRI) obj);
 
                     } else if (obj.isLiteral()) {
                         Literal lit = (Literal) obj;
-                        p.kind = "literal";
-                        p.value = lit.getLabel();
-                        p.datatype = lit.getDatatype() != null
+                        if (p.kind == null) p.kind = "literal";
+                        v.value = lit.getLabel();
+                        v.datatype = lit.getDatatype() != null
                                 ? lit.getDatatype().stringValue()
                                 : null;
-                        p.lang = lit.getLanguage().orElse(null);
+                        v.lang = lit.getLanguage().orElse(null);
 
                     } else {
-                        // blank node ou autre (rare)
-                        p.kind = "other";
-                        p.value = obj.stringValue();
+                        if (p.kind == null) p.kind = "other";
+                        v.value = obj.stringValue();
                     }
 
-                    dto.properties.add(p);
+                    p.values.add(v);
                 }
             }
+
+            dto.properties.addAll(byPredicate.values());
 
             return dto;
         }
     }
 
-    // =========================
     //  UPDATE
     // =========================
     // =========================
-//  UPDATE (Only internal)
-// =========================
+    //  UPDATE (Only internal)
+    // =========================
     public RdfEntityDto updateByKey(String entityIri, UpdateRdfEntityRequest req) {
 
         requireProjectOpen();
@@ -447,7 +459,6 @@ public class RdfEntityService {
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
 
-            // 1 Vérifier existence
             boolean exists;
             try (var st = conn.getStatements(subject, null, null)) {
                 exists = st.hasNext();
@@ -456,7 +467,6 @@ public class RdfEntityService {
                 throw new NotFoundException("Entity not found : " + entityIri);
             }
 
-            // 2 Vérifier éditable
             if (!isInternalEntity(conn, subject)) {
                 throw new BadRequestException(
                         "Modification is not allowed : Entity belongs to an external dataSource."
@@ -465,7 +475,6 @@ public class RdfEntityService {
 
             conn.begin();
 
-            // 3 Remplacer uniquement les prédicats fournis
             IRI CTX_INTERNAL = internalCtx();
             if (req.properties != null) {
 
@@ -476,23 +485,20 @@ public class RdfEntityService {
                     }
 
                     IRI pred = vf.createIRI(expand(p.predicate));
-                    // Remove old values from internal DS
                     conn.remove(subject, pred, null, CTX_INTERNAL);
 
-                    if (p.value != null && !p.value.isBlank()) {
+                    if (p.values != null && !p.values.isEmpty()) {
                         addProperty(conn, subject, p);
                     }
                 }
             }
 
-            if(req.types != null ){
+            if (req.types != null) {
                 conn.remove(subject, RDF.TYPE, null, CTX_INTERNAL);
 
                 for (String type : req.types) {
-
-                    if(type == null) continue;
+                    if (type == null) continue;
                     addType(conn, subject, type);
-
                 }
             }
 
@@ -501,7 +507,6 @@ public class RdfEntityService {
             Literal modifiedLiteral = vf.createLiteral(Instant.now().toString(), XSD.DATETIME);
             conn.add(subject, modifiedPredicate, modifiedLiteral, CTX_INTERNAL);
 
-            // 4 Mettre à jour lastSync de la source interne
             touchInternalDataSource(conn);
 
             conn.commit();
@@ -509,7 +514,6 @@ public class RdfEntityService {
 
         return getByIri(subject);
     }
-
     //  DELETE (interne uniquement)
 // =========================
     public void deleteByKey(String entityIri) {

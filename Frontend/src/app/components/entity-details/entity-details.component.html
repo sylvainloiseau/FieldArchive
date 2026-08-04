@@ -99,24 +99,52 @@
                       </svg>
                     </button>
                   </label>
+                  
 
                   <div *ngIf="property.kind === 'iri'">
 
-                    <select
-                      (click)="getEntitiesByType(property.rangeUri)"
-                      class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-                      <option value="" disabled>Loading types…</option>
-                      <option *ngFor="let t of listOfAllRanges" [value]="t">{{ t }}</option>
-                    </select>
 
-                    <a
-                      *ngIf="property.value !== null"
-                      (click)="property.kind === 'iri' ? changeSelectedEntity(property.value) : null; $event.preventDefault()"
-                      class="text-sm w-full cursor-pointer text-blue-600 hover:text-blue-800 underline font-mono truncate"
-                      [title]="property.value"
-                    >
-                      {{ property.name }}
-                    </a>
+                    <div class="flex gap-1 items-center">
+
+                      <select
+                        [(ngModel)]="property.value"
+                        (click)="getEntitiesByType(property.rangeUri)"
+                        class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
+                        <option value="" disabled>Loading types…</option>
+                        <option *ngFor="let t of listOfAllRanges" [value]="t.iri">{{ t.label }}</option>
+                      </select>
+                      <button
+                        (click)="openCreateEntityDialogForRange(property.rangeUri)"
+                        type="button"
+                        class="cursor-pointer grid place-items-center w-6 h-6 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
+                        title="Add new type"
+                      >
+                        <svg
+                          class="w-5 h-5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div *ngIf="property.value !== null">
+
+                      <a
+                        *ngFor="let propValue of property.value"
+                        (click)="property.kind === 'iri' ? changeSelectedEntity(property.value) : null; $event.preventDefault()"
+                        class="text-sm w-full cursor-pointer text-blue-600 hover:text-blue-800 underline font-mono truncate"
+                        [title]="property.value"
+                      >
+                        {{ propValue.name }}
+                      </a>
+
+                    </div>
+
+                    
 
                   </div>
 
@@ -179,16 +207,18 @@
 
           </div>
 
+          <!-- Other Properties Fields -->
           <div class="flex p-3 justify-center">
               <label class="text-2xl text-blue-900">Other Properties</label>
           </div>
 
-          <!-- Other Properties Fields -->
           <ng-container *ngFor="let property of $any(item.value).entities">
 
             <div>
+
               <label class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
                 {{ property.key }}
+
                 <button
                   (click)="openFileViewer(property, property.value)"
                   *ngIf="property.key === 'identifier' && isFilePath(property.value)"
@@ -204,72 +234,113 @@
                 </button>
               </label>
 
-              <span class="block text-sm text-gray-900 font-medium mb-1.5" *ngIf="property.kind === 'iri'">
-                {{ property.name }}
-              </span>
-
-              <div class="flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-
-                <!-- Literal / IRI : lecture -->
-                <a
-                  *ngIf="!property.editing"
-                  (click)="property.kind === 'iri' ? changeSelectedEntity(property.value) : null; $event.preventDefault()"
-                  [ngClass]="{
-                    'cursor-pointer text-blue-600 hover:text-blue-800 underline font-mono truncate': property.kind === 'iri',
-                    'text-gray-900 font-medium bg-transparent focus:outline-none truncate': property.kind === 'literal'
-                  }"
-                  class="text-sm w-full"
-                  [title]="property.value"
-                >
-                  {{ property.value }}
-                </a>
-
-                <!-- Literal : edition -->
-                <input
-                  *ngIf="property.kind === 'literal' && property.editing"
-                  type="text"
-                  [(ngModel)]="property.value"
-                  (keydown.enter)="property.editing = false"
-                  (keydown.escape)="property.editing = false"
-                  class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
-                />
-
-                <!-- IRI : edition -->
-                <input
-                  *ngIf="property.kind === 'iri' && property.editing"
-                  type="text"
-                  [(ngModel)]="property.value"
-                  (keydown.enter)="property.editing = false"
-                  (keydown.escape)="property.editing = false"
-                  class="text-sm text-blue-600 font-mono w-full bg-transparent focus:outline-none border-b border-blue-400"
-                  autofocus
-                />
-
-                <div class="flex items-center gap-1 shrink-0" *ngIf="selectedEntity?.editable">
-                  <button
-                    (click)="property.editing = !property.editing"
-                    class="cursor-pointer p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                    [attr.aria-label]="property.editing ? 'Confirm' : 'Edit'"
+              <div *ngFor="let propValue of property.values">
+                  <a 
+                    (click)="changeSelectedEntity(propValue)"
+                    *ngIf="property.kind === 'iri'"
+                    class="text-sm w-full cursor-pointer text-blue-600 hover:text-blue-800 underline font-mono truncate"
+                    [title]="propValue.name"
                   >
-                    <svg *ngIf="!property.editing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    <svg (click)="editEntity()" *ngIf="property.editing" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  </button>
+                    {{ propValue.name }}
+                  </a>
+                  
+                  <div *ngIf="property.kind === 'iri'" class="flex gap-1 items-center">
 
-                  <button
-                    (click)="removeProperty(property)"
-                    class="cursor-pointer p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    aria-label="Delete"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                  </button>
-                </div>
+                    <select
+                      [(ngModel)]="propValue.value"
+                      (click)="getEntitiesByType(property.rangeUri)"
+                      class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
+                      <option value="" disabled>Loading types…</option>
+                      <option *ngFor="let t of listOfAllRanges" [value]="t.iri">{{ t.label }}</option>
+                    </select>
+                    <button
+                      (click)="openCreateEntityDialogForRange(property.rangeUri)"
+                      type="button"
+                      class="cursor-pointer grid place-items-center w-6 h-6 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
+                      title="Add new type"
+                    >
+                      <svg
+                        class="w-5 h-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div *ngIf="property.kind === 'literal'" class="w-full h-full flex gap-1 items-center ">
+
+                    <div class="w-full flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+
+                      <!-- Literal : lecture -->
+                      <a
+                        *ngIf="!property.editing"
+                        class="text-gray-900 font-medium bg-transparent focus:outline-none truncate text-sm w-full"
+                        [title]="property.value"
+                      >
+                        {{ propValue.value }}
+                      </a>
+                      
+                      <!-- Literal : edition -->
+                      <input
+                        *ngIf="property.editing"
+                        type="text"
+                        [(ngModel)]="property.value"
+                        (keydown.enter)="property.editing = false"
+                        (keydown.escape)="property.editing = false"
+                        class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
+                      />
+
+                      <div class="flex items-center gap-1 shrink-0" *ngIf="selectedEntity?.editable">
+                        <button
+                          (click)="property.editing = !property.editing"
+                          class="cursor-pointer p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                          [attr.aria-label]="property.editing ? 'Confirm' : 'Edit'"
+                        >
+                          <svg *ngIf="!property.editing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                          <svg (click)="editEntity()" *ngIf="property.editing" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                          </svg>
+                        </button>
+
+                        <button
+                          (click)="removeProperty(property)"
+                          class="cursor-pointer p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                          aria-label="Delete"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                          </svg>
+                        </button>
+                      </div>
+    
+                    </div>
+
+                    <button
+                        (click)="openCreateEntityDialogForRange(property.rangeUri)"
+                        type="button"
+                        class="cursor-pointer grid place-items-center w-6 h-6 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
+                        title="Add new type"
+                      >
+                        <svg
+                          class="w-5 h-5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                        >
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
+                        </svg>
+                    </button>
+
+                  </div>
+
 
               </div>
             </div>
