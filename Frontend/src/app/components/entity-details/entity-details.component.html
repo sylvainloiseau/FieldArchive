@@ -101,55 +101,67 @@
                   </label>
                   
 
-                  <div *ngIf="property.kind === 'iri'">
+                  <div class="flex flex-col gap-2" *ngIf="property.kind === 'iri'">
 
                     <div *ngIf="property.values?.length" class="mt-2 flex gap-3 items-center">
 
                       <span>{{property.schema?.rangeLocalName}}</span>
-                      <ul class="flex flex-col gap-1.5">
+                      <ul class="flex flex-col gap-2">
                         <li
                           *ngFor="let propValue of property.values; let i = index"
-                          class="flex items-center gap-2 text-sm"
+                          class="flex items-center justify-between gap-3 p-1 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all"
                         >
-                          <!-- Bullet -->
-                          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                          <!-- LEFT CONTENT -->
+                          <div class="flex items-center gap-2 min-w-0">
+                            <!-- Bullet -->
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
 
-                          <!-- Link -->
-                          <a
-                            (click)="changeSelectedEntity(propValue.iri)"
-                            class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
-                            [title]="propValue.name"
+                            <!-- Link -->
+                            <a
+                              (click)="changeSelectedEntity(propValue.value)"
+                              class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
+                              [title]="propValue.name"
+                            >
+                              {{ propValue.name }}
+                            </a>
+                          </div>
+
+                          <!-- DELETE BUTTON -->
+                          <button
+                            (click)="onRangeDeleted(propValue.value, property); $event.stopPropagation()"
+                            class="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition"
+                            title="Delete"
                           >
-                            {{ propValue.name }}
-                          </a>
+                            ✕
+                          </button>
                         </li>
                       </ul>
                     </div>
 
-                <div class="flex gap-1 items-center">
+                    <div class="flex gap-1 items-center">
 
-                  <select
-                    (click)="getEntitiesByType(property.schema.rangeUri)"
-                    (change)="onRangeSelected($event, property)"
-                    class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-                    <option value="" selected disabled>Add new range value</option>
-                    <option *ngFor="let t of listOfAllRanges; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
-                  </select>
-                    <button
-                      (click)="openCreateEntityDialogForRange(property.schema.rangeUri)"
-                      type="button"
-                      class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
-                            rounded-full bg-blue-600 text-white
-                            shadow-sm hover:bg-blue-700 hover:shadow-md
-                            active:scale-95
-                            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
-                            transition-all duration-150"
-                      title="Create type"
-                    >
-                      Create
-                    </button>
-                    
-                </div>
+                      <select
+                        (click)="getEntitiesByType(property.schema.rangeUri)"
+                        (change)="onRangeSelected($event, property)"
+                        class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
+                        <option value="" selected disabled>Add new range value</option>
+                        <option *ngFor="let t of listOfAllRanges; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
+                      </select>
+                        <button
+                          (click)="openCreateEntityDialogForRange(property.schema.rangeUri)"
+                          type="button"
+                          class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
+                                rounded-full bg-blue-600 text-white
+                                shadow-sm hover:bg-blue-700 hover:shadow-md
+                                active:scale-95
+                                focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
+                                transition-all duration-150"
+                          title="Create type"
+                        >
+                          Create
+                        </button>
+                        
+                    </div>
 
                     
                   </div>
@@ -239,33 +251,43 @@
                 </button>
               </label>
 
-
               <!-- List of all ranges names -->
-              
-              <div *ngIf="property.values?.length && property.kind === 'iri'" class="mt-2 flex gap-3 items-center">
+              <div class="flex flex-col gap-2" *ngIf="property.values?.length && property.kind === 'iri'">
 
-                <span>{{property.schema?.rangeLocalName}}</span>
-                <ul class="flex flex-col gap-1.5">
-                  <li
-                    *ngFor="let propValue of property.values; let i = index"
-                    class="flex items-center gap-2 text-sm"
-                  >
-                    <!-- Bullet -->
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                <div *ngIf="property.values?.length" class="mt-2 flex gap-3 items-center">
 
-                    <!-- Link -->
-                    <a
-                      (click)="changeSelectedEntity(propValue.iri)"
-                      class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
-                      [title]="propValue.name"
+                  <span>{{property.schema?.rangeLocalName}}</span>
+                  <ul class="flex flex-col gap-2">
+                    <li
+                      *ngFor="let propValue of property.values; let i = index"
+                      class="flex items-center justify-between gap-3 p-1 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all"
                     >
-                      {{ propValue.name || propValue.label }}
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              
-              <div *ngIf="property.kind === 'iri'">
+                      <!-- LEFT CONTENT -->
+                      <div class="flex items-center gap-2 min-w-0">
+                        <!-- Bullet -->
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+
+                        <!-- Link -->
+                        <a
+                          (click)="changeSelectedEntity(propValue.iri)"
+                          class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
+                          [title]="propValue.name"
+                        >
+                          {{ propValue.name }}
+                        </a>
+                      </div>
+
+                      <!-- DELETE Range Value -->
+                      <button
+                        (click)="onRangeDeleted(propValue.value, property)"
+                        class="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition"
+                        title="Delete"
+                      >
+                        ✕
+                      </button>
+                    </li>
+                  </ul>
+                </div>
 
                 <div class="flex gap-1 items-center">
 
@@ -289,80 +311,81 @@
                     >
                       Create
                     </button>
-
+                    
                 </div>
 
+                
               </div>
 
-                <div *ngIf="property.kind === 'literal'" class="w-full h-full flex gap-1 items-center ">
+              <div *ngIf="property.kind === 'literal'" class="w-full h-full flex gap-1 items-center ">
 
-                  <div *ngFor="let propValue of property.values" class="w-full flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <div *ngFor="let propValue of property.values" class="w-full flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
 
-                    <!-- Literal : lecture -->
-                    <a
-                      *ngIf="!property.editing"
-                      class="text-gray-900 font-medium bg-transparent focus:outline-none truncate text-sm w-full"
-                      [title]="property.value"
+                  <!-- Literal : lecture -->
+                  <a
+                    *ngIf="!property.editing"
+                    class="text-gray-900 font-medium bg-transparent focus:outline-none truncate text-sm w-full"
+                    [title]="property.value"
+                  >
+                    {{ propValue.value }}
+                  </a>
+                  
+                  <!-- Literal : edition -->
+                  <input
+                    *ngIf="property.editing"
+                    type="text"
+                    [(ngModel)]="property.value"
+                    (keydown.enter)="property.editing = false"
+                    (keydown.escape)="property.editing = false"
+                    class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
+                  />
+
+                  <div class="flex items-center gap-1 shrink-0" *ngIf="selectedEntity?.editable">
+                    <button
+                      (click)="property.editing = !property.editing"
+                      class="cursor-pointer p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                      [attr.aria-label]="property.editing ? 'Confirm' : 'Edit'"
                     >
-                      {{ propValue.value }}
-                    </a>
-                    
-                    <!-- Literal : edition -->
-                    <input
-                      *ngIf="property.editing"
-                      type="text"
-                      [(ngModel)]="property.value"
-                      (keydown.enter)="property.editing = false"
-                      (keydown.escape)="property.editing = false"
-                      class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
-                    />
+                      <svg *ngIf="!property.editing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                      </svg>
+                      <svg (click)="editEntity()" *ngIf="property.editing" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                    </button>
 
-                    <div class="flex items-center gap-1 shrink-0" *ngIf="selectedEntity?.editable">
-                      <button
-                        (click)="property.editing = !property.editing"
-                        class="cursor-pointer p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                        [attr.aria-label]="property.editing ? 'Confirm' : 'Edit'"
-                      >
-                        <svg *ngIf="!property.editing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                        </svg>
-                        <svg (click)="editEntity()" *ngIf="property.editing" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                        </svg>
-                      </button>
-
-                      <button
-                        (click)="removeProperty(property)"
-                        class="cursor-pointer p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                        aria-label="Delete"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                      </button>
-                    </div>
-  
+                    <button
+                      (click)="removeProperty(property)"
+                      class="cursor-pointer p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      aria-label="Delete"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
                   </div>
 
-                  <button
-                      (click)="openCreateEntityDialogForRange(property.rangeUri)"
-                      type="button"
-                      class="cursor-pointer grid place-items-center w-6 h-6 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
-                      title="Add new type"
-                    >
-                      <svg
-                        class="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                      >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
-                      </svg>
-                  </button>
-
                 </div>
+
+                <button
+                    (click)="openCreateEntityDialogForRange(property.rangeUri)"
+                    type="button"
+                    class="cursor-pointer grid place-items-center w-6 h-6 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
+                    title="Add new type"
+                  >
+                    <svg
+                      class="w-5 h-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                    >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
+                    </svg>
+                </button>
+
+              </div>
 
 
             </div>
