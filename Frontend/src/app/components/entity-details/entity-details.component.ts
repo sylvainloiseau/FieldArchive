@@ -139,9 +139,40 @@ export class EntityDetailsComponent implements OnInit {
       lang: null
     });
 
+    console.log("New property values :", property);
+
+    this.selectedEntity.properties.push({
+      predicate: property.predicate,
+      kind: property.kind,
+      values: property.values
+    });
+
     this.editEntity();
 
     (event.target as HTMLSelectElement).value = '';
+  }
+
+
+
+  onRangeDeleted(rangeValue: string, property: any): void {
+  console.log("Selected IRI for deletion:", rangeValue);
+  console.log("Property object:", property);
+  console.log("Property values:", property.values);
+  
+  // Log the structure of first value if exists.
+  if (property.values && property.values.length > 0) {
+    console.log("First value structure:", property.values[0]);
+    console.log("Keys in first value:", Object.keys(property.values[0]));
+  }
+  
+  if (!rangeValue) return;
+    console.log("Values before deletion for this rangeIri:", property.values);
+
+    property.values = property.values.filter((v: any) => v.value !== rangeValue);
+
+    console.log("Values after deletion for this rangeIri:", rangeValue, property.values);
+
+    this.editEntity();
   }
 
   openCreateEntityDialogForRange(rangeTypeIRI : string) {
@@ -323,10 +354,10 @@ export class EntityDetailsComponent implements OnInit {
               datatypeCategory: propDef.datatypeCategory,
               datatypeUri: propDef.datatypeUri,
               lang: propDef.lang,
-            },
+            }, 
           };
 
-          selectedEntity.properties.push(placeholder);
+          // selectedEntity.properties.push(placeholder);
 
           return placeholder;
         });
@@ -512,7 +543,6 @@ export class EntityDetailsComponent implements OnInit {
             lang: v.lang ?? null
           }))
       }))
-      .filter((p: any) => p.values.length > 0); // drop properties left with no values
 
     const payload = {
       types: this.allEntityTypesChips.map(type => type.iri),

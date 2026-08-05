@@ -490,6 +490,10 @@ public class RdfEntityService {
                     IRI pred = vf.createIRI(expand(p.predicate));
                     conn.remove(subject, pred, null, CTX_INTERNAL);
 
+                    if(p.values.isEmpty()){
+                        conn.remove(subject, pred, null, CTX_INTERNAL);
+                    }
+
                     if (p.values != null && !p.values.isEmpty()) {
                         addProperty(conn, subject, p);
                     }
