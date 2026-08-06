@@ -15,6 +15,7 @@ import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 import { CreateEntityComponent } from '../create-entity/create-entity.component';
+import {RicoPropertiesComponent} from '../rico-properties/rico-properties.component';
 
 import {MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
@@ -33,6 +34,7 @@ import { KeyValue } from '@angular/common';
     MatSnackBarModule, 
     FileViewerComponent,
     CreateEntityComponent,
+    RicoPropertiesComponent,
     MatChipsModule,
     MatIconModule
   ],
@@ -68,6 +70,9 @@ export class EntityDetailsComponent implements OnInit {
   public listOfAllRanges : any[] = [];
 
   private lastLoadedRangeUri: string = '';
+
+  ontologyEntries: { key: string; value: any }[] = [];
+  selectedOntologyTab : {key : string , value : any} = {key : "" , value : null} ;
 
 
   constructor(
@@ -109,15 +114,7 @@ export class EntityDetailsComponent implements OnInit {
     });
   }
 
-  // onRangeSelected(selectedIri: string, propertyValues: any[]): void {
-  //   if (!selectedIri) return;
 
-    
-  //   const selectedRange = this.listOfAllRanges.find(t => t.iri === selectedIri);
-  //   console.log("Values so far for this property:", propertyValues);
-
-  //   propertyValues.push(selectedRange)
-  // }
   trackByIri(index: number, item: { iri: string; label: string }): string {
     return item.iri;
   }
@@ -492,6 +489,11 @@ export class EntityDetailsComponent implements OnInit {
         });
     }
 
+    this.ontologyEntries = Object.entries(this.ontologyLabels)
+    .map(([key, value]) => ({ key, value }))
+    .sort(this.ontologyOrderComparator); 
+
+    this.onTabChange(0); // Select the first tab (Rico) by default
   }
 
 
@@ -617,16 +619,40 @@ export class EntityDetailsComponent implements OnInit {
     });
   }
 
-  addAssociation() {
-    this.newAssociation = {
-      mode: null,
-      predicate: '',
-      ontologyUrl: '',
-      customPredicate: '',
-      kind: 'literal',
-      value: ''
-    };
+
+  onTabChange(index: number) {
+    const entry = this.ontologyEntries[index];
+    if (!entry) {
+      console.warn('Ontology not ready yet', index, this.ontologyEntries);
+      return;
+    }
+    this.selectedOntologyTab = entry ; 
+    console.log(entry.key, entry.value); // entry.value.name, entry.value.properties, etc.
   }
+
+
+  addAssociation(): void {
+    const typeSet = new Set(this.selectedEntity.types);
+
+    const matches = this.selectedOntologyTab.value.properties.value.filter((p : any) => p.domainUri !== null && typeSet.has(p.domainUri));
+
+    // Dedupe by uri in case the same property appears more than once
+    // const seen = new Set<string>();
+    // return matches.filter((p : any) => {
+    //   if (seen.has(p.uri)) return false;
+    //   seen.add(p.uri);
+    //   return true;
+    // });
+
+    const dialogRef = this.dialog.open(RicoPropertiesComponent, {
+      width: '600px',
+      height: '350px',
+      data: {
+        predicates: matches,
+      }
+    });
+  }
+
 
   getEntitiesByType(rangeUri: string): void {
     this.listOfAllRanges = []; 

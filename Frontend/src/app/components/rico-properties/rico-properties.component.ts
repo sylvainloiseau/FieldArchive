@@ -40,26 +40,23 @@ export class RicoPropertiesComponent implements OnInit {
     private dialogRef: MatDialogRef<RicoPropertiesComponent>
   ) {
     this.predicates = data.predicates;
-    this.association = data.association;
   }
 
   ngOnInit() {
-    console.log("All predicates : ", this.predicates);
     this.filteredPredicates = this.predicates;
-    this.allRanges = this.predicates.map((predicate : any) => predicate.range);
+    console.log("All predicates : ", this.predicates);
+    this.allRanges = this.predicates
+      .map((predicate: any) => predicate.range)
+      .filter((range: any) => !!range);          // ← drop null/undefined/empty
     this.allRanges = [...new Set(this.allRanges)];
-    // this.allRangesLabels = this.ontologyService.getOntologyLabel_v2(this.allRanges);
-    
+    console.log("All possible ranges : ", this.allRanges);
+
     this.predefinedRanges = this.predefinedRanges.filter(range =>
-      this.allRanges.includes(
-        "https://www.ica.org/standards/RiC/ontology#" + range
-      )
+      this.allRanges.includes("https://www.ica.org/standards/RiC/ontology#" + range)
     );
-    this.allRanges = this.allRanges.filter((range : string) =>
+    this.allRanges = this.allRanges.filter((range: string) =>
       !this.predefinedRanges.includes(this.getNameOfRicoTypeFromURL(range))
     );
-    console.log("All possibles ranges for all predicates ", this.allRanges);
-
   }
 
   // anchor from the template — 'read: ViewContainerRef' gives us where to insert the component
@@ -95,35 +92,9 @@ export class RicoPropertiesComponent implements OnInit {
     Place: 'place',
   };
 
-  association : any ; 
-async createSubEntityToggle() {
-    if (!this.subEntityAnchor) return;
-
-    // clear out any previous instance first
-    this.destroySubEntity();
-
-    const { CreateRessourceComponent } = await import('../create-ressource/create-ressource.component');
-
-    this.subEntityRef = this.subEntityAnchor.createComponent(CreateRessourceComponent);
-
-    // set the @Input()
-    this.subEntityRef.instance.inputData = {
-      ontology: 'rico',
-      type: this.getNameOfRicoTypeFromURL(this.association.predicate.range)
-    };
-
-    // subscribe directly to the real @Output(), no ambiguity
-    this.childClosedSub = this.subEntityRef.instance.closed.subscribe((event: any) => {
-      this.onChildClosed(event);
-    });
-
-    this.createSubEntity = true;
-    this.subEntityRef.changeDetectorRef.detectChanges();
-  }
-
   onChildClosed(event: any) {
     if (event === true) {
-      this.getEntitiesByType(this.association.predicate.range);
+      console.log("Child component closed with success");
     }
     this.destroySubEntity();
   }
@@ -189,48 +160,29 @@ async createSubEntityToggle() {
     this.filterRangesByFilters();
   }
 
-  filterPropertiesByKindValue(kindValue : string) {
+  filterPropertiesByKindValue(kindValueParam : string) {
+    const kindValue = kindValueParam === 'literal' ? 'DATA_PROPERTY' : 'OBJECT_PROPERTY';
     this.filterByKindValue = kindValue;
-    const otherKindValue = kindValue === 'literal' ? 'iri' : 'literal';
-    if (!this.filters.includes(kindValue) && this.filters.includes(otherKindValue)) {
+    const otherKindValue = kindValueParam === 'literal' ? 'iri' : 'literal';
+    if (!this.filters.includes(kindValueParam) && this.filters.includes(otherKindValue)) {
       const updated = this.filters.filter(item => item !== otherKindValue);
       this.filters = updated;
-      this.filters.push(kindValue);
-      this.filteredPredicates = this.predicates.filter(predicate => predicate.valueKind === kindValue);
+      this.filters.push(kindValueParam);
+      this.filteredPredicates = this.predicates.filter(predicate => predicate.kind === kindValue);
     }
-    if(!this.filters.includes(kindValue) && !this.filters.includes(otherKindValue)) {
-      this.filters.push(kindValue);
-      this.filteredPredicates = this.predicates.filter(predicate => predicate.valueKind === kindValue);
+    if(!this.filters.includes(kindValueParam) && !this.filters.includes(otherKindValue)) {
+      this.filters.push(kindValueParam);
+      this.filteredPredicates = this.predicates.filter(predicate => predicate.kind === kindValue);
     }
     
   }
 
-  getEntitiesByType(rangeUrl : string) {
-    if (!this.association) return;    
-
-    this.ontologyService.getAllEntitiesByType(rangeUrl).subscribe({
-      next: (res) => {
-        this.allPossibleRanges = res;
-        console.log("All possible ranges for this predicate : ", res);
-      },
-      error: (err) => {
-        console.error("Error fetching possible ranges: ", err);
-      } 
-    });
-
-  }
   onCheckboxChange(prop: any) {
-    // if (prop.selected) {
-    this.association.predicate = prop;
-    this.association.valueKind = this.association.predicate?.valueKind || 'literal';
+
 
     console.log("Selected predicate: ", prop);
-    this.getEntitiesByType(prop.range);
-      // this.onPredicateChange(null); 
-    // }
   }
   cancelAddAssociation() {
-    this.association.predicate = null;
   }
 
   confirm() {
