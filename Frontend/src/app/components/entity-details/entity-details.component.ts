@@ -122,6 +122,20 @@ export class EntityDetailsComponent implements OnInit {
     return item.iri;
   }
 
+  addNewDataTypeAuthorized(property : any) : boolean {
+    for (const value of property.values) {
+      if (!value.value || value.value.trim() === '') {
+        return false; 
+      }
+    }
+    return true;
+  }
+
+  addNewDataType(property: any) {
+    property.values.push({kind : 'literal', lang : null, value : '', datatype : "http://www.w3.org/2001/XMLSchema#string"});
+    console.log("Add new data type : ", property);
+  }
+
   onRangeSelected(event: Event, property: any): void {
     const selectedIri = (event.target as HTMLSelectElement).value;
     if (!selectedIri) return;
@@ -129,50 +143,79 @@ export class EntityDetailsComponent implements OnInit {
     const selectedRange = this.listOfAllRanges.find(t => t.iri === selectedIri);
     if (!selectedRange) return;
 
-    // Push a proper RdfValueDto-shaped object into this property's values,
-    // not the raw entity, and NOT into selectedEntity.properties.
-    property.values = property.values || [];
-    property.values.push({
+    const newValue = {
       value: selectedRange.iri,
       name: selectedRange.label,
       datatype: null,
       lang: null
-    });
+    };
 
-    console.log("New property values :", property);
+    // 🔍 Cherche si la propriété existe déjà dans selectedEntity
+    const existingProperty = this.selectedEntity.properties.find(
+      (p: any) => p.predicate === property.predicate
+    );
 
-    this.selectedEntity.properties.push({
-      predicate: property.predicate,
-      kind: property.kind,
-      values: property.values
-    });
+    if (existingProperty) {
+      // ✅ éviter doublon de valeur
+      const alreadyExists = existingProperty.values.some(
+        (v: any) => v.value === newValue.value
+      );
+
+      if (!alreadyExists) {
+        existingProperty.values.push(newValue);
+      }
+    } else {
+      // ✅ créer UNE SEULE propriété
+      this.selectedEntity.properties.push({
+        predicate: property.predicate,
+        kind: property.kind,
+        values: [newValue]
+      });
+    }
 
     this.editEntity();
 
     (event.target as HTMLSelectElement).value = '';
   }
 
+  onRangeDeleted(range: any, property: any): void {
 
+    const rangeValue = range?.value ;
+    console.log("Selected IRI for deletion:", rangeValue);
+    console.log("Property object:", property);
+    console.log("Property values:", property.values);
 
-  onRangeDeleted(rangeValue: string, property: any): void {
-  console.log("Selected IRI for deletion:", rangeValue);
-  console.log("Property object:", property);
-  console.log("Property values:", property.values);
+    if ( (rangeValue.trim() === '' || range.editing) && property.kind === 'literal') {
+      property.values = property.values.filter((v: any) => v.value !== rangeValue);
+      return
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDeletePropertyComponent, {
+      data: {
+        propertyLabel: property.key,
+        entityIri: this.selectedEntity.iri,
+        value : rangeValue
+      } as ConfirmDeletePropertyData,
+      panelClass: 'rounded-xl',
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        if (!rangeValue) return;
+
+        property.values = property.values.filter((v: any) => v.value !== rangeValue);
+
+        console.log("Values after deletion for this rangeIri:", rangeValue, property.values);
+
+        this.editEntity();
+
+        // this.entityPropertiesDict = this.entityPropertiesDict.filter((p : any) => p.predicate !== property.predicate && p.value !== property.value); 
+        // this.cdr.markForCheck();
+
+      }
+    });
   
-  // Log the structure of first value if exists.
-  if (property.values && property.values.length > 0) {
-    console.log("First value structure:", property.values[0]);
-    console.log("Keys in first value:", Object.keys(property.values[0]));
-  }
-  
-  if (!rangeValue) return;
-    console.log("Values before deletion for this rangeIri:", property.values);
-
-    property.values = property.values.filter((v: any) => v.value !== rangeValue);
-
-    console.log("Values after deletion for this rangeIri:", rangeValue, property.values);
-
-    this.editEntity();
+    
   }
 
   openCreateEntityDialogForRange(rangeTypeIRI : string) {
@@ -482,6 +525,10 @@ export class EntityDetailsComponent implements OnInit {
     // this.close.emit();
   }
 
+  seeProperty(property: any) {
+    console.log("See property  :", property);
+  }
+
   deleteEntity() {
     if (!this.selectedEntity) return;
 
@@ -568,37 +615,6 @@ export class EntityDetailsComponent implements OnInit {
         );
       }
     });
-  }
-
-  removeProperty(property: any) {
-    if (this.selectedEntity && this.selectedEntity.properties) {
-    
-    const dialogRef = this.dialog.open(ConfirmDeletePropertyComponent, {
-      data: {
-        propertyLabel: property.key,
-        entityIri: this.selectedEntity.iri,
-        value : property.value
-      } as ConfirmDeletePropertyData,
-      panelClass: 'rounded-xl',
-    });
-
-    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
-      if (confirmed) {
-        const prop = this.entityPropertiesDict.find(
-          (p: any) => p.predicate === property.predicate
-        );
-        if (prop) {
-          prop.value = "";
-        }
-        console.log("query payload after removing property : ", this.entityPropertiesDict);
-        this.editEntity(); 
-        this.entityPropertiesDict = this.entityPropertiesDict.filter((p : any) => p.predicate !== property.predicate && p.value !== property.value); 
-        this.cdr.markForCheck();
-
-      }
-    });
-
-    }
   }
 
   addAssociation() {
