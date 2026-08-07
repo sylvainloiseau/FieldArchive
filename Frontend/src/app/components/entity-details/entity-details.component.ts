@@ -631,26 +631,93 @@ export class EntityDetailsComponent implements OnInit {
   }
 
 
+  private getUsedPredicateUris(ontologyEntry: any): Set<string> {
+    const used = new Set<string>();
+
+    // 1. Predicates already shown in "main properties" (per type)
+    const mainProperties = ontologyEntry?.mainProperties;
+    if (mainProperties && typeof mainProperties === 'object') {
+      for (const propList of Object.values<any>(mainProperties)) {
+        if (!Array.isArray(propList)) continue;
+        for (const item of propList) {
+          const uri = item?.predicate || item?.schema?.uri;
+          if (uri) used.add(uri);
+        }
+      }
+    }
+
+    // 2. Predicates already shown in "other properties" (entities)
+    const entities = ontologyEntry?.entities;
+    if (Array.isArray(entities)) {
+      for (const entity of entities) {
+        if (entity?.predicate) used.add(entity.predicate);
+      }
+    }
+
+    return used;
+  }
+
   addAssociation(): void {
     const typeSet = new Set(this.selectedEntity.types);
+    const usedPredicates = this.getUsedPredicateUris(this.selectedOntologyTab.value);
 
-    const matches = this.selectedOntologyTab.value.properties.value.filter((p : any) => p.domainUri !== null && typeSet.has(p.domainUri));
-
-    // Dedupe by uri in case the same property appears more than once
-    // const seen = new Set<string>();
-    // return matches.filter((p : any) => {
-    //   if (seen.has(p.uri)) return false;
-    //   seen.add(p.uri);
-    //   return true;
-    // });
+    const matches = this.selectedOntologyTab.value.properties.value.filter(
+      (p: any) =>
+        p.domainUri !== null &&
+        typeSet.has(p.domainUri) &&
+        !usedPredicates.has(p.uri)
+    );
 
     const dialogRef = this.dialog.open(RicoPropertiesComponent, {
       width: '600px',
       height: '350px',
-      data: {
-        predicates: matches,
+      data: { predicates: matches }
+    });
+
+    dialogRef.afterClosed().subscribe((selectedPredicate: any) => {
+      if (selectedPredicate && selectedPredicate.uri) {
+        this.addPropertyPlaceholder(selectedPredicate);
       }
     });
+  }
+
+  private addPropertyPlaceholder(predicateDef: any): void {
+    if (!this.selectedEntity.properties) {
+      this.selectedEntity.properties = [];
+    }
+
+    const predicateUri = predicateDef.uri;
+
+    // Don't duplicate the property if it's already on the entity
+    let existing = this.selectedEntity.properties.find(
+      (p: any) => p.predicate === predicateUri
+    );
+
+    const kind = predicateDef.kind === 'OBJECT_PROPERTY' ? 'iri' : 'literal';
+
+    if (existing) {
+      if (!existing.values || existing.values.length === 0) {
+        existing.values = [{ value: null, datatype: predicateDef.datatypeUri ?? null, lang: null, name : '' }];
+      }
+      // if it already has values, leave it — just surface it (no-op here since it's already displayed)
+      else {
+        existing.values.push({ value: null, datatype: predicateDef.datatypeUri ?? null, lang: null, name : '' });
+      }
+    } else {
+      this.selectedEntity.properties.push({
+        predicate: predicateUri,
+        kind,
+        values: [{ value: null, datatype: predicateDef.datatypeUri ?? null, lang: null, name : '' }]
+      });
+    }
+
+    // Rebuild derived views so the new property shows up correctly
+    // (either inside mainProperties for its type, or in the ontology's "entities" / other-properties list)
+    this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
+    this.buildMainProperties(this.ontologyLabels);
+    this.cleanProperties(this.ontologyLabels, this.selectedEntity);
+
+    this.cdr.markForCheck();
   }
 
 

@@ -14,7 +14,7 @@
       </svg>
     </button>
 
-    <h2 class="text-lg font-semibold text-gray-900 truncate px-4">{{ selectedEntity?.titre }}</h2>
+    <h2 class="text-2xl font-semibold text-gray-500 truncate px-4">Entity Details Form</h2>
 
     <button
       (click)="closeDetail()"
@@ -26,6 +26,7 @@
       </svg>
     </button>
   </div> 
+
 
   <!-- Type chips -->
   <div class="px-4 pt-3 pb-2 flex items-center gap-2 bg-blue-50/40 border-b border-blue-100">
@@ -62,7 +63,13 @@
 
   </div>
 
-  <mat-tab-group (selectedIndexChange)="onTabChange($event)" mat-align-tabs="start" class="flex-1">
+    <!-- Loading state -->
+  <div *ngIf="!selectedEntity" class="flex flex-col items-center justify-center h-full w-full gap-4 py-20">
+    <div class="animate-spin rounded-full h-14 w-14 border-4 border-blue-100 border-t-blue-600"></div>
+    <p class="text-xl font-bold text-gray-500">Loading entity data...</p>
+  </div>
+
+  <mat-tab-group *ngIf="selectedEntity" (selectedIndexChange)="onTabChange($event)" mat-align-tabs="start" class="flex-1">
     <mat-tab  [label]="$any(item.value).name" *ngFor="let item of ontologyEntries">
 
       <div class="flex flex-col gap-6 p-4">
@@ -73,7 +80,7 @@
           <div *ngIf="$any(item.value).mainProperties">
             
             <div class="flex justify-center items-center">
-              <label class="text-2xl text-blue-900">Main Properties</label>
+              <label class="text-lg text-blue-900">Main Properties</label>
             </div>
 
             <!-- First all : we fetch all main properties -->
@@ -118,6 +125,7 @@
 
                             <!-- Link -->
                             <a
+                              *ngIf="propValue.name && propValue.name !== ''"
                               (click)="changeSelectedEntity(propValue.value)"
                               class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
                               [title]="propValue.name"
@@ -247,7 +255,7 @@
 
           <!-- Other Properties Fields -->
           <div class="flex p-3 justify-center">
-              <label class="text-2xl text-blue-900">Other Properties</label>
+              <label class="text-lg text-blue-900">Other Properties</label>
           </div>
 
           <ng-container *ngFor="let property of $any(item.value).entities">
@@ -278,36 +286,37 @@
                 <div *ngIf="property.values?.length" class="mt-2 flex gap-3 items-center">
 
                   <span>{{property.schema?.rangeLocalName}}</span>
+
                   <ul class="flex flex-col gap-2">
-                    <li
-                      *ngFor="let propValue of property.values; let i = index"
-                      class="flex items-center justify-between gap-3 p-1 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all"
-                    >
-                      <!-- LEFT CONTENT -->
-                      <div class="flex items-center gap-2 min-w-0">
-                        <!-- Bullet -->
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-
-                        <!-- Link -->
-                        <a
-                          (click)="changeSelectedEntity(propValue.iri)"
-                          class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
-                          [title]="propValue.name"
-                        >
-                          {{ propValue.name }}
-                        </a>
-                      </div>
-
-                      <!-- DELETE Range Value -->
-                      <button
-                        (click)="onRangeDeleted(propValue, property)"
-                        class="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition"
-                        title="Delete"
+                    <ng-container *ngFor="let propValue of property.values; let i = index">
+                      <li
+                        *ngIf="propValue.name && propValue.name !== ''"
+                        class="flex items-center justify-between gap-3 p-1 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all"
                       >
-                        ✕
-                      </button>
-                    </li>
+                        <!-- LEFT CONTENT -->
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                          <a
+                            (click)="changeSelectedEntity(propValue.iri)"
+                            class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
+                            [title]="propValue.name"
+                          >
+                            {{ propValue.name }}
+                          </a>
+                        </div>
+
+                        <!-- DELETE Range Value -->
+                        <button
+                          (click)="onRangeDeleted(propValue, property)"
+                          class="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition"
+                          title="Delete"
+                        >
+                          ✕
+                        </button>
+                      </li>
+                    </ng-container>
                   </ul>
+
                 </div>
 
                 <div class="flex gap-1 items-center">
