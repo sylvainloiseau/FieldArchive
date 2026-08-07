@@ -59,10 +59,6 @@ export class RicoPropertiesComponent implements OnInit {
     );
   }
 
-  // anchor from the template — 'read: ViewContainerRef' gives us where to insert the component
-  @ViewChild('subEntityAnchor', { read: ViewContainerRef })
-  subEntityAnchor?: ViewContainerRef;
-
   createSubEntity = false;
   private subEntityRef?: ComponentRef<any>;
   private childClosedSub?: Subscription;
@@ -178,11 +174,8 @@ export class RicoPropertiesComponent implements OnInit {
   }
 
   onCheckboxChange(prop: any) {
-
-
     console.log("Selected predicate: ", prop);
-  }
-  cancelAddAssociation() {
+    this.dialogRef.close(prop);
   }
 
   confirm() {
