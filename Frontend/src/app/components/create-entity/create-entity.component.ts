@@ -157,8 +157,8 @@ export class CreateEntityComponent implements OnInit {
       if(this.data?.types){
         this.listSelectedTypes =  this.data?.types
       }
-      else if (this.data?.type && this.data?.ontology){
-        this.availableTypes = [this.ontologyService.getTypeUrlByName(this.data?.ontology)+this.data.type]
+      else if (this.data?.type){
+        this.availableTypes = [this.data.type]
       }
       else if (this.data?.fullType){
         this.availableTypes = [this.data.fullType]
@@ -233,7 +233,6 @@ export class CreateEntityComponent implements OnInit {
   }
 
   // ─── Form actions ────────────────────────────────────────────────────────────
-
   cancelNewEntity() {
     this.entityForm.reset();
     this.dialogRef?.close(); 

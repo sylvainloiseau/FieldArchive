@@ -17,7 +17,6 @@ import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 })
 export class ListeEntitesComponent {
 
-  // selectedType: string | null = '';
   @Input() allEntities:  any [] = [];
   @Input() ontologiesData: any;
   @Input() selectedType: string | null = '';
@@ -37,13 +36,15 @@ export class ListeEntitesComponent {
   openCreateEntityDialog_withType() {
     if (!this.selectedType) return;
 
-    const [ontology, type] = this.selectedType.split(':');
+    console.log("this.selectedType : ", this.selectedType);
+
+    // const [ontology, type] = this.selectedType.split(':');
 
     this.dialog.open(CreateEntityComponent, {
       width: '600px',
       data: {
-        ontology,
-        type,
+        ontology : "ont",
+        type : this.selectedType,
         ontologiesData: this.ontologiesData
       }
     });
