@@ -77,8 +77,8 @@
         <div class="flex flex-col gap-3">
 
           <!-- Main Property Fields -->
-          <div *ngIf="$any(item.value).mainProperties">
-            
+          <div *ngIf="MainPropertiesisNotEmpty($any(item.value).mainProperties)">   
+                              
             <div class="flex justify-center items-center">
               <label class="text-lg text-blue-900">Main Properties</label>
             </div>
@@ -255,7 +255,8 @@
 
           <!-- Other Properties Fields -->
           <div class="flex p-3 justify-center">
-              <label class="text-lg text-blue-900">Other Properties</label>
+              <label class="text-lg text-blue-900">
+                <span *ngIf="MainPropertiesisNotEmpty($any(item.value).mainProperties)">Other </span><span>Properties</span></label>
           </div>
 
           <ng-container *ngFor="let property of $any(item.value).entities">
@@ -263,7 +264,7 @@
             <div class="flex flex-col gap-3 text-xs font-medium text-gray-500 tracking-wide mb-3">
 
               <label class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                {{ property.schema?.label || property.key }}
+                {{ property.label || property.key }}
 
                 <button
                   (click)="openFileViewer(property, property.value)"
@@ -285,7 +286,7 @@
 
                 <div *ngIf="property.values?.length" class="mt-2 flex gap-3 items-center">
 
-                  <span>{{property.schema?.rangeLocalName}}</span>
+                  <span>{{property.rangeLocalName || 'Cannot find range name'}}</span>
 
                   <ul class="flex flex-col gap-2">
                     <ng-container *ngFor="let propValue of property.values; let i = index">
@@ -322,14 +323,14 @@
                 <div class="flex gap-1 items-center">
 
                   <select
-                    (click)="getEntitiesByType(property.schema.rangeUri)"
+                    (click)="getEntitiesByType(property.rangeUri)"
                     (change)="onRangeSelected($event, property)"
                     class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
                     <option value="" selected disabled>Add new range value</option>
                     <option *ngFor="let t of listOfAllRanges; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
                   </select>
                     <button
-                      (click)="openCreateEntityDialogForRange(property.schema.rangeUri)"
+                      (click)="openCreateEntityDialogForRange(property.rangeUri)"
                       type="button"
                       class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
                             rounded-full bg-blue-600 text-white

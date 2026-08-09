@@ -35,32 +35,6 @@ import { GestionRessourcesService } from '../../services/gestion-ressources.serv
 })
 export class RicoPropertiesComponent implements OnInit {
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any,
-    private ontologyService: GestionRessourcesService,
-    private dialogRef: MatDialogRef<RicoPropertiesComponent>
-  ) {
-    this.predicates = data.predicates;
-  }
-
-  ngOnInit() {
-    this.filteredPredicates = this.predicates;
-    console.log("All predicates : ", this.predicates);
-    this.allRanges = this.predicates
-      .map((predicate: any) => predicate.range)
-      .filter((range: any) => !!range);          // ← drop null/undefined/empty
-    this.allRanges = [...new Set(this.allRanges)];
-    console.log("All possible ranges : ", this.allRanges);
-
-    this.predefinedRanges = this.predefinedRanges.filter(range =>
-      this.allRanges.includes("https://www.ica.org/standards/RiC/ontology#" + range)
-    );
-    this.allRanges = this.allRanges.filter((range: string) =>
-      !this.predefinedRanges.includes(this.getNameOfRicoTypeFromURL(range))
-    );
-  }
-
-  createSubEntity = false;
-  private subEntityRef?: ComponentRef<any>;
   private childClosedSub?: Subscription;
   
 
@@ -73,12 +47,11 @@ export class RicoPropertiesComponent implements OnInit {
   filterByKindValue : string = "";
 
   predicates: any[] = [];
+  predefinedRanges: string[] = [];
 
   filteredPredicates: any[] = [];
 
   allRangesLabels : any[] = [];
-
-  predefinedRanges = ['Activity', 'Person', 'Record', 'Instantiation', 'Place'];
 
   rangeIcons: Record<string, string> = {
     Activity: 'task',
@@ -87,6 +60,30 @@ export class RicoPropertiesComponent implements OnInit {
     Instantiation: 'category',
     Place: 'place',
   };
+
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any,
+    private ontologyService: GestionRessourcesService,
+    private dialogRef: MatDialogRef<RicoPropertiesComponent>
+  ) {
+    this.predicates = data.predicates;
+    this.predefinedRanges = data.predefinedRanges;
+  }
+
+  ngOnInit() {
+    this.filteredPredicates = this.predicates;
+    console.log("All predicates : ", this.predicates);
+    console.log("All predefined predicates : ", this.predefinedRanges);
+    this.allRanges = this.predicates
+      .map((predicate: any) => predicate.rangeUri)
+      .filter((range: any) => !!range);          // ← drop null/undefined/empty
+    this.allRanges = [...new Set(this.allRanges)];
+    
+    console.log("All possible ranges : ", this.allRanges);
+
+    this.allRanges = this.allRanges.filter((range: string) =>
+      !this.predefinedRanges.includes(range)
+    );
+  }
 
   onChildClosed(event: any) {
     if (event === true) {
@@ -97,9 +94,9 @@ export class RicoPropertiesComponent implements OnInit {
 
   private destroySubEntity() {
     this.childClosedSub?.unsubscribe();
-    this.subEntityRef?.destroy();
-    this.subEntityRef = undefined;
-    this.createSubEntity = false;
+    // this.subEntityRef?.destroy();
+    // this.subEntityRef = undefined;
+    // this.createSubEntity = false;
   }
 
   ngOnDestroy() {
