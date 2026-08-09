@@ -207,9 +207,9 @@
       </div>
     </aside>
 
-    <div  *ngIf="activeView === 'tableau'" class="p-0! w-[85%]!" [@slideIn]>
+    <div *ngIf="activeView === 'tableau'" class="p-0! w-[85%]!" [@slideIn]>
       <div class="p-1! flex-1 overflow-y-auto bg-gray-50 ">
-        <app-liste-entites [ontologiesData]="ontologyLabels" *ngIf="formattedEntities" [selectedType]="`${selectedOntology}:${selectedType}`" [allEntities]="formattedEntities" (selectedEntity)="handleChildData($event)"></app-liste-entites>
+        <app-liste-entites [ontologiesData]="ontologyLabels" *ngIf="formattedEntities" [selectedType]="selectedType" [allEntities]="formattedEntities" (selectedEntity)="handleChildData($event)"></app-liste-entites>
       </div>    
     </div>
 

@@ -12,7 +12,7 @@
             </label>
         </div>
 
-        <mat-chip-grid #chipGrid *ngIf="listSelectedTypes.length > 0">
+        <mat-chip-grid #chipGrid *ngIf="!this.data?.type">
             <mat-chip-row *ngFor="let selectedType of listSelectedTypes">
                 {{selectedType.label}}
                 <button 
