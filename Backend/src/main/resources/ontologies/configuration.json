@@ -1,5 +1,96 @@
 {
   "ontologies": {
+    "https://w3id.org/pnv#": {
+      "name": "pnv",
+      "description": "The Person Name Vocabulary (PNV) is an rdf vocabulary and data model for persons&apos; names. It is applicable to many datasets in which persons are described, as it accommodates different levels of data granularity.",
+      "url": "https://www.lodewijkpetram.nl/vocab/pnv/doc/",
+      "file": "ontologies/pnv.owl",
+      "mainTypes": {
+        "name": "Main Types",
+        "value": [
+        ]
+      },
+      "mainTerminologies": {
+        "name": "Main Terminologies",
+        "value": [
+        ]
+      },
+      "mainProperties": {
+        "name": "Main Properties",
+        "value": [
+        ]
+      }
+    },
+    "http://purl.org/vocab/bio/0.1/": {
+      "name": "bio",
+      "description": "BIO: A vocabulary for biographical information",
+      "url": "https://vocab.org/bio/",
+      "file": "ontologies/bio.rdf",
+      "mainTypes": {
+        "name": "Main Types",
+        "value": [
+        ]
+      },
+      "mainTerminologies": {
+        "name": "Main Terminologies",
+        "value": [
+        ]
+      },
+      "mainProperties": {
+        "name": "Main Properties",
+        "value": [
+        ]
+      }
+    },
+    "http://purl.org/ontology/bibo/": {
+      "name": "bibo",
+      "desc": "Bibliographic Ontology (BIBO) in RDF",
+      "url": "https://www.dublincore.org/specifications/bibo/bibo/",
+      "file": "ontologies/bibo.rdf",
+      "mainTypes": {
+        "name": "Main Types",
+        "value": [
+        ]
+      },
+      "mainTerminologies": {
+        "name": "Main Terminologies",
+        "value": [
+        ]
+      },
+      "mainProperties": {
+        "name": "Main Properties",
+        "value": [
+        ]
+      }
+    },
+    "http://id.loc.gov/ontologies/bibframe/": {
+      "name": "bibframe",
+      "url": "https://id.loc.gov/ontologies/bibframe.html",
+      "description": "The Bibframe vocabulary consists of RDF classes and properties used for the description of items cataloged principally by libraries, but may also be used to describe items cataloged by museums and archives.",
+      "file": "ontologies/bibframe.rdf",
+      "mainTypes": {
+        "name": "Main Types",
+        "value": [
+          "http://id.loc.gov/ontologies/bibframe/Book",
+          "http://id.loc.gov/ontologies/bibframe/Article",
+          "http://id.loc.gov/ontologies/bibframe/Title",
+          "http://id.loc.gov/ontologies/bibframe/Person",
+          "http://id.loc.gov/ontologies/bibframe/Manuscript"
+        ]
+      },
+      "mainTerminologies": {
+        "name": "Main Terminologies",
+        "value": [
+          "http://id.loc.gov/ontologies/bibframe/FileType"
+        ]
+      },
+      "mainProperties": {
+        "name": "Main Properties",
+        "value": [
+          "http://id.loc.gov/ontologies/bibframe/title"
+        ]
+      }
+    },
     "https://www.ica.org/standards/RiC/ontology": {
       "name" : "rico",
       "file": "ontologies/rico.rdf",
