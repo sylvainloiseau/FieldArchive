@@ -41,9 +41,9 @@
     <div class="gap-1 mt-4">  
         <label class="block text-sm font-medium text-gray-600 mb-1">The object of the property is : </label>
         <div class="flex gap-1">
-            <mat-chip-row (click)="addRangeFilter(predefinedRange)" class="big-chip" *ngFor="let predefinedRange of predefinedRanges">
+            <mat-chip-row (click)="addRangeFilter(getNameOfRicoTypeFromURL(predefinedRange))" class="big-chip" *ngFor="let predefinedRange of predefinedRanges">
             <mat-icon matChipAvatar>{{ getIconFor(predefinedRange) }}</mat-icon>
-            {{ predefinedRange }}
+            {{ getNameOfRicoTypeFromURL(predefinedRange) }}
             </mat-chip-row>
         </div>
     </div>

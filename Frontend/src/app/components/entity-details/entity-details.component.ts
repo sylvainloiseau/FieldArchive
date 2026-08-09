@@ -83,6 +83,10 @@ export class EntityDetailsComponent implements OnInit {
     this.selectedEntityId = data.selectedEntityId;
   }
 
+  MainPropertiesisNotEmpty(obj: any): boolean {
+    return obj && Object.keys(obj).length > 0;
+  }
+
   copyToClipboard(text: string | undefined) {
     if (text && navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
@@ -668,10 +672,16 @@ export class EntityDetailsComponent implements OnInit {
         !usedPredicates.has(p.uri)
     );
 
+    const mainTypes = this.selectedOntologyTab.value.mainTypes.value;
+
     const dialogRef = this.dialog.open(RicoPropertiesComponent, {
       width: '600px',
       height: '350px',
-      data: { predicates: matches }
+      data: { 
+        predicates: matches,
+        predefinedRanges: mainTypes
+        
+      }
     });
 
     dialogRef.afterClosed().subscribe((selectedPredicate: any) => {
