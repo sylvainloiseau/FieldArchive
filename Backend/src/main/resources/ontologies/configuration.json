@@ -1,5 +1,26 @@
 {
   "ontologies": {
+    "http://www.w3.org/2004/02/skos/core#": {
+      "name": "skos",
+      "description": "An RDF vocabulary for describing the basic structure and content of concept schemes such as thesauri, classification schemes, subject heading lists, taxonomies, 'folksonomies', other types of controlled vocabulary, and also concept schemes embedded in glossaries and terminologies.",
+      "url": "https://www.w3.org/2004/02/skos/",
+      "file": "ontologies/skos.owl",
+      "mainTypes": {
+        "name": "Main Types",
+        "value": [
+        ]
+      },
+      "mainTerminologies": {
+        "name": "Main Terminologies",
+        "value": [
+        ]
+      },
+      "mainProperties": {
+        "name": "Main Properties",
+        "value": [
+        ]
+      }
+    },
     "https://w3id.org/pnv#": {
       "name": "pnv",
       "description": "The Person Name Vocabulary (PNV) is an rdf vocabulary and data model for persons&apos; names. It is applicable to many datasets in which persons are described, as it accommodates different levels of data granularity.",
