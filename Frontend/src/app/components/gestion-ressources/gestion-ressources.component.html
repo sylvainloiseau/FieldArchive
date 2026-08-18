@@ -5,7 +5,7 @@
 
       <!-- Left: Logo and Title -->
       <div class="flex items-center gap-4">
-        <div class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all duration-300 cursor-pointer">
+        <div (click)="router.navigate(['/gestion-projets'])" class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all duration-300 cursor-pointer">
           <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 17l10 5 10-5"></path>
@@ -20,14 +20,17 @@
           </h1>
           <ng-template #spinner>
             <div class="flex items-center gap-2">
-              <svg class="animate-spin h-5 w-5 text-white opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+
+              <svg           
+                class="animate-spin h-5 w-5 text-white opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
               </svg>
+              
               <span class="text-white opacity-50 text-sm italic">Loading...</span>
             </div>
           </ng-template>
-          <p class="text-xs text-blue-100">RDF Entity Management System</p>
+          <p class="text-xs text-blue-100">RDF Project Entities Management</p>
         </div>
       </div>
 
@@ -36,21 +39,23 @@
 
       <div class="flex items-center gap-4">
         <button 
-          (click)="router.navigate(['/gestion-projets'])"
+          (click)="router.navigate(['/gestion-sources'])"
           class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
-          <span class="text-sm text-white font-medium">Projects</span>
-        </button>
-        <button 
-          (click)="router.navigate(['/gestion-sources'])"
-          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <span class="text-sm text-white font-medium">Datasources</span>
+        </button>
+        
+        <button 
+          (click)="router.navigate(['/gestion-projets'])"
+          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
+          <span class="text-sm text-white font-medium">Projects</span>
           <svg class="w-4 h-4 text-white rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </button>
+
         <button (click)="setView('sparql')" [class.bg-white]="activeView === 'sparql'" [class.text-blue-600]="activeView === 'sparql'" [class.shadow-sm]="activeView === 'sparql'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sparql'" aria-label="SPARQL view">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <polyline points="16 18 22 12 16 6" stroke-width="2"></polyline>
