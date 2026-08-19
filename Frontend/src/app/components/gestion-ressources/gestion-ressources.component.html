@@ -47,22 +47,32 @@
           <span class="text-sm text-white font-medium">Datasources</span>
         </button>
         
+
+        <button 
+          *ngIf="activeView !== 'sparql'"
+          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors"
+          (click)="setView('sparql')" >
+
+          <span  class="text-sm text-white font-medium">SPARQL</span>
+        </button>
+
+        <button 
+          *ngIf="activeView === 'sparql'"
+          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors"
+          (click)="setView('tableau')" [class.bg-white]="activeView === 'sparql'" [class.text-blue-600]="activeView === 'sparql'" [class.shadow-sm]="activeView === 'sparql'">
+
+          <span  class="text-sm text-white font-medium">Resources</span>
+
+        </button>
+
         <button 
           (click)="router.navigate(['/gestion-projets'])"
-          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
+          class="ml-10 cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <span class="text-sm text-white font-medium">Projects</span>
           <svg class="w-4 h-4 text-white rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </button>
-
-        <button (click)="setView('sparql')" [class.bg-white]="activeView === 'sparql'" [class.text-blue-600]="activeView === 'sparql'" [class.shadow-sm]="activeView === 'sparql'" class="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 hover:bg-white/20" role="tab" [attr.aria-selected]="activeView === 'sparql'" aria-label="SPARQL view">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <polyline points="16 18 22 12 16 6" stroke-width="2"></polyline>
-            <polyline points="8 6 2 12 8 18" stroke-width="2"></polyline>
-          </svg>
-          <span>SPARQL</span>
-      </button>
       </div>   
         
 

@@ -24,6 +24,8 @@ import { Router } from '@angular/router';
 import { MatDialogRef } from '@angular/material/dialog';
 import {CdkAccordionModule} from '@angular/cdk/accordion';
 
+import { ActivatedRoute } from '@angular/router';
+
 @Component({
   selector: 'app-gestion-ressources',
   standalone: true,
@@ -97,7 +99,8 @@ export class GestionRessourcesComponent implements OnInit {
     private ontologyService: GestionRessourcesService,
     private projetService: GestionProjetsService,
     private cdr: ChangeDetectorRef,
-    public  router:         Router
+    public  router:         Router,
+    private route: ActivatedRoute
 
   ) {}
 
@@ -137,7 +140,12 @@ export class GestionRessourcesComponent implements OnInit {
   }
 
   ngOnInit() {
-    
+
+    this.route.queryParams.subscribe(params => {
+      if (params['view']) {
+        this.setView(params['view']);
+      }
+    });
     // this.filteredEntities = [...this.allEntities];
     // this.filteredEntityTypes = [...this.entityTypes];
     // this.updateEntityTypeCounts();
