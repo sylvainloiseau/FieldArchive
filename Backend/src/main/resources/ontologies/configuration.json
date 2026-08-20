@@ -16,9 +16,6 @@
         ]
       },
       "mainProperties": {
-        "name": "Main Properties",
-        "value": [
-        ]
       }
     },
     "https://w3id.org/pnv#": {
@@ -37,9 +34,6 @@
         ]
       },
       "mainProperties": {
-        "name": "Main Properties",
-        "value": [
-        ]
       }
     },
     "http://purl.org/vocab/bio/0.1/": {
@@ -58,9 +52,7 @@
         ]
       },
       "mainProperties": {
-        "name": "Main Properties",
-        "value": [
-        ]
+
       }
     },
     "http://purl.org/ontology/bibo/": {
@@ -79,9 +71,6 @@
         ]
       },
       "mainProperties": {
-        "name": "Main Properties",
-        "value": [
-        ]
       }
     },
     "http://id.loc.gov/ontologies/bibframe/": {
@@ -106,8 +95,7 @@
         ]
       },
       "mainProperties": {
-        "name": "Main Properties",
-        "value": [
+        "Title": [
           "http://id.loc.gov/ontologies/bibframe/title"
         ]
       }
@@ -136,7 +124,7 @@
           "https://www.ica.org/standards/RiC/ontology#RoleType"
         ]
       },
-      "mainProperty": {
+      "mainProperties": {
         "Activity": [
           "https://www.ica.org/standards/RiC/ontology#hasOrHadParticipant",
           "https://www.ica.org/standards/RiC/ontology#hasBeginningDate",
@@ -206,7 +194,7 @@
         "http://xmlns.com/foaf/0.1/Document"
       ]
     },
-      "mainProperty": {
+      "mainProperties": {
         "Person": [
           "name",
           "firstName",
