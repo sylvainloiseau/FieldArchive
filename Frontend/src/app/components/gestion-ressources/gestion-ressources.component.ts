@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy,ChangeDetectorRef, signal, Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValue } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -93,7 +93,6 @@ export class GestionRessourcesComponent implements OnInit {
     });
   }
 
-
   constructor(
     public dialog: MatDialog,
     private ontologyService: GestionRessourcesService,
@@ -138,6 +137,18 @@ export class GestionRessourcesComponent implements OnInit {
         }
       });
   }
+
+  ontologyOrderComparator = (
+    a: KeyValue<string, any>,
+    b: KeyValue<string, any>
+  ): number => {
+    const priorityKey = 'https://www.ica.org/standards/RiC/ontology';
+
+    if (a.key === priorityKey) return -1;
+    if (b.key === priorityKey) return 1;
+
+    return a.value.name.localeCompare(b.value.name);
+  };
 
   ngOnInit() {
 

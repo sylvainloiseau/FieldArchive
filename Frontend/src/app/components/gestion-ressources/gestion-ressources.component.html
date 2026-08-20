@@ -126,7 +126,7 @@
         <mat-accordion class="flex flex-col gap-2">
 
           <mat-expansion-panel 
-            *ngFor="let ontology of ontologyLabels | keyvalue" 
+            *ngFor="let ontology of ontologyLabels | keyvalue:ontologyOrderComparator"
             class="border-none! shadow-none! rounded-lg! overflow-hidden transition-all duration-200"
             [class.!bg-gray-50]="panelOpenState()"
             (opened)="panelOpenState.set(true)" 

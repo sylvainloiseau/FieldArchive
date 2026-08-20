@@ -40,26 +40,20 @@ export class RicoPropertiesComponent implements OnInit {
 
   allRanges : any[] = []
   
-  allPossibleRanges : any[] = [];
-
   filters : string[] = [];
 
   filterByKindValue : string = "";
 
   predicates: any[] = [];
+  removeProperty : string[] = [];
   predefinedRanges: string[] = [];
+  remainingRanges : string[] = [];
 
   filteredPredicates: any[] = [];
 
   allRangesLabels : any[] = [];
 
-  rangeIcons: Record<string, string> = {
-    Activity: 'task',
-    Person: 'person',
-    Record: 'description',
-    Instantiation: 'category',
-    Place: 'place',
-  };
+  fixedFilteredPredicates : any[] = [];
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
     private ontologyService: GestionRessourcesService,
@@ -67,12 +61,18 @@ export class RicoPropertiesComponent implements OnInit {
   ) {
     this.predicates = data.predicates;
     this.predefinedRanges = data.predefinedRanges;
+    this.removeProperty = data.removeProperty;
   }
 
   ngOnInit() {
-    this.filteredPredicates = this.predicates;
-    console.log("All predicates : ", this.predicates);
-    console.log("All predefined predicates : ", this.predefinedRanges);
+    console.log("Properties to be removed  :", this.removeProperty);
+
+    this.fixedFilteredPredicates = this.predicates.filter((pred: any) =>
+      !this.removeProperty.includes(this.getNameOfRicoTypeFromURL(pred.uri))
+    );
+
+    this.filteredPredicates = this.fixedFilteredPredicates;
+    console.log("All predicates : ", this.filteredPredicates);
     this.allRanges = this.predicates
       .map((predicate: any) => predicate.rangeUri)
       .filter((range: any) => !!range);          // ← drop null/undefined/empty
@@ -80,9 +80,15 @@ export class RicoPropertiesComponent implements OnInit {
     
     console.log("All possible ranges : ", this.allRanges);
 
-    this.allRanges = this.allRanges.filter((range: string) =>
+    this.predefinedRanges = this.predefinedRanges.filter((range: string) =>
+      this.allRanges.includes(range)
+    );
+    console.log("All predefined predicates : ", this.predefinedRanges);
+
+    this.remainingRanges = this.allRanges.filter((range: string) =>
       !this.predefinedRanges.includes(range)
     );
+
   }
 
   onChildClosed(event: any) {
@@ -117,13 +123,12 @@ export class RicoPropertiesComponent implements OnInit {
     }
   }
 
-  getIconFor(range: string): string {
-    return this.rangeIcons[range] ?? 'label';
-  }
-
   getNameOfRicoTypeFromURL(url : string | any) {
     if (url.includes('#')){
       return url.split('#').pop();
+    }
+    if (url.includes('/')){
+      return url.split('/').pop();
     }
     else return url;
   }
@@ -138,8 +143,9 @@ export class RicoPropertiesComponent implements OnInit {
     for (let filter of this.filters) {
       if (filter.startsWith("range : ")){  
         let rangeName = filter.substring('range : '.length).trim();
-        this.filteredPredicates = this.predicates.filter(
-          p => this.getNameOfRicoTypeFromURL(p.range) === rangeName
+        console.log("Filtering only with range : ", rangeName);
+        this.filteredPredicates = this.filteredPredicates.filter(
+          p => p.rangeUri === rangeName
         );
       }
     }
@@ -150,6 +156,7 @@ export class RicoPropertiesComponent implements OnInit {
       this.filters = this.filters.filter(f => !f.startsWith('range :'));    
     }
     this.filters.push('range : '+range);
+    this.filteredPredicates = this.fixedFilteredPredicates;
     this.filterRangesByFilters();
   }
 
