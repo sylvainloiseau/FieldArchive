@@ -83,6 +83,14 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   MainPropertiesisNotEmpty(obj: any): boolean {
+    // for (const entityType of this.allEntityTypesChips) {
+    //   if (entityType.startsWith(obj.name + ':')) {
+    //     console.log("GOT IT :", entityType);
+    //     const properties = obj.main_Properties[entityType.substring((obj.name + ':').length)];
+
+    //     return Array.isArray(properties) && properties.length > 0;
+    //   }
+    // }
     return obj && Object.keys(obj).length > 0;
   }
 
@@ -287,23 +295,25 @@ export class EntityDetailsComponent implements OnInit {
     for (const value of Object.values(ontologyLabels)) {
       const ontologyPrefix = value.name;
 
-      if (value.mainProperty) {
-        value.mainProperties = {}; // 👈 object now, same shape as mainProperty
+      if (value.mainProperties) {
+        value.main_Properties = {}; // 👈 object now, same shape as mainProperty
 
-        for (const [keyMP, valueMP] of Object.entries(value.mainProperty)) {
+        for (const [keyMP, valueMP] of Object.entries(value.mainProperties)) {
           const entityType = this.extractPropertyNameFromIRI(keyMP);
           const fullKey = `${ontologyPrefix}:${entityType}`;
 
           if (labelSet.has(fullKey)) {
 
-            if (value.mainProperties[entityType]) {
+            console.log("LABEL SET : ", fullKey);
+
+            if (value.main_Properties[entityType]) {
               // append to existing array for that type
-              value.mainProperties[entityType].push(
+              value.main_Properties[entityType].push(
                 ...(Array.isArray(valueMP) ? valueMP : [valueMP])
               );
             } else {
-              // create the key, same as mainProperty[entityType]
-              value.mainProperties[entityType] = Array.isArray(valueMP)
+              // create the key, same as mainProperties[entityType]
+              value.main_Properties[entityType] = Array.isArray(valueMP)
                 ? [...valueMP]
                 : [valueMP];
             }
@@ -478,15 +488,18 @@ export class EntityDetailsComponent implements OnInit {
         .getEntityDetails(this.selectedEntityId)
         .subscribe({
           next: (data) => {
-            console.log("Entity Details Data:", data);
-            this.buildEntityDetails(data.properties, this.ontologyLabels);
             this.selectedEntity = data;
-            this.buildTypesChips(data.types, this.ontologyLabels);
-            this.buildMainProperties(this.ontologyLabels);
 
+            this.buildEntityDetails(data.properties, this.ontologyLabels);
+            this.buildTypesChips(data.types, this.ontologyLabels);
+
+            // IMPORTANT: enrich mainProperties first
             this.cleanProperties(this.ontologyLabels, this.selectedEntity);
 
-            this.cdr.markForCheck();
+            // THEN build the object used by the template
+            this.buildMainProperties(this.ontologyLabels);
+
+            this.cdr.detectChanges();
           },
           error: (err) => console.error("ERROR:", err)
         });

@@ -77,14 +77,14 @@
         <div class="flex flex-col gap-3">
 
           <!-- Main Property Fields -->
-          <div *ngIf="MainPropertiesisNotEmpty($any(item.value).mainProperties)">   
+          <div *ngIf="MainPropertiesisNotEmpty($any(item.value).main_Properties)">   
                               
             <div class="flex justify-center items-center">
               <label class="text-lg text-blue-900">Main Properties</label>
             </div>
 
             <!-- First all : we fetch all main properties -->
-            <ng-container *ngFor="let mainProp of $any(item.value).mainProperties | keyvalue">
+            <ng-container *ngFor="let mainProp of $any(item.value).main_Properties | keyvalue">
 
               <ng-container *ngFor="let property of $any(mainProp).value">
 
@@ -106,6 +106,20 @@
                       </svg>
                     </button>
                   </label>
+
+                  <span class="flex items-center gap-6">
+       
+                    <label *ngIf="property.schema?.cardinality?.min"
+                      [ngClass]="property.values?.length >= property.schema?.cardinality?.min ? 'text-green-500' : 'text-red-500'"
+                    >
+                      Min cardinality is : {{ property.schema?.cardinality?.min ?? 0 }}
+                    </label>
+                    <label *ngIf="property.schema?.cardinality?.max"
+                      [ngClass]="property.values?.length <= property.schema?.cardinality?.max ? 'text-green-500' : 'text-red-500'"
+                    >
+                      Max cardinality is : {{ property.schema?.cardinality?.max ?? 0 }}
+                    </label>
+                  </span>
                   
 
                   <div class="flex flex-col gap-2" *ngIf="property.kind === 'iri'">
@@ -256,7 +270,7 @@
           <!-- Other Properties Fields -->
           <div class="flex p-3 justify-center">
               <label class="text-lg text-blue-900">
-                <span *ngIf="MainPropertiesisNotEmpty($any(item.value).mainProperties)">Other </span><span>Properties</span></label>
+                <span *ngIf="MainPropertiesisNotEmpty($any(item.value).main_Properties)">Other </span><span>Properties</span></label>
           </div>
 
           <ng-container *ngFor="let property of $any(item.value).entities">
@@ -280,6 +294,22 @@
                   </svg>
                 </button>
               </label>
+
+              <span class="flex items-center gap-6">
+       
+                <label *ngIf="property.schema?.cardinality?.min"
+                  [ngClass]="property.values?.length >= property.schema?.cardinality?.min ? 'text-green-500' : 'text-red-500'"
+                >
+                  Min cardinality is : {{ property.schema?.cardinality?.min ?? 0 }}
+                </label>
+                <label *ngIf="property.schema?.cardinality?.max"
+                  [ngClass]="property.values?.length <= property.schema?.cardinality?.max ? 'text-green-500' : 'text-red-500'"
+                >
+                  Max cardinality is : {{ property.schema?.cardinality?.max ?? 0 }}
+                </label>
+              </span>
+
+
 
               <!-- List of all ranges names -->
               <div class="flex flex-col gap-2" *ngIf="property.values?.length && property.kind === 'iri'">
