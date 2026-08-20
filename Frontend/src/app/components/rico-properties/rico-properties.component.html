@@ -1,7 +1,7 @@
 <div class="p-5 h-full! w-full overflow-y-scroll">
-    <label class="block text-xs font-medium text-gray-600 mb-1">Filters</label>
+    <label class="items-center justify-center flex text-xl font-medium text-blue-600 mb-2">Entity Property Selector</label>
 
-    <mat-chip-grid #chipGrid>
+    <!-- <mat-chip-grid #chipGrid>
         <mat-chip-row
             *ngFor="let filter of filters"
         >
@@ -13,9 +13,9 @@
             </button>
         </mat-chip-row>
             
-    </mat-chip-grid>
+    </mat-chip-grid> -->
 
-    <div class="flex gap-2">
+    <!-- <div class="flex gap-2">
         <button
             (click)="filterPropertiesByKindValue('iri')"
             [class.bg-blue-600]="filterByKindValue === 'iri'"
@@ -34,21 +34,29 @@
             class="cursor-pointer! flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium">
             Literal
         </button>
+    </div> -->
+
+    <div class="gap-1 mt-4">  
+        <label class="block text-sm font-medium text-gray-600 mb-1">The object of the property is : </label>
+        <mat-chip-listbox class="flex gap-0.5" aria-label="Range filters">
+        <mat-chip-option
+            (click)="filterPropertiesByKindValue('literal')"
+            (selectionChange)="filterPropertiesByKindValue('literal')">
+            Literal
+        </mat-chip-option>
+        <mat-chip-option
+            *ngFor="let predefinedRange of predefinedRanges"
+            [value]="predefinedRange"
+            (selectionChange)="addRangeFilter(predefinedRange)">
+            {{ getNameOfRicoTypeFromURL(predefinedRange) }}
+        </mat-chip-option>
+        </mat-chip-listbox>
     </div>
 
     <mat-divider class="my-4!"></mat-divider>
 
-    <div class="gap-1 mt-4">  
-        <label class="block text-sm font-medium text-gray-600 mb-1">The object of the property is : </label>
-        <div class="flex gap-1">
-            <mat-chip-row (click)="addRangeFilter(getNameOfRicoTypeFromURL(predefinedRange))" class="big-chip" *ngFor="let predefinedRange of predefinedRanges">
-            <mat-icon matChipAvatar>{{ getIconFor(predefinedRange) }}</mat-icon>
-            {{ getNameOfRicoTypeFromURL(predefinedRange) }}
-            </mat-chip-row>
-        </div>
-    </div>
 
-    <div class="mt-4 w-full">
+    <div *ngIf="remainingRanges.length > 0" class="mt-4 w-full">
         <label class="block text-sm font-medium text-gray-600 mb-1">Other types : </label>
         <select
         (change)="onRangeChange($event)"
@@ -56,8 +64,8 @@
 
         <option value="" disabled selected>Select a type of object...</option>
 
-        <option *ngFor="let range of allRanges" [value]="range">
-            {{getNameOfRicoTypeFromURL(range)}}
+        <option *ngFor="let remainingRange of remainingRanges" [value]="remainingRange">
+            {{getNameOfRicoTypeFromURL(remainingRange)}}
         </option>
 
         </select>

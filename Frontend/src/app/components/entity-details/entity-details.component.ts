@@ -1,5 +1,5 @@
 import { Component, OnInit, Input, OnChanges, SimpleChanges, Inject, inject, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValue } from '@angular/common';
 import { Entity } from '../../models/ressource';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import {MatTabsModule} from '@angular/material/tabs';
@@ -19,7 +19,6 @@ import {RicoPropertiesComponent} from '../rico-properties/rico-properties.compon
 
 import {MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
-import { KeyValue } from '@angular/common';
 
 
 @Component({
@@ -672,14 +671,14 @@ export class EntityDetailsComponent implements OnInit {
         !usedPredicates.has(p.uri)
     );
 
-    const mainTypes = this.selectedOntologyTab.value.mainTypes.value;
 
     const dialogRef = this.dialog.open(RicoPropertiesComponent, {
       width: '600px',
       height: '350px',
       data: { 
         predicates: matches,
-        predefinedRanges: mainTypes
+        predefinedRanges: this.selectedOntologyTab.value.mainTypes.value,
+        removeProperty : this.selectedOntologyTab.value.removeProperty
         
       }
     });

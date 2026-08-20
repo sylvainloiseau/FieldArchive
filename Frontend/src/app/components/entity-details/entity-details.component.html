@@ -70,7 +70,7 @@
   </div>
 
   <mat-tab-group *ngIf="selectedEntity" (selectedIndexChange)="onTabChange($event)" mat-align-tabs="start" class="flex-1">
-    <mat-tab [label]="$any(item.value).name" *ngFor="let item of ontologyLabels | keyvalue">
+    <mat-tab [label]="$any(item.value).name" *ngFor="let item of ontologyLabels | keyvalue:ontologyOrderComparator">
 
       <div class="flex flex-col gap-6 p-4">
 
