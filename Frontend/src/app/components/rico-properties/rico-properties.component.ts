@@ -135,8 +135,7 @@ export class RicoPropertiesComponent implements OnInit {
 
   onRangeChange(event : any) {
     const filterUrl = (event.target as HTMLSelectElement)?.value;
-    const entityType = this.getNameOfRicoTypeFromURL(filterUrl);
-    this.addRangeFilter(entityType);
+    this.addRangeFilter(filterUrl);
   }
 
   filterRangesByFilters() : void {
