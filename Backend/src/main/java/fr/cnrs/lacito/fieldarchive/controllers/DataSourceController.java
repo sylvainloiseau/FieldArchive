@@ -1,13 +1,16 @@
 package fr.cnrs.lacito.fieldarchive.controllers;
 
-import fr.cnrs.lacito.fieldarchive.dtos.CreateInternalDataSourceRequest;
-import fr.cnrs.lacito.fieldarchive.dtos.CreateExternalDataSourceRequest;
-import fr.cnrs.lacito.fieldarchive.dtos.DataSourceDto;
-import fr.cnrs.lacito.fieldarchive.dtos.UpdateDataSourceRequest;
+import fr.cnrs.lacito.fieldarchive.dtos.*;
+import fr.cnrs.lacito.fieldarchive.exceptions.ImportException;
 import fr.cnrs.lacito.fieldarchive.services.DataSourceService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,11 +58,13 @@ public class DataSourceController {
         return ResponseEntity.ok(Map.of("status", "deleted"));
     }
 
-    @PostMapping("/external")
+    @PostMapping(value = "/external", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createExternal(
-            @RequestBody CreateExternalDataSourceRequest request) {
+            @RequestPart("dataSource") CreateExternalDataSourceRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
 
-        dataSourceService.createExternalDataSource(request);
+        dataSourceService.createExternalDataSource(request, file);
+
         return ResponseEntity.ok(Map.of("status", "created"));
     }
 

@@ -39,25 +39,32 @@ public class FileImportService {
         this.builtinOntologyService = builtinOntologyService;
     }
 
-    public ImportResult importTurtle(InputStream ttlStream, String baseURI) {
+    public ImportResult importTurtle(InputStream ttlStream, String baseURI, String graphName) {
         Repository repo = ProjectContext.getRepository();
         if (repo == null) {
             throw new ImportException("No project opened");
         }
-//        IRI CTX_INTERNAL = SimpleValueFactory.getInstance()
-//                .createIRI("http://fieldarchive.local/source/" + sourceName);
-//        IRI CTX_INTERNAL = vf.createIRI("urn:datasource:"+this.projectService.readCurrentProject().prefix+"_internal");
         String projectName = projectService.readCurrentProject().name;
-        IRI CTX_INTERNAL = dsService.getGraphIri(projectName + "_internal"); // ✅ lu depuis les métadonnées
+        IRI ctxName;
+        if (graphName == null || graphName.isEmpty()) {
+            ctxName = dsService.getGraphIri(projectName + "_internal");
+        } else {
+            ctxName = dsService.getGraphIri(graphName);
+        }
+        return importTurtle(ttlStream, baseURI, ctxName);
+    }
 
+    // overload: already resolved the target graph, skip the lookup entirely
+    public ImportResult importTurtle(InputStream ttlStream, String baseURI, IRI ctxName) {
+        Repository repo = ProjectContext.getRepository();
+        if (repo == null) {
+            throw new ImportException("No project opened");
+        }
         try (RepositoryConnection conn = repo.getConnection()) {
             conn.begin();
 
-            // Re-import semantics: wipe the named graph before reloading
-//            conn.clear(CTX_INTERNAL);
-
             RDFInserter inserter = new RDFInserter(conn);
-            inserter.enforceContext(CTX_INTERNAL); // force every triple into this named graph
+            inserter.enforceContext(ctxName);
 
             RDFParser parser = Rio.createParser(RDFFormat.TURTLE);
             parser.setRDFHandler(inserter);
@@ -67,14 +74,14 @@ public class FileImportService {
             parser.parse(ttlStream, baseURI);
 
             conn.commit();
-            return ImportResult.success(CTX_INTERNAL.stringValue(), conn.size(CTX_INTERNAL));
+            return ImportResult.success(ctxName.stringValue(), conn.size(ctxName));
         } catch (RDFParseException e) {
-            // line/column info is on the exception — surface it to the frontend
             throw new ImportException(e.getLineNumber(), e.getColumnNumber(), e.getMessage());
         } catch (Exception e) {
             throw new ImportException("Import failed: " + e.getMessage());
         }
     }
+
 
     /* Restaure un projet depuis un backup (.zip contenant un .trig avec
         * les graphes InternalDataSource + métadonnées projet/datasource).

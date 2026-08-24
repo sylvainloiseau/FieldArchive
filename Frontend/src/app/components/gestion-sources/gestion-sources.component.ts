@@ -1,12 +1,11 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
  
-import { DataSourceService } from '../../services/data-source.service';
 import { DataSourceHttpService } from '../../services/data-source-http.service';
-import { DataSource, CreateDataSourceRequest } from '../../models/data-source.model';
+import { DataSource, CreateInternalDataSourceRequest, CreateExternalDataSourceRequest } from '../../models/data-source.model';
  
 // Angular Material Imports
 import { MatButtonModule } from '@angular/material/button';
@@ -53,6 +52,8 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   
   showForm = false;
   isEditing = false;
+  isFileLoading = false;
+
   currentEditId: string | null = null;
   
   dataSourceForm: FormGroup;
@@ -66,7 +67,10 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
 
   //props pour les stats
   showExportMenu = false;
- 
+  selectedFile: File | null = null;
+
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   constructor(
     private dataSourceService: DataSourceHttpService,
     private fb: FormBuilder,
@@ -83,14 +87,29 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       name: ['', Validators.required],
       description: [''],
       sourceType: ['INTERNAL', Validators.required],
-      url: [''],
-      tool: ['']
+      url: ['']
     });
+  }
+
+  onImportFile(): void {
+    this.fileInput.nativeElement.value = ''; // reset so re-selecting the same file still fires 'change'
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    this.selectedFile = file;
+    this.isFileLoading = true;
+
+    console.log('Selected file:', this.selectedFile);
   }
  
   ngOnInit(): void {
-    // ✅ Configure la validation conditionnelle
-    this.setupConditionalValidation();
+    // this.setupConditionalValidation();
     
     this.loadDataSources();
     
@@ -109,36 +128,35 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   /**
    * ✅ Configure la validation conditionnelle pour tool et url
    */
-  private setupConditionalValidation(): void {
-    this.dataSourceForm.get('sourceType')?.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(type => {
-        const toolControl = this.dataSourceForm.get('tool');
-        const urlControl = this.dataSourceForm.get('url');
+  // private setupConditionalValidation(): void {
+  //   this.dataSourceForm.get('sourceType')?.valueChanges
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe(type => {
+  //       const urlControl = this.dataSourceForm.get('url');
  
-        if (type === 'EXTERNAL') {
-          // Source externe: tool et url obligatoires
-          toolControl?.setValidators([Validators.required]);
-          urlControl?.setValidators([Validators.required, Validators.minLength(5)]);
+  //       if (type === 'EXTERNAL') {
+  //         // Source externe: tool et url obligatoires
+  //         toolControl?.setValidators([Validators.required]);
+  //         urlControl?.setValidators([Validators.required, Validators.minLength(5)]);
           
-          console.log('✅ Validation EXTERNAL activée: tool et url requis');
-        } else {
-          // Source interne: pas de tool ni url
-          toolControl?.clearValidators();
-          urlControl?.clearValidators();
+  //         console.log('✅ Validation EXTERNAL activée: tool et url requis');
+  //       } else {
+  //         // Source interne: pas de tool ni url
+  //         toolControl?.clearValidators();
+  //         urlControl?.clearValidators();
           
-          // Vide les champs
-          toolControl?.setValue('');
-          urlControl?.setValue('');
+  //         // Vide les champs
+  //         toolControl?.setValue('');
+  //         urlControl?.setValue('');
           
-          console.log('✅ Validation INTERNAL: tool et url non requis');
-        }
+  //         console.log('✅ Validation INTERNAL: tool et url non requis');
+  //       }
  
-        // Applique les changements
-        toolControl?.updateValueAndValidity();
-        urlControl?.updateValueAndValidity();
-      });
-  }
+  //       // Applique les changements
+  //       toolControl?.updateValueAndValidity();
+  //       urlControl?.updateValueAndValidity();
+  //     });
+  // }
  
   loadDataSources(): void {
     this.dataSourceService.getAllDataSources()
@@ -185,8 +203,7 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       name: dataSource.name,
       description: dataSource.description,
       sourceType: dataSource.sourceType,
-      url: dataSource.url || '',
-      tool: dataSource.tool || ''
+      url: dataSource.url || ''
     });
   }
  
@@ -212,10 +229,6 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       
       //vérification external
       if (formValue.sourceType === 'EXTERNAL') {
-        if (!formValue.tool || formValue.tool.trim() === '') {
-          this.showNotification('Source tool is required for external sources.', 'error');
-          return;
-        }
         if (!formValue.url || formValue.url.trim() === '') {
           this.showNotification('RDF file path is required for external sources.', 'error');
           return;
@@ -237,26 +250,48 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       if (this.dataSourceForm.get('name')?.invalid) {
         errors.push('Display name');
       }
-      if (this.dataSourceForm.get('tool')?.invalid) {
-        errors.push('Source tool');
-      }
-      if (this.dataSourceForm.get('url')?.invalid) {
-        errors.push('File path');
-      }
+      // if (this.dataSourceForm.get('url')?.invalid) {
+      //   errors.push('File path');
+      // }
       
-      const errorMessage = errors.length > 0 
-        ? `Missing fields: ${errors.join(', ')}`
-        : 'Please fill in all required fields';
+      // const errorMessage = errors.length > 0 
+      //   ? `Missing fields: ${errors.join(', ')}`
+      //   : 'Please fill in all required fields';
       
-      this.showNotification(errorMessage, 'error');
+      // this.showNotification(errorMessage, 'error');
     }
   }
- 
-  createDataSource(data: CreateDataSourceRequest): void {
-    const createObservable = data.sourceType === 'INTERNAL' 
-      ? this.dataSourceService.createInternalSource(data)
-      : this.dataSourceService.createExternalSource(data);
- 
+
+
+  createDataSource(data: any): void {
+
+    let createObservable;
+
+    if (data.sourceType === 'INTERNAL') {
+
+      createObservable = this.dataSourceService.createInternalSource(data);
+
+    } else {
+
+      if (!this.selectedFile) {
+        this.showNotification(
+          'Please select a file for the external data source.',
+          'error'
+        );
+        return;
+      }
+
+      const externalData: CreateExternalDataSourceRequest = {
+        dataSource: data,
+        file: this.selectedFile
+      };
+
+      console.log('External data:', externalData);
+
+      createObservable = this.dataSourceService.createExternalSource(externalData);
+    }
+
+
     createObservable
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -410,7 +445,6 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(s => s.sourceType === this.filterType);
     }
     
-    // Filtre par outil
     if (this.filterTool !== 'ALL') {
       filtered = filtered.filter(s => s.tool === this.filterTool);
     }
@@ -461,7 +495,6 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       s.shortName,
       s.name,
       s.sourceType,
-      s.tool || '-',
       s.editable ? 'Yes' : 'No',
       s.graphIRI
     ]);
@@ -493,7 +526,6 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
         name: s.name,
         description: s.description,
         type: s.sourceType,
-        tool: s.tool,
         url: s.url,
         graphIRI: s.graphIRI,
         editable: s.editable
@@ -512,201 +544,150 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     this.showNotification('Configuration export successful', 'success');
   }
 
-  /**
- * Gère la sélection du fichier JSON
- */
-onFileSelected(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  
-  if (!input.files || input.files.length === 0) {
-    return;
-  }
-
-  const file = input.files[0];
-  
-  // Vérifie que c'est bien un fichier JSON
-  if (!file.name.endsWith('.json')) {
-    this.showNotification('File must be in JSON format', 'error');
-    return;
-  }
-
-  // Lit le contenu du fichier
-  const reader = new FileReader();
-  
-  reader.onload = (e: ProgressEvent<FileReader>) => {
-    try {
-      const content = e.target?.result as string;
-      const config = JSON.parse(content);
-      
-      // Valide la structure
-      if (!this.validateConfigStructure(config)) {
-        this.showNotification('Invalid configuration format', 'error');
-        return;
-      }
-
-      // Demande confirmation
-      this.confirmImport(config);
-      
-    } catch (error) {
-      console.error('Erreur parsing JSON:', error);
-      this.showNotification('Invalid JSON file', 'error');
-    }
-  };
-
-  reader.onerror = () => {
-    this.showNotification('Error reading file', 'error');
-  };
-
-  reader.readAsText(file);
-  
-  // Réinitialise l'input pour permettre de réimporter le même fichier
-  input.value = '';
-}
-
 /**
  * Valide la structure du fichier de configuration
  */
-private validateConfigStructure(config: any): boolean {
-  // Vérifie que c'est un objet avec la propriété 'sources'
-  if (!config || typeof config !== 'object') {
-    return false;
-  }
+  // private validateConfigStructure(config: any): boolean {
+  //   // Vérifie que c'est un objet avec la propriété 'sources'
+  //   if (!config || typeof config !== 'object') {
+  //     return false;
+  //   }
 
-  // Accepte 2 formats:
-  // Format 1: { sources: [...] }
-  // Format 2: [...] (array direct)
-  const sources = Array.isArray(config) ? config : config.sources;
+  //   // Accepte 2 formats:
+  //   // Format 1: { sources: [...] }
+  //   // Format 2: [...] (array direct)
+  //   const sources = Array.isArray(config) ? config : config.sources;
 
-  if (!Array.isArray(sources)) {
-    return false;
-  }
+  //   if (!Array.isArray(sources)) {
+  //     return false;
+  //   }
 
-  // Vérifie que chaque source a au minimum un shortName et un name
-  return sources.every((s: any) => 
-    s && 
-    typeof s === 'object' && 
-    s.shortName && 
-    s.name &&
-    (s.type || s.sourceType) // Accepte les 2 noms de champ
-  );
-}
+  //   // Vérifie que chaque source a au minimum un shortName et un name
+  //   return sources.every((s: any) => 
+  //     s && 
+  //     typeof s === 'object' && 
+  //     s.shortName && 
+  //     s.name &&
+  //     (s.type || s.sourceType) // Accepte les 2 noms de champ
+  //   );
+  // }
 
   /**
    * Demande confirmation avant import
    */
-  private confirmImport(config: any): void {
-    const sources = Array.isArray(config) ? config : config.sources;
-    const count = sources.length;
+  // private confirmImport(config: any): void {
+  //   const sources = Array.isArray(config) ? config : config.sources;
+  //   const count = sources.length;
 
-    const message = `Do you want to import ${count} source(s)?\n\n` +
-      `⚠️ Warning:\n` +
-      `- Sources with the same shortName will be skipped\n` +
-      `- Only 1 INTERNAL source can exist\n` +
-      `- EXTERNAL sources will be created but not automatically synchronized`;
+  //   const message = `Do you want to import ${count} source(s)?\n\n` +
+  //     `⚠️ Warning:\n` +
+  //     `- Sources with the same shortName will be skipped\n` +
+  //     `- Only 1 INTERNAL source can exist\n` +
+  //     `- EXTERNAL sources will be created but not automatically synchronized`;
 
-    if (confirm(message)) {
-      this.importConfiguration(sources);
-    }
-  }
+  //   if (confirm(message)) {
+  //     this.importConfiguration(sources);
+  //   }
+  // }
 
   /**
    * Importe les sources depuis la configuration
    */
-  private importConfiguration(sources: any[]): void {
-    let successCount = 0;
-    let errorCount = 0;
-    let completedCount = 0; // ← NOUVEAU: Compte les requêtes terminées
-    const errors: string[] = [];
-    const totalSources = sources.length;
+  // private importConfiguration(sources: any[]): void {
+  //   let successCount = 0;
+  //   let errorCount = 0;
+  //   let completedCount = 0; // ← NOUVEAU: Compte les requêtes terminées
+  //   const errors: string[] = [];
+  //   const totalSources = sources.length;
 
-    // Compte le nombre de sources INTERNAL dans le fichier
-    const internalSources = sources.filter(s => 
-      (s.type || s.sourceType)?.toUpperCase() === 'INTERNAL'
-    );
+  //   // Compte le nombre de sources INTERNAL dans le fichier
+  //   const internalSources = sources.filter(s => 
+  //     (s.type || s.sourceType)?.toUpperCase() === 'INTERNAL'
+  //   );
 
-    // Vérifie la contrainte INTERNAL
-    if (internalSources.length > 1) {
-      this.showNotification(
-        `❌ File contains ${internalSources.length} INTERNAL sources. Only 1 is allowed.`,
-        'error'
-      );
-      return;
-    }
+  //   // Vérifie la contrainte INTERNAL
+  //   if (internalSources.length > 1) {
+  //     this.showNotification(
+  //       `❌ File contains ${internalSources.length} INTERNAL sources. Only 1 is allowed.`,
+  //       'error'
+  //     );
+  //     return;
+  //   }
 
-    if (internalSources.length === 1 && !this.canCreateInternalSource()) {
-      this.showNotification(
-        '❌ An INTERNAL source already exists. Delete it before importing.',
-        'error'
-      );
-      return;
-    }
+  //   if (internalSources.length === 1 && !this.canCreateInternalSource()) {
+  //     this.showNotification(
+  //       '❌ An INTERNAL source already exists. Delete it before importing.',
+  //       'error'
+  //     );
+  //     return;
+  //   }
 
-    // Affiche notification de démarrage
-    this.showNotification(`🔄 Importing ${totalSources} source(s)...`, 'info');
+  //   // Affiche notification de démarrage
+  //   this.showNotification(`🔄 Importing ${totalSources} source(s)...`, 'info');
 
-    // Import de chaque source
-    sources.forEach((source) => {
-      const sourceType = (source.type || source.sourceType)?.toUpperCase();
+  //   // Import de chaque source
+  //   sources.forEach((source) => {
+  //     const sourceType = (source.type || source.sourceType)?.toUpperCase();
 
-      const request: CreateDataSourceRequest = {
-        shortName: source.shortName,
-        name: source.name,
-        description: source.description || '',
-        sourceType: sourceType as 'INTERNAL' | 'EXTERNAL',
-        url: source.url || undefined,
-        tool: source.tool || undefined
-      };
+  //     const request: CreateDataSourceRequest = {
+  //       shortName: source.shortName,
+  //       name: source.name,
+  //       description: source.description || '',
+  //       sourceType: sourceType as 'INTERNAL' | 'EXTERNAL',
+  //       url: source.url || undefined,
+  //       tool: source.tool || undefined
+  //     };
 
-      const createObservable = sourceType === 'INTERNAL'
-        ? this.dataSourceService.createInternalSource(request)
-        : this.dataSourceService.createExternalSource(request);
+  //     const createObservable = sourceType === 'INTERNAL'
+  //       ? this.dataSourceService.createInternalSource(request)
+  //       : this.dataSourceService.createExternalSource(request);
 
-      createObservable
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (created) => {
-            successCount++;
-            completedCount++;
-            console.log(`✅ Source importée: ${created.name}`);
-
-            
-            if (completedCount === totalSources) {
-              this.showImportSummary(successCount, errorCount, errors);
-            }
-          },
-          error: (error) => {
-            errorCount++;
-            completedCount++;
-            const errorMsg = `${source.shortName}: ${error.message || 'Erreur inconnue'}`;
-            errors.push(errorMsg);
-            console.error(`❌ Erreur import ${source.shortName}:`, error);
+  //     createObservable
+  //       .pipe(takeUntil(this.destroy$))
+  //       .subscribe({
+  //         next: (created) => {
+  //           successCount++;
+  //           completedCount++;
+  //           console.log(`✅ Source importée: ${created.name}`);
 
             
-            if (completedCount === totalSources) {
-              this.showImportSummary(successCount, errorCount, errors);
-            }
-          }
-        });
-    });
-  }
+  //           if (completedCount === totalSources) {
+  //             this.showImportSummary(successCount, errorCount, errors);
+  //           }
+  //         },
+  //         error: (error) => {
+  //           errorCount++;
+  //           completedCount++;
+  //           const errorMsg = `${source.shortName}: ${error.message || 'Erreur inconnue'}`;
+  //           errors.push(errorMsg);
+  //           console.error(`❌ Erreur import ${source.shortName}:`, error);
+
+            
+  //           if (completedCount === totalSources) {
+  //             this.showImportSummary(successCount, errorCount, errors);
+  //           }
+  //         }
+  //       });
+  //   });
+  // }
 
   /**
    * Affiche un résumé de l'import
    */
-  private showImportSummary(successCount: number, errorCount: number, errors: string[]): void {
-    if (errorCount === 0) {
-      this.showNotification(
-        `✅ Import successful! ${successCount} source(s) created`,
-        'success'
-      );
-    } else {
-      const message = `⚠️ Partial Import:\n` +
-        `✅ ${successCount} succeeded\n` +
-        `❌ ${errorCount} failed\n\n` +
-        `Erreurs:\n${errors.join('\n')}`;
+  // private showImportSummary(successCount: number, errorCount: number, errors: string[]): void {
+  //   if (errorCount === 0) {
+  //     this.showNotification(
+  //       `✅ Import successful! ${successCount} source(s) created`,
+  //       'success'
+  //     );
+  //   } else {
+  //     const message = `⚠️ Partial Import:\n` +
+  //       `✅ ${successCount} succeeded\n` +
+  //       `❌ ${errorCount} failed\n\n` +
+  //       `Erreurs:\n${errors.join('\n')}`;
       
-      console.error('Import errors', errors);
-      this.showNotification(message, 'warning');
-    }
-  }
+  //     console.error('Import errors', errors);
+  //     this.showNotification(message, 'warning');
+  //   }
+  // }
 }

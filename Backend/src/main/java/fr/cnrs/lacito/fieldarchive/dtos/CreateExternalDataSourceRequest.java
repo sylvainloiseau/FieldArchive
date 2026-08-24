@@ -2,6 +2,7 @@ package fr.cnrs.lacito.fieldarchive.dtos;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
@@ -12,6 +13,5 @@ public class CreateExternalDataSourceRequest {
     private String description;
 
     // spécifique aux sources externes
-    private String sourceTool;      // ex: "Tropy", "Lameta"
     private String sourceLocation;  // chemin ou URL
 }

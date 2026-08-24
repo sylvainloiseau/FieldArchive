@@ -72,7 +72,7 @@ public class ProjectController {
 
         try (InputStream is = file.getInputStream()) {
             String baseURI = projectService.readCurrentProject().prefix;
-            ImportResult result = fileImportService.importTurtle(is, baseURI);
+            ImportResult result = fileImportService.importTurtle(is, baseURI, "");
             Map<String, Object> body = new HashMap<>();
             body.put("status", "ok");
             body.put("message", "Internal DataSource was successfully updated !");

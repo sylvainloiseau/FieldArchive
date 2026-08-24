@@ -295,7 +295,7 @@
                     [readonly]="isEditing"
                     class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
                     [class.border-red-300]="dataSourceForm.get('shortName')?.invalid && dataSourceForm.get('shortName')?.touched">
-                  <p class="mt-1 text-xs text-gray-500 font-mono">Graph: urn:datasource:{{dataSourceForm.get('shortName')?.value || 'your-name'}}</p>
+                  <p class="mt-1 text-xs text-gray-500 font-mono">Graph: urn:datasource:{{dataSourceForm.get('shortName')?.value || 'ds-name'}}</p>
                   <div *ngIf="dataSourceForm.get('shortName')?.invalid && dataSourceForm.get('shortName')?.touched" class="mt-1 text-xs text-red-600">
                     Only letters, numbers, hyphens and underscores are allowed
                   </div>
@@ -339,25 +339,34 @@
                     </div>
                   </div>
 
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Source Tool/System</label>
-                    <select formControlName="tool" class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-                      <option value="">None</option>
-                      <option value="Tropy">Tropy (Photo management)</option>
-                      <option value="Lameta">Lameta (Audio/video recordings)</option>
-                      <option value="Gramps">Gramps (Genealogy data)</option>
-                      <option value="Other">Other RDF source</option>
-                    </select>
-                  </div>
 
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">RDF File URL or Path</label>
-                    <input 
-                      type="text" 
-                      formControlName="url" 
-                      placeholder="file:///path/to/data.ttl or https://example.com/data.rdf"
-                      class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-                    <p class="mt-1 text-xs text-gray-500">Path to the RDF file to import</p>
+                  <div class="w-full">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">RDF File</label>
+                    <input
+                      #fileInput
+                      type="file"
+                      accept=".ttl,.turtle"
+                      class="hidden"
+                      (change)="onFileSelected($event)"
+                    />
+                    <div class="flex gap-1 items-center">
+                      <button
+                        (click)="onImportFile(); $event.stopPropagation()"
+                        class="cursor-pointer flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M12 12v-8m0 0l-3 3m3-3l3 3"/>
+                        </svg>
+                        Import
+                      </button>
+                      <input 
+                        type="text" 
+                        formControlName="url" 
+                        placeholder="file:///path/to/data.ttl or https://example.com/data.rdf"
+                        class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
+                      <p class="mt-1 text-xs text-gray-500">Path to the RDF file to import</p>
+                    </div>
+
                   </div>
                 </ng-container>
               </div>

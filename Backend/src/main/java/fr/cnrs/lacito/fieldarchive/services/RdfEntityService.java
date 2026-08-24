@@ -378,9 +378,10 @@ public class RdfEntityService {
             try (var st = conn.getStatements(subject, null, null)) {
                 exists = st.hasNext();
             }
-            if (!exists) throw new NotFoundException("Entité introuvable: " + subject.stringValue());
+            if (!exists) throw new NotFoundException("Entity not found: " + subject.stringValue());
 
             boolean internal = isInternalEntity(conn, subject);
+            IRI CTX_INTERNAL = internalCtx();
 
             RdfEntityDto dto = new RdfEntityDto();
             dto.entityKey = keyFromIri(subject);
@@ -392,15 +393,16 @@ public class RdfEntityService {
                 dto.types.add(t);
             }
 
-            IRI CTX_INTERNAL = internalCtx();
-
             Map<String, RdfPropertyDto> byPredicate = new LinkedHashMap<>();
+            // cache graph -> shortName resolution within this call, avoid re-querying per triple
+            Map<Resource, String> shortNameCache = new HashMap<>();
 
-            try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
+            try (var stmts = conn.getStatements(subject, null, null)) {
                 while (stmts.hasNext()) {
                     Statement st = stmts.next();
                     IRI pred = st.getPredicate();
                     Value obj = st.getObject();
+                    Resource ctx = st.getContext();
 
                     if (pred.equals(RDF.TYPE)) continue;
 
@@ -414,20 +416,28 @@ public class RdfEntityService {
 
                     RdfValueDto v = new RdfValueDto();
 
+                    // --- provenance for this specific triple ---
+                    boolean fromInternal = ctx != null && ctx.equals(CTX_INTERNAL);
+                    v.source = fromInternal ? "internal" : "external";
+
+                    if (fromInternal) {
+                        v.datasourceShortName = "internal"; // or projectName + "_internal", your convention
+                    } else if (ctx instanceof IRI) {
+                        v.datasourceShortName = shortNameCache.computeIfAbsent(
+                                ctx, c -> dsService.getShortNameByGraph((IRI) c));
+                    }
+                    // --- end provenance ---
+
                     if (obj.isIRI()) {
                         if (p.kind == null) p.kind = "iri";
                         v.value = obj.stringValue();
                         v.name = this.getNameOfEntityByIri((IRI) obj);
-
                     } else if (obj.isLiteral()) {
                         Literal lit = (Literal) obj;
                         if (p.kind == null) p.kind = "literal";
                         v.value = lit.getLabel();
-                        v.datatype = lit.getDatatype() != null
-                                ? lit.getDatatype().stringValue()
-                                : null;
+                        v.datatype = lit.getDatatype() != null ? lit.getDatatype().stringValue() : null;
                         v.lang = lit.getLanguage().orElse(null);
-
                     } else {
                         if (p.kind == null) p.kind = "other";
                         v.value = obj.stringValue();
@@ -438,7 +448,6 @@ public class RdfEntityService {
             }
 
             dto.properties.addAll(byPredicate.values());
-
             return dto;
         }
     }

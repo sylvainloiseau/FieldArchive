@@ -15,6 +15,7 @@ import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.nativerdf.NativeStore;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -42,7 +43,7 @@ public class ProjectService {
             .createIRI(RdfNamespaces.APP, "prefix");
 
     public ProjectService(BuiltinOntologyService builtinOntologyService,
-                          DataSourceService dsService,
+                          @Lazy DataSourceService dsService,
                           ProjectsDirectory projectsDirectory
     ) {
         this.builtinOntologyService = builtinOntologyService;
@@ -80,7 +81,6 @@ public class ProjectService {
         repo.init();
         ProjectContext.set(repo, name);
     }
-
 
     public ProjectDto createProject(String name, boolean persistent, String description, String prefix) {
 

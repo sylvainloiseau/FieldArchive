@@ -3,31 +3,35 @@ package fr.cnrs.lacito.fieldarchive.services;
 import fr.cnrs.lacito.fieldarchive.core.ProjectContext;
 import fr.cnrs.lacito.fieldarchive.core.RdfContexts;
 import fr.cnrs.lacito.fieldarchive.core.RdfNamespaces;
-import fr.cnrs.lacito.fieldarchive.dtos.CreateInternalDataSourceRequest;
-import fr.cnrs.lacito.fieldarchive.dtos.CreateExternalDataSourceRequest;
-import fr.cnrs.lacito.fieldarchive.dtos.DataSourceDto;
-import fr.cnrs.lacito.fieldarchive.dtos.UpdateDataSourceRequest;
+import fr.cnrs.lacito.fieldarchive.dtos.*;
 import fr.cnrs.lacito.fieldarchive.exception.BadRequestException;
 import fr.cnrs.lacito.fieldarchive.exception.NotFoundException;
+import fr.cnrs.lacito.fieldarchive.exceptions.ImportException;
 import org.eclipse.rdf4j.model.*;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 import java.time.OffsetDateTime;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 
 @Service
@@ -83,6 +87,13 @@ public class DataSourceService {
         return vf.createIRI(RdfNamespaces.APP, "sourceLocation");
     }
 
+    private FileImportService fileImportService;
+    private ProjectService projectService;
+
+    public DataSourceService(@Lazy FileImportService fileImportService, ProjectService projectService){
+        this.fileImportService = fileImportService;
+        this.projectService = projectService;
+    }
 
     private void requireProjectOpen() {
         if (!ProjectContext.isOpen()) {
@@ -354,7 +365,7 @@ public class DataSourceService {
         return vf.createIRI(RdfNamespaces.APP, "ExternalDataSource");
     }
 
-    public void createExternalDataSource(CreateExternalDataSourceRequest req) {
+    public void createExternalDataSource(CreateExternalDataSourceRequest req, MultipartFile file) {
 
         requireProjectOpen();
         validateShortName(req.getShortName());
@@ -363,57 +374,72 @@ public class DataSourceService {
         IRI ds = dsIri(req.getShortName());
         IRI ctxGraph = graphCtx(req.getShortName());
 
-        try (RepositoryConnection conn =
-                     ProjectContext.getRepository().getConnection()) {
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
 
             if (conn.hasStatement(ds, RDF.TYPE, null, false, ctxMeta)) {
-                throw new BadRequestException(
-                        "DataSource déjà existante : " + req.getShortName()
-                );
+                throw new BadRequestException("DataSource already exists : " + req.getShortName());
             }
 
             conn.begin();
 
-            // type RDF
             conn.add(ds, RDF.TYPE, typeExternalDataSource(), ctxMeta);
-
-            // métadonnées communes
-            conn.add(ds, pShortName(),
-                    vf.createLiteral(req.getShortName()), ctxMeta);
+            conn.add(ds, pShortName(), vf.createLiteral(req.getShortName()), ctxMeta);
 
             if (req.getName() != null && !req.getName().isBlank()) {
-                conn.add(ds, RDFS.LABEL,
-                        vf.createLiteral(req.getName()), ctxMeta);
+                conn.add(ds, RDFS.LABEL, vf.createLiteral(req.getName()), ctxMeta);
             }
-
             if (req.getDescription() != null && !req.getDescription().isBlank()) {
-                conn.add(ds, DCTERMS.DESCRIPTION,
-                        vf.createLiteral(req.getDescription()), ctxMeta);
+                conn.add(ds, DCTERMS.DESCRIPTION, vf.createLiteral(req.getDescription()), ctxMeta);
             }
 
-            // spécifique externe
-            conn.add(ds, pSourceType(),
-                    vf.createLiteral("external"), ctxMeta);
+            conn.add(ds, pSourceType(), vf.createLiteral("external"), ctxMeta);
+            conn.add(ds, pEditable(), vf.createLiteral(false), ctxMeta);
 
-            conn.add(ds, pEditable(),
-                    vf.createLiteral(false), ctxMeta);
+//            // persist the source location — currently never written!
+//            if (req.getUrl() != null && !req.getUrl().isBlank()) {
+//                conn.add(ds, pSourceLocation(), vf.createLiteral(req.getUrl()), ctxMeta);
+//            }
 
             String now = OffsetDateTime.now().toString();
             conn.add(ds, DCTERMS.CREATED, vf.createLiteral(now), ctxMeta);
             conn.add(ds, pLastSync(), vf.createLiteral(now), ctxMeta);
-
-            conn.add(ds, pSourceTool(),
-                    vf.createLiteral(req.getSourceTool()), ctxMeta);
-
-            conn.add(ds, pSourceLocation(),
-                    vf.createLiteral(req.getSourceLocation()), ctxMeta);
-
-            // lien vers le graphe
             conn.add(ds, pGraph(), ctxGraph, ctxMeta);
 
-            conn.commit();
+            conn.commit(); // commit metadata BEFORE importing, so getGraphIri (or the overload below) works
+        }
+
+        // import happens in its own step, using the graph IRI we already know — no re-lookup needed
+        if (file != null && !file.isEmpty()) {
+            try (InputStream is = file.getInputStream()) {
+                String baseURI = projectService.readCurrentProject().prefix;
+                fileImportService.importTurtle(is, baseURI, ctxGraph);
+            } catch (ImportException e) {
+                throw new ImportException("Import failed: " + e.getMessage());
+            } catch (IOException e) {
+                throw new ImportException("Import failed: " + e.getMessage());
+            }
         }
     }
+
+
+    public String getShortNameByGraph(IRI graphIri) {
+        requireProjectOpen();
+        if (graphIri == null) return null;
+
+        IRI ctxMeta = metaCtx();
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+            try (var stmts = conn.getStatements(null, pGraph(), graphIri, ctxMeta)) {
+                if (stmts.hasNext()) {
+                    Resource ds = stmts.next().getSubject();
+                    if (ds instanceof IRI) {
+                        return getLiteral(conn, (IRI) ds, pShortName(), ctxMeta);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 
     public void synchronizeExternalDataSource(String shortName) {
 
