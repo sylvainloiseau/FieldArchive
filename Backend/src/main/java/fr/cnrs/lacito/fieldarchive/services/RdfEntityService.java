@@ -479,12 +479,6 @@ public class RdfEntityService {
                 throw new NotFoundException("Entity not found : " + entityIri);
             }
 
-            if (!isInternalEntity(conn, subject)) {
-                throw new BadRequestException(
-                        "Modification is not allowed : Entity belongs to an external dataSource."
-                );
-            }
-
             conn.begin();
 
             IRI CTX_INTERNAL = internalCtx();
