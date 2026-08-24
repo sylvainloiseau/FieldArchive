@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, map, tap, switchMap } from 'rxjs/operators';
-import { DataSource, CreateDataSourceRequest } from '../models/data-source.model';
+import { DataSource, CreateInternalDataSourceRequest, CreateExternalDataSourceRequest } from '../models/data-source.model';
 
 @Injectable({
   providedIn: 'root'
@@ -38,7 +38,7 @@ export class DataSourceHttpService {
   /**
    * POST /datasources/internal - Crée une source interne
    */
-  createInternalSource(data: CreateDataSourceRequest): Observable<DataSource> {
+  createInternalSource(data: CreateInternalDataSourceRequest): Observable<DataSource> {
     console.log('📡 POST /datasources/internal', data);
     
     const payload = {
@@ -59,21 +59,52 @@ export class DataSourceHttpService {
     );
   }
 
+
+  // createExternalSource(data: CreateExternalDataSourceRequest): Observable<DataSource> {
+  //   console.log('📡 POST /datasources/external', data);
+
+  //   const payload = {
+  //     shortName: data.shortName,
+  //     name: data.name,
+  //     description: data.description || '',
+  //     sourceTool: data.tool || '',
+  //     sourceLocation: data.url || ''
+  //   };
+
+  //   return this.http.post<any>(`${this.apiUrl}/external`, payload).pipe(
+  //     map(source => this.mapSingleBackendToFrontend(source)),
+  //     tap(created => {
+  //       console.log('✅ External source created:', created);
+  //       this.refreshDataSources();
+  //     }),
+  //     catchError(this.handleError)
+  //   );
+  // }
+
   /**
-   * POST /datasources/external - Crée une source externe
-   */
-  createExternalSource(data: CreateDataSourceRequest): Observable<DataSource> {
+  * POST /datasources/external - Crée une source externe avec son fichier
+  */
+  createExternalSource(data: CreateExternalDataSourceRequest): Observable<DataSource> {
     console.log('📡 POST /datasources/external', data);
 
-    const payload = {
-      shortName: data.shortName,
-      name: data.name,
-      description: data.description || '',
-      sourceTool: data.tool || '',
-      sourceLocation: data.url || ''
-    };
+    const formData = new FormData();
 
-    return this.http.post<any>(`${this.apiUrl}/external`, payload).pipe(
+    // Datasource metadata
+    formData.append(
+      'dataSource',
+      new Blob(
+        [JSON.stringify(data.dataSource)],
+        { type: 'application/json' }
+      )
+    );
+
+    // File to import
+    formData.append('file', data.file, data.file.name);
+
+    return this.http.post<any>(
+      `${this.apiUrl}/external`,
+      formData
+    ).pipe(
       map(source => this.mapSingleBackendToFrontend(source)),
       tap(created => {
         console.log('✅ External source created:', created);

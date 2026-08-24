@@ -16,7 +16,7 @@ export interface DataSource {
   recordCount?: number; // NEW: Number of records in this source
 }
 
-export interface CreateDataSourceRequest {
+export interface CreateInternalDataSourceRequest {
   shortName: string;
   name: string;
   description: string;
@@ -40,4 +40,9 @@ export interface DataSourceStats {
   eventCount: number;
   personCount: number;
   lastModified: Date;
+}
+
+export interface CreateExternalDataSourceRequest {
+  dataSource: CreateInternalDataSourceRequest;
+  file: File;
 }
