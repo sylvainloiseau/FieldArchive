@@ -67,7 +67,7 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
 
   //props pour les stats
   showExportMenu = false;
-  selectedFile: File | null = null;
+  selectedFile: File | null | any = null;
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
@@ -105,6 +105,9 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     this.selectedFile = file;
     this.isFileLoading = true;
 
+    this.dataSourceForm.patchValue({
+      url: this.selectedFile.path
+    });
     console.log('Selected file:', this.selectedFile);
   }
  

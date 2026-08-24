@@ -140,7 +140,7 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   addNewDataType(property: any) {
-    property.values.push({kind : 'literal', lang : null, value : '', datatype : "http://www.w3.org/2001/XMLSchema#string"});
+    property.values.push({kind : 'literal', lang : null, value : '', source : 'internal', editing: true, datatype : "http://www.w3.org/2001/XMLSchema#string"});
     console.log("Add new data type : ", property);
   }
 
@@ -601,7 +601,7 @@ export class EntityDetailsComponent implements OnInit {
         predicate: p.predicate,
         kind: p.kind,
         values: (p.values || [])
-          .filter((v: any) => v && v.value != null)
+          .filter((v: any) => v && v.value != null && v.source != 'external')
           .map((v: any) => ({
             value: v.value,
             datatype: v.datatype ?? null,
