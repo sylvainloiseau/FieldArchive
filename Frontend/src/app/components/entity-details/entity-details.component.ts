@@ -263,25 +263,25 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   // Chips 
-
-  buildTypesChips(entityTypes : string[], ontologies : any[]) : void {
+  buildTypesChips(entityTypes: any[], ontologies: any[]): void {
 
     this.allEntityTypesChips = []; // Clear existing chips
 
     for (let type of entityTypes) {
+      const typeIri = type.iri; // was: type (plain string) before
+
       for (const [key, value] of Object.entries(ontologies)) {
-        if (type.startsWith(key)) {
+        if (typeIri.startsWith(key)) {
           this.allEntityTypesChips.push(
             {
-              "label" : value.name+":"+this.extractPropertyNameFromIRI(type),
-              "iri" : type
+              "label": value.name + ":" + this.extractPropertyNameFromIRI(typeIri),
+              "iri": typeIri,
+              "source": type.source                  
             }
-
           );
         }
       }
     }
-
   }
 
   removeChip(typeUrl: string) {
@@ -610,7 +610,9 @@ export class EntityDetailsComponent implements OnInit {
       }))
 
     const payload = {
-      types: this.allEntityTypesChips.map(type => type.iri),
+      types: this.allEntityTypesChips
+        .filter(type => type.source === 'internal')
+        .map(type => type.iri),
       properties
     };
 
@@ -674,7 +676,7 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   addAssociation(): void {
-    const typeSet = new Set(this.selectedEntity.types);
+    const typeSet = new Set(this.selectedEntity.types.map((t : any) => t.iri));    
     const usedPredicates = this.getUsedPredicateUris(this.selectedOntologyTab.value);
 
     const matches = this.selectedOntologyTab.value.properties.value.filter(
@@ -698,7 +700,11 @@ export class EntityDetailsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((selectedPredicate: any) => {
       if (selectedPredicate && selectedPredicate.uri) {
-        this.addPropertyPlaceholder(selectedPredicate);
+        this.addPropertyPlaceholder({
+          ...selectedPredicate,
+          source: 'internal',
+          datasourceShortName: 'internal'
+        });
       }
     });
   }
@@ -719,17 +725,37 @@ export class EntityDetailsComponent implements OnInit {
 
     if (existing) {
       if (!existing.values || existing.values.length === 0) {
-        existing.values = [{ value: null, datatype: predicateDef.datatypeUri ?? null, lang: null, name : '' }];
-      }
-      // if it already has values, leave it — just surface it (no-op here since it's already displayed)
-      else {
-        existing.values.push({ value: null, datatype: predicateDef.datatypeUri ?? null, lang: null, name : '' });
+        existing.values = [{
+          value: null,
+          datatype: predicateDef.datatypeUri ?? null,
+          lang: null,
+          name: '',
+          source: 'internal',
+          datasourceShortName: 'internal'
+        }];
+      } else {
+        existing.values.push({
+          value: null,
+          datatype: predicateDef.datatypeUri ?? null,
+          lang: null,
+          name: '',
+          source: 'internal',
+          datasourceShortName: 'internal'
+        });
       }
     } else {
       this.selectedEntity.properties.push({
         predicate: predicateUri,
         kind,
-        values: [{ value: null, datatype: predicateDef.datatypeUri ?? null, lang: null, name : '' }]
+        values: [{
+          value: null,
+          datatype: predicateDef.datatypeUri ?? null,
+          lang: null,
+          name: '',
+          source: 'internal',
+          editing : true,
+          datasourceShortName: 'internal'
+        }]
       });
     }
 

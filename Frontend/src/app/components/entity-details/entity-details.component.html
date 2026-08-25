@@ -38,7 +38,7 @@
         style="--mdc-chip-elevated-container-color: transparent; --mdc-chip-label-text-color: #1e40af;"
       >
         {{ type.label }}
-        <button (click)="removeChip(type.iri)" matChipRemove [attr.aria-label]="'remove '" class="text-blue-500! hover:text-blue-700! transition-colors">
+        <button *ngIf="type.source === 'internal'" (click)="removeChip(type.iri)" matChipRemove [attr.aria-label]="'remove '" class="text-blue-500! hover:text-blue-700! transition-colors">
           <mat-icon>cancel</mat-icon>
         </button>
       </mat-chip-row>

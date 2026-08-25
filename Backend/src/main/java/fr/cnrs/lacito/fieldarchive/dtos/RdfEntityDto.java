@@ -8,7 +8,7 @@ public class RdfEntityDto {
     public String iri;        // IRI
 
     //public String id;                 // IRI complet
-    public List<String> types = new ArrayList<>();  // ex: ["ric:Person"]
+    public List<RdfTypeDto> types = new ArrayList<>();  // ex: ["ric:Person"]
     public String source;             // "internal" | "external"
     public boolean editable;          // true si interne
     public List<RdfPropertyDto> properties = new ArrayList<>();

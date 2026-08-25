@@ -26,8 +26,14 @@ public class RdfEntityController {
     // Liste des entités par type (vue tableau)
     // =========================
     @GetMapping("/entities")
-    public List<RdfEntitySummaryDto> listEntities(@RequestParam("type") String type) {
-        return service.listByType(type);
+    public List<RdfEntitySummaryDto> listEntities(
+            @RequestParam(value = "type", required = false) String type) {
+
+        if (type != null) {
+            return service.listByType(type);
+        }
+
+        return service.listWithoutType();
     }
 
     // =========================
