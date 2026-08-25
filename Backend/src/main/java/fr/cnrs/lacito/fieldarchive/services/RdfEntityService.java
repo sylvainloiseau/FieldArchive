@@ -12,6 +12,10 @@ import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.model.vocabulary.XSD;
+import org.eclipse.rdf4j.query.BindingSet;
+import org.eclipse.rdf4j.query.QueryLanguage;
+import org.eclipse.rdf4j.query.TupleQuery;
+import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.springframework.stereotype.Service;
 
@@ -278,7 +282,7 @@ public class RdfEntityService {
 
         conn.add(subject, pred, lit, ctx);
     }
-    //  READ LIST (vue tableau)
+
     public List<RdfEntitySummaryDto> listByType(String typeCurieOrIri) {
 
         requireProjectOpen();
@@ -316,6 +320,50 @@ public class RdfEntityService {
         }
 
         // Tri simple par label
+        out.sort(Comparator.comparing(a -> a.label == null ? "" : a.label));
+        return out;
+    }
+
+    public List<RdfEntitySummaryDto> listWithoutType() {
+
+        requireProjectOpen();
+
+        String sparql = """
+        SELECT DISTINCT ?s WHERE {
+            ?s ?p ?o .
+            FILTER(isIRI(?s))
+            FILTER NOT EXISTS { ?s a ?anyType }
+        }
+        """;
+
+        List<RdfEntitySummaryDto> out = new ArrayList<>();
+
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+
+            TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
+
+            try (TupleQueryResult result = query.evaluate()) {
+                while (result.hasNext()) {
+                    BindingSet bs = result.next();
+                    Value v = bs.getValue("s");
+                    if (!(v instanceof IRI subject)) continue;
+
+                    boolean internal = isInternalEntity(conn, subject);
+
+                    RdfEntitySummaryDto dto = new RdfEntitySummaryDto();
+                    dto.entityKey = keyFromIri(subject);
+                    dto.iri = subject.stringValue();
+                    dto.source = internal ? "internal" : "external";
+                    dto.editable = internal;
+                    dto.label = bestLabel(conn, subject);
+                    dto.creationDate = getCreationDate(conn, subject);
+                    dto.modificationDate = getModificationDate(conn, subject);
+
+                    out.add(dto);
+                }
+            }
+        }
+
         out.sort(Comparator.comparing(a -> a.label == null ? "" : a.label));
         return out;
     }
@@ -389,13 +437,11 @@ public class RdfEntityService {
             dto.source = internal ? "internal" : "external";
             dto.editable = internal;
 
-            for (String t : readTypes(conn, subject)) {
-                dto.types.add(t);
-            }
-
             Map<String, RdfPropertyDto> byPredicate = new LinkedHashMap<>();
             // cache graph -> shortName resolution within this call, avoid re-querying per triple
             Map<Resource, String> shortNameCache = new HashMap<>();
+            // de-dupe (type, source) pairs in case the same type is asserted in multiple graphs
+            Map<String, RdfTypeDto> typesByKey = new LinkedHashMap<>();
 
             try (var stmts = conn.getStatements(subject, null, null)) {
                 while (stmts.hasNext()) {
@@ -404,7 +450,31 @@ public class RdfEntityService {
                     Value obj = st.getObject();
                     Resource ctx = st.getContext();
 
-                    if (pred.equals(RDF.TYPE)) continue;
+                    boolean fromInternal = ctx != null && ctx.equals(CTX_INTERNAL);
+                    String source = fromInternal ? "internal" : "external";
+                    String shortName = fromInternal
+                            ? "internal"
+                            : (ctx instanceof IRI ? shortNameCache.computeIfAbsent(
+                            ctx, c -> dsService.getShortNameByGraph((IRI) c))
+                            : null);
+
+                    if (pred.equals(RDF.TYPE)) {
+                        if (!obj.isIRI()) continue; // ignore malformed type triples
+
+                        String typeIri = obj.stringValue();
+                        // key by type+source so the same type from two different graphs
+                        // of the same "kind" collapses, but internal vs external stays distinct
+                        String key = typeIri + "|" + source;
+
+                        typesByKey.computeIfAbsent(key, k -> {
+                            RdfTypeDto t = new RdfTypeDto();
+                            t.iri = typeIri;
+                            t.source = source;
+                            t.datasourceShortName = shortName;
+                            return t;
+                        });
+                        continue;
+                    }
 
                     String predKey = pred.stringValue();
                     RdfPropertyDto p = byPredicate.computeIfAbsent(predKey, k -> {
@@ -415,18 +485,8 @@ public class RdfEntityService {
                     });
 
                     RdfValueDto v = new RdfValueDto();
-
-                    // --- provenance for this specific triple ---
-                    boolean fromInternal = ctx != null && ctx.equals(CTX_INTERNAL);
-                    v.source = fromInternal ? "internal" : "external";
-
-                    if (fromInternal) {
-                        v.datasourceShortName = "internal"; // or projectName + "_internal", your convention
-                    } else if (ctx instanceof IRI) {
-                        v.datasourceShortName = shortNameCache.computeIfAbsent(
-                                ctx, c -> dsService.getShortNameByGraph((IRI) c));
-                    }
-                    // --- end provenance ---
+                    v.source = source;
+                    v.datasourceShortName = shortName;
 
                     if (obj.isIRI()) {
                         if (p.kind == null) p.kind = "iri";
@@ -447,11 +507,11 @@ public class RdfEntityService {
                 }
             }
 
+            dto.types.addAll(typesByKey.values());
             dto.properties.addAll(byPredicate.values());
             return dto;
         }
-    }
-    //  UPDATE
+    }    //  UPDATE
     // =========================
     // =========================
     //  UPDATE (Only internal)

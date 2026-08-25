@@ -105,12 +105,16 @@ export class GestionRessourcesService {
   }
 
   /**
-   * Récupère les entités par type
-   */
-  getAllEntitiesByType(typeUrl: string): Observable<any> {
-    const params = new HttpParams().set('type', typeUrl);
-    return this.http.get<any>(`${this.rdfUrl}/entities`, { params });
+  * Récupère les entités par type / sans type
+  */
+  getAllEntitiesByType(typeUrl: string | ''): Observable<any> {
+    if (typeUrl !== '') {
+      const params = new HttpParams().set('type', typeUrl);
+      return this.http.get<any>(`${this.rdfUrl}/entities`, { params });
+    }
+    else return this.http.get<any>(`${this.rdfUrl}/entities`);
   }
+
 
   /**
    * Détails d'une entité

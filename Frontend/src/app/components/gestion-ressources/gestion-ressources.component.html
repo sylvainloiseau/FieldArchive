@@ -203,11 +203,32 @@
                 }
               </cdk-accordion-item>
               }
+              
             </cdk-accordion>
+            
 
+          </mat-expansion-panel>
+          
+          <mat-expansion-panel
+            class="border-none! shadow-none! rounded-lg! overflow-hidden"
+            [hideToggle]="true"
+          >
+            <mat-expansion-panel-header
+              class="px-3! py-2! hover:bg-gray-50! transition-colors duration-150 rounded-lg"
+              (click)="getAllEntitiesWithoutType()"
+            >
+              <mat-panel-title class="w-full! text-sm font-medium text-gray-700">
+                Not typed
+              </mat-panel-title>
+
+              <mat-panel-description class="justify-end">
+                <span class="text-xs text-gray-400">3</span>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
           </mat-expansion-panel>
 
         </mat-accordion>
+
 
         <!-- Enhanced empty state with better visual feedback -->
         <div *ngIf="ontologyLabels.length === 0" class="text-center py-12 px-4">

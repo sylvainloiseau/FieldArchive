@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter, Optional, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValue } from '@angular/common';
 import { Entity } from '../../models/ressource';
 
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
@@ -228,6 +228,18 @@ export class CreateEntityComponent implements OnInit {
     this.customFieldsArray.push(fieldGroup);
   }
 
+  ontologyOrderComparator = (
+      a: KeyValue<string, any>,
+      b: KeyValue<string, any>
+    ): number => {
+      const priorityKey = 'https://www.ica.org/standards/RiC/ontology';
+  
+      if (a.key === priorityKey) return -1;
+      if (b.key === priorityKey) return 1;
+  
+      return a.value.name.localeCompare(b.value.name);
+  };
+
   removeCustomField(index: number) {
     this.customFieldsArray.removeAt(index);
   }
@@ -240,12 +252,21 @@ export class CreateEntityComponent implements OnInit {
 
   saveNewEntity() {
 
-    let types: string[]
-    if(this.data.fullType) {
-      types = [this.data.fullType];
-    }
-    else {
-      types = this.listSelectedTypes.map(t => t.iri);
+    let types: any[]
+    if (this.data.fullType) {
+      types = [
+        {
+          iri: this.data.fullType,
+          source: 'internal',
+          datasourceShortName: 'internal'
+        }
+      ];
+    } else {
+      types = this.listSelectedTypes.map(t => ({
+        iri: t.iri,
+        source: 'internal',
+        datasourceShortName: 'internal'
+      }));
     }
 
     if (!this.selectedOntology) {
@@ -277,36 +298,40 @@ export class CreateEntityComponent implements OnInit {
 
     console.log('Final payload:', payload);
 
-    this.ontologyService.createEntity(payload).subscribe({
-      next: (res) => {
-        console.log('✅ Entity created:', res);
 
-        this.snackBar.open(
-          "✅ Entity created: was successfully created.",
-          'Close',
-          {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['snackbar-success']
-          }
-        );
-        this.closed.emit(true);
-        this.entityForm.reset();
-      },
-      error: (err) => {
-        this.snackBar.open(
-          "❌ Error creating entity.",
-          'Close',
-          {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'top',
-            panelClass: ['snackbar-error']
-          }
-        );      
-      }
-    });
+    if (this.data.fullType) {
+      this.ontologyService.createEntity(payload).subscribe({
+        next: (res) => {
+          console.log('✅ Entity created:', res);
+
+          this.snackBar.open(
+            "✅ Entity created: was successfully created.",
+            'Close',
+            {
+              duration: 5000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+              panelClass: ['snackbar-success']
+            }
+          );
+
+        },
+        error: (err) => {
+          this.snackBar.open(
+            "❌ Error creating entity.",
+            'Close',
+            {
+              duration: 5000,
+              horizontalPosition: 'center',
+              verticalPosition: 'top',
+              panelClass: ['snackbar-error']
+            }
+          );      
+        }
+      });
+    }
+    this.closed.emit(true);
+    this.entityForm.reset();
 
   }
 

@@ -31,7 +31,7 @@
                 <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
 
                     <mat-button-toggle
-                    *ngFor="let ontology of dialogData.ontologiesData | keyvalue" 
+                    *ngFor="let ontology of dialogData.ontologiesData | keyvalue:ontologyOrderComparator" 
                     (click)="setSelectedOntology(ontology.value)"
                     [value]="ontology.key" 
                     >

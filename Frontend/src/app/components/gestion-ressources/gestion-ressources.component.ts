@@ -7,7 +7,6 @@ import {MatExpansionModule} from '@angular/material/expansion';
 import {MatDividerModule} from '@angular/material/divider';
 import {MatListModule} from '@angular/material/list';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
-import { CreateRessourceComponent } from '../create-ressource/create-ressource.component';
 import {Entity, EntityType } from '../../models/ressource';
 
 import { EntityDetailsComponent } from '../entity-details/entity-details.component';
@@ -203,9 +202,22 @@ export class GestionRessourcesComponent implements OnInit {
     }
   }
 
+  getAllEntitiesWithoutType() {
+    this.ontologyService.getAllEntitiesByType('').subscribe({
+      next: (data : any) => {
+        console.log("Entities without a type ", " : ", data);  
+        this.formattedEntities = data;
+        this.cdr.markForCheck();
+      },
+      error: (err : any) => {
+        console.error(err);
+      }
+    });
+  }
+
   getAllEntitiesByPath(ontology_name : string ,entity_type: string) : void {
     this.selectedType = entity_type;
-    console.log("ENTITTTTTY :", entity_type);
+    console.log("Searching for Entity Type :", entity_type);
     this.selectedOntology = ontology_name;
     const typeUrl = this.ontologyService.getTypeUrlByName(ontology_name ?? '');
     //if (typeUrl) {
