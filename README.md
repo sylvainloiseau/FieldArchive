@@ -1,89 +1,108 @@
-# Projet RDF — Application de Gestion de Métadonnées RDF
+# FieldArchive — An application for the description of linguistic fieldwork data
 
-Ce projet est une application de gestion de métadonnées au format RDF développée dans le cadre d'un projet académique. Elle permet de gérer des archives numériques, d'importer des données depuis des outils externes comme Tropy ou Lameta, et d'interroger les données via des requêtes SPARQL. L'application est construite avec une architecture client-serveur moderne et peut être utilisée aussi bien dans un navigateur qu'en tant qu'application desktop native grâce à Electron.
+Linguistic fieldwork data are made of a variety of objects: texts, maps, recordings, stimulus set, still images, references to people, places, events, specimen of various types. This data is a dense web of relations: between people and texts, recordings or photo; betwen people, place and event, etc. Linguists have little solution for the description of this data, that would make them more searchable / discoverable on one hand, and more archivable for futur use of the documentation.
 
-## Table des matières
+This application try to address these needs. It has with the following features:
 
-- [Architecture](#architecture)
-- [Technologies utilisées](#technologies-utilisées)
-- [Prérequis](#prérequis)
-- [Installation et lancement](#installation-et-lancement)
-- [Structure du projet](#structure-du-projet)
-- [Fonctionnalités](#fonctionnalités)
-- [Lancement avec Electron](#lancement-avec-electron)
-- [API REST](#api-rest)
+- Many usefull applications exist for the annotation of specific type of data. They can obviously not be replaced. The FieldArchive app offers to define "External sources" for data imported from such apps and to aggregate data from various such sources, together with data created directly in the app. Data coming from external sources cannot be modified or deleted in the application ; instead, they can be edited in the source application and imported again (unless one decide to import them definitely).
+- Linguistic field archive offer an algorithm for data deduplication (or record linkage): identical entities can be refered to using different IDs in different data sources. The algorithm identifies IDs likely to refer to the same real-world entity, and offers to the user the choice to confirm or infirm such linkage. Once linked, the application will smoothly aggregate data from different sources.
+- Linguistic field archive use RDF as the data model for the representation of data. RFD allows to link data easily and to use various ontologies according to the need of the user.
+- Linguistic field archive use the RICO [Records in context](https://www.ica.org/standards/RiC/RiC-O_1-1.html) has the base ontology to represent data. RICO is defined for archivistic use and helps to describe the data in an archivist-sensible way. However, the user can refers to any new ontology to describe the data, such as PNV [Person Name Vocabulary](https://www.lodewijkpetram.nl/vocab/pnv/doc/) for complexe naming system, [Bio](https://vocab.org/bio/) for biographical data, etc.
 
----
+## Installation
 
-## Architecture
+Download the latest release from the [GitHub releases page](https://github.com/sylvainloiseau/fieldArchive).
 
-L'application suit une architecture trois couches :
+## User manual
 
-- **Frontend** : application Angular qui s'exécute dans le navigateur ou dans Electron
-- **Backend** : API REST Spring Boot qui expose les données et gère la logique métier
-- **Stockage** : triplestore RDF4J NativeStore qui persiste les données RDF sur disque
+### Configuration and data directory
 
-La communication entre le frontend et le backend se fait via HTTP REST sur le port 8080. Le frontend tourne sur le port 4200 en développement.
+An application configuration directory is created at `~/$APP_CONFIG_DIR/fieldArchive`, where $APP_CONFIG_DIR is the directory for application configuration files in your system (typically `~/.config/` on Unix-like systems, `~/Library/Application\ Support/` on mac).
 
----
+### Project management page
 
-## Technologies utilisées
+The home page provides access to the project management page, where you can create, list and open projects. Only one project can be active at a time. Each project has its own isolated RDF4J triplestore.
 
-| Couche | Technologie |
-|--------|-------------|
-| Frontend | Angular 19, Angular Material, Tailwind CSS |
-| Backend | Spring Boot 4, Java 17, Maven |
-| Stockage RDF | RDF4J 5.2 NativeStore |
-| Desktop | Electron 29 |
-| Format de données | RDF, Turtle (.ttl), SPARQL |
+You can export a project to an archive in order to backup, share it with others, or re-install it on a different machine.
 
----
+### Data sources management
 
-## Prérequis
+A key feature of FieldArchive is the management of data sources. Two different types of sources are supported:
 
-Avant de lancer le projet, il faut avoir installé sur sa machine :
+- **Internal data source** : RDF triples that are entered directly into the application and can be modified
+- **External data source** : RDF triples that are imported from a file produced by a third-party tool (Tropy, Lameta, Gramps). These sources are read-only in the application and can be re-imported at any time
 
-- Java 17 ou supérieur
-- Node.js 18 ou supérieur et npm
+A data source corresponds to a named graph in the RDF4J triplestore.
+
+On the data source management page, you can create new External data sources, give it a name and give a location for the file to be imported. After modification in the corresponding app, export of the data from the app in a RDF file, you can re-import it into FieldArchive. Previous data from that External data source will be replaced by the new ones.
+
+In the application, all triples coming from the various sources are shown together. For instance, all triples describing the same entity are shown on the entity edition page. However, the origin (the data source) of each triple is indicated.
+
+### Resources page
+
+The resource page allows you to visualize, filter, edit and navigate through the RDF entities of the active project.
+
+Entities can have one or more RDF types: `rico:Person`, `rico:Event` (in the RICO ontology), `foaf:Person` (in the FOAF ontology), etc. The **Type navigator**, on the left, allows you to see the types grouped by ontology. When you click on a type, you can see the entities that have that type in the table on the right.
+
+For each ontology, the Type navigator shows first the main type for that ontology -- the list of main type is configurable. It then show all the types actually used in the project. Finally it lists "taxonomic" types, i.e. types that are intended for creating taxonomies (e.g. the rico:EventType is for creating entities describing event type (DataSession, Spontaenous conversation...) that you will reuse for the description of an actual Event.).
+
+When you click on an entity in the table on the right, you can open the **Edit entity page**. This page allows you to see and edit the entity's RDF types, as well as its properties.
+
+The first line in the form show the entity type. You can declare one type for each of the declared ontologies. Below there is one tab by declared ontology, showing the entity's properties in that ontology and allowing you to create/edit them.
+
+You can create new property in a tab-ontology only if the the entity has a type declared for that ontology.
+
+In RDF, each property has a given type of object (= value), declared in the corresponding ontology. For example, the property `rico:date` is defined as receiving a string in the RICO ontology. The property `rico:hasOrHadDescendant` is defined as receiving the IRI (= the ID) of a `RICO:Person`. The application takes care of this: when you create a property defined with a string as object, a text field is offered. When you create a property defined with a `rico:Person` as object, a dropdown list is offered with the existing `rico:Person` entities in your project -- or a button "Create" for creating a new `rico:Person` entity on the fly.
+
+Moreover, properties can have multiple values (if the ontology does not restrict the cardinality explicitly). Several values can the be associated with a property in the application.
+
+### SPARQL page
+
+The backend expose an endpoint SPARQL which allows to query and modify the data in the triplestore via SELECT and UPDATE queries. The Frontend allows you to enter any SPARQL query and see the results.
+
+## Running the application from sources
+
+### Requirements
+
+Running the project from sources requires:
+
+- Java 17 or later
+- Node.js 18 or later and npm
 - Angular CLI : `npm install -g @angular/cli`
-- Maven 3.8 ou supérieur (ou utiliser le wrapper `mvnw` inclus dans le projet)
+- Maven 3.8 or later
 
----
-
-## Installation et lancement
-
-### 1. Cloner le projet
+### Clone the projet
 
 ```bash
-git clone https://github.com/votre-utilisateur/Projet-RDF.git
-cd Projet-RDF
+git clone https://github.com/sylvainloiseau/fieldArchive
+cd fieldArchive
 ```
 
-### 2. Lancer le backend Spring Boot
+### Run the Spring Boot backend
 
-Ouvrir un terminal dans le dossier `RDF_Back` :
+Open a terminal in the `Backend` directory:
 
 ```bash
-cd RDF_Back
-./mvnw spring-boot:run
+cd Backend
+mvn spring-boot:run
 ```
 
-Sur Windows :
+Windows :
 
 ```bash
 cd RDF_Back
 mvnw.cmd spring-boot:run
 ```
 
-Le backend démarre sur `http://localhost:8080`. Attendre le message :
+The Backend start on `http://localhost:8080`. Wait for the message:
 
 ```
 Started RdfBackApplication in X seconds
 ```
 
-### 3. Lancer le frontend Angular
+### Run the Angular frontend in a browser
 
-Ouvrir un second terminal dans le dossier `Frontend` :
+Open a terminal in the `Frontend` directory:
 
 ```bash
 cd Frontend
@@ -91,128 +110,131 @@ npm install
 ng serve
 ```
 
-L'application est accessible sur `http://localhost:4200`.
+The application is accessible on your browser at `http://localhost:4200`.
 
----
+### Launch the Electron desktop app
 
-## Structure du projet
+#### 
 
-```
-Projet-RDF/
-├── Frontend/                        # Application Angular
-│   └── src/app/
-│       ├── components/
-│       │   ├── gestion-projets/     # Page de gestion des projets
-│       │   ├── gestion-sources/     # Page de gestion des sources de données
-│       │   └── gestion-ressources/  # Page de gestion des entités RDF
-│       ├── services/
-│       │   ├── project.service.ts   # Appels API projets
-│       │   └── data-source.service.ts # Appels API sources de données
-│       └── models/
-│           └── data-source.model.ts
-├── RDF_Back/                        # Backend Spring Boot
-│   └── src/main/java/com/uspn/rdf_back/
-│       ├── controllers/             # Endpoints REST
-│       ├── services/                # Logique métier
-│       ├── dtos/                    # Objets de transfert
-│       └── config/                  # Configuration CORS et RDF4J
-├── electron/                        # Couche Electron (application desktop)
-│   ├── main.js                      # Processus principal Electron
-│   └── preload.js                   # Bridge sécurisé
-├── data/rdf-store/                  # Données RDF globales persistées
-├── projects/                        # Données RDF par projet
-└── package.json                     # Configuration Electron
-```
-
----
-
-## Fonctionnalités
-
-### Gestion des projets
-
-L'application utilise un système de projets. Chaque projet possède son propre triplestore RDF4J isolé. Depuis la page d'accueil, il est possible de créer un nouveau projet, de lister les projets existants et d'en ouvrir un. Un seul projet peut être actif à la fois.
-
-### Gestion des sources de données
-
-Une source de données correspond à un graphe nommé dans le triplestore RDF4J. Il existe deux types de sources :
-
-- **Interne** : les données sont saisies directement dans l'application et sont modifiables
-- **Externe** : les données sont importées depuis un fichier RDF produit par un outil tiers (Tropy, Lameta, Gramps). Ces sources sont en lecture seule et peuvent être ré-importées à tout moment
-
-### Gestion des ressources
-
-La page de gestion des ressources permet de visualiser, filtrer et naviguer dans les entités RDF du projet actif. Les entités sont organisées par type : Event, Person, Record, Instantiation, Agent, Place, Record Resource.
-
-### Requêtes SPARQL
-
-Le backend expose un endpoint SPARQL qui permet d'interroger et de modifier les données du triplestore via des requêtes SELECT et UPDATE.
-
----
-
-## Lancement avec Electron
-
-Electron permet de lancer l'application comme une application desktop native sans avoir besoin d'un navigateur.
-
-### Installation des dépendances Electron
-
-A la racine du projet :
+At project root:
 
 ```bash
+cd Frontend
 npm install
+ng serve 
 ```
 
-### Mode développement
+On a second terminal:
 
-S'assurer que le backend et le frontend Angular tournent déjà (voir étapes 2 et 3 ci-dessus), puis dans un troisième terminal à la racine :
+```bash
+cd ../
+npm install
+npx electron .
+```
+
+#### Development mode
+
+Follow the steps "Run the Spring Boot backend" and "Run the Angular frontend in a browser" above and then:
 
 ```powershell
 $env:NODE_ENV="development"
 npx electron .
 ```
 
-Une fenêtre native s'ouvre et charge l'application Angular depuis `localhost:4200`.
+A window opens and loads the Angular application from `localhost:4200`.
 
-### Mode production
+#### Production mode
 
-Compiler d'abord le frontend et le backend :
+Compile the frontend and backend first:
 
 ```bash
 npm run build:frontend   # compile Angular dans electron/dist/frontend
 npm run build:backend    # compile Spring Boot en JAR
 ```
 
-Puis lancer :
+Then launch:
 
 ```bash
 npx electron .
 ```
 
-En mode production, Electron charge les fichiers statiques Angular compilés et lance le backend Spring Boot automatiquement en arrière-plan.
+In production mode, Electron loads the compiled Angular static files and automatically launches the Spring Boot backend in the background.
 
-### Générer un installateur Windows
+## Contributing
+
+The following pieces of information may help you look at the code base.
+
+### Architecture
+
+The application follows a three-layer architecture:
+
+- **Frontend** : an Angular application that runs in the browser or Electron
+- **Backend** : a Spring Boot REST API that exposes data and manages business logic
+- **Stockage** : a RDF4J NativeStore triplestore that persists RDF data on disk
+
+The communication between the frontend and backend is done via HTTP REST on port 8080. The frontend runs on port 4200 in development.
+
+### Technologies
+
+| Component         | Technology                                |
+|-------------------|--------------------------------------------|
+| Frontend          | Angular 19, Angular Material, Tailwind CSS |
+| Backend           | Spring Boot 4, Java 17, Maven              |
+| Stockage RDF      | RDF4J 5.2 NativeStore                      |
+| Desktop           | Electron 29                                |
+| Format de données | RDF, Turtle (.ttl), SPARQL                 |
+
+### Project Structure
+
+```
+Projet-RDF/
+├── Frontend/                        # Angular
+│   └── src/app/
+│       ├── components/
+│       │   ├── gestion-projets/     # Project management
+│       │   ├── gestion-sources/     # Data source management
+│       │   |── gestion-ressources/  # Entity RDF management
+│       │   └── 
+│       ├── services/
+│       │   ├── project.service.ts    # Project API calls
+│       │   └── data-source.service.ts # Data source API calls
+│       └── models/
+│           └── data-source.model.ts
+├── Backend/                         # Backend Spring Boot
+│   └── src/main/java/com/uspn/rdf_back/
+│       ├── controllers/             # Endpoints REST
+│       ├── services/                # Business logic
+│       ├── dtos/                    # Data transfer objects
+│       └── config/                  # RDF4J and CORS configuration
+├── electron/                        # Electron layer
+│   ├── main.js                      # Electron main process
+│   └── preload.js                   # Electron preload script (security)
+└── package.json                     # Electron configuration
+```
+
+### Generate a standalone executable for your plateform (windows, linux, macos)
 
 ```bash
 npm run dist
 ```
 
-Cela génère un fichier `.exe` installable dans le dossier `dist-electron/`.
+This will generate a standalone runnable for your platform (windows, linux, macos) in the `dist-electron/` directory.
 
----
+### API REST
 
-## API REST
+The backend exposes the following endpoints on `http://localhost:8080/api` :
 
-Le backend expose les endpoints suivants sur `http://localhost:8080/api` :
-
-### Projets
+#### Projets
 
 | Méthode | URL | Description |
 |---------|-----|-------------|
-| GET | /api/projects | Lister tous les projets existants |
-| POST | /api/projects/open | Ouvrir ou créer un projet |
-| GET | /api/projects/current | Obtenir le projet actuellement actif |
-| POST | /api/projects/close | Fermer le projet actif |
+| GET | /api/projects | List existing projects |
+| POST | /api/projects/open | Open or create a project |
+| GET | /api/projects/current | Get the currently active project |
+| POST | /api/projects/close | Close the active project |
+| ...  | ... | ... |
 
-### Sources de données
+#### Sources de données
 
 | Méthode | URL | Description |
 |---------|-----|-------------|
@@ -223,15 +245,18 @@ Le backend expose les endpoints suivants sur `http://localhost:8080/api` :
 | DELETE | /api/datasources/{name} | Supprimer une source |
 | POST | /api/datasources/{name}/sync | Ré-importer une source externe |
 
-### SPARQL
+#### SPARQL
 
 | Méthode | URL | Description |
 |---------|-----|-------------|
 | POST | /api/sparql/select | Executer une requête SELECT |
 | POST | /api/sparql/update | Executer une requête UPDATE |
 
----
+# Authors
 
-## Notes
-
-Le projet utilise un triplestore RDF4J NativeStore qui persiste les données sur disque dans les dossiers `data/` et `projects/`. Ces dossiers ne doivent pas être supprimés sous peine de perdre les données. Il est recommandé de les ajouter au `.gitignore` si les données sont confidentielles.
+- Mohamed Saber Mahjoub (Main developper, Computer Science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Khaoula Charef (Computer Science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Mehrez Bey (Computer Science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Noha Aqaoui (Computer Science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Vitor Tomas Rodrigues Jordã (Computer Science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Sylvain Loiseau
