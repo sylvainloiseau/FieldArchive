@@ -298,8 +298,7 @@ export class CreateEntityComponent implements OnInit {
 
     console.log('Final payload:', payload);
 
-
-    if (this.data.fullType) {
+    if (!this.data.update) {
       this.ontologyService.createEntity(payload).subscribe({
         next: (res) => {
           console.log('✅ Entity created:', res);

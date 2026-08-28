@@ -74,6 +74,7 @@ export class GestionRessourcesComponent implements OnInit {
   detailTab: 'ric' | 'foaf' | 'metadata' = 'ric';
 
   showPersonForm: boolean = false;
+  isLoadingEntities : boolean = false;
 
 
   expandedIndex = 0;
@@ -203,19 +204,25 @@ export class GestionRessourcesComponent implements OnInit {
   }
 
   getAllEntitiesWithoutType() {
+    this.isLoadingEntities = true;
+
     this.ontologyService.getAllEntitiesByType('').subscribe({
       next: (data : any) => {
         console.log("Entities without a type ", " : ", data);  
         this.formattedEntities = data;
+        this.isLoadingEntities = false;
         this.cdr.markForCheck();
+      
       },
       error: (err : any) => {
+        this.isLoadingEntities = false;
         console.error(err);
       }
     });
   }
 
   getAllEntitiesByPath(ontology_name : string ,entity_type: string) : void {
+    this.isLoadingEntities = true;
     this.selectedType = entity_type;
     console.log("Searching for Entity Type :", entity_type);
     this.selectedOntology = ontology_name;
@@ -227,10 +234,12 @@ export class GestionRessourcesComponent implements OnInit {
           // this.allEntities = data;
           // this.formattedEntities = { [ontology_name]: data };
           this.formattedEntities = data;
+          this.isLoadingEntities = false;
           this.cdr.markForCheck();
 
         },
         error: (err : any) => {
+          this.isLoadingEntities = false;
           console.error(err);
         }
       });

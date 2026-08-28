@@ -1,5 +1,7 @@
 package fr.cnrs.lacito.fieldarchive.dtos;
 
+import java.util.List;
+
 public class OntologyPropertyDto {
     private String uri;
     private String localName;
@@ -10,8 +12,7 @@ public class OntologyPropertyDto {
     private String domainUri;        // classe de domaine (contexte)
     private String domainLocalName;
 
-    private String rangeUri;         // pour ObjectProperty
-    private String rangeLocalName;
+    private List<OntologyRangeDto> ranges; // pour ObjectProperty (une ou plusieurs classes, ex. owl:unionOf)
 
     private DataTypeCategory dataTypeCategory; // pour DataProperty
     private String datatypeUri;                // ex: xsd:string
@@ -32,10 +33,8 @@ public class OntologyPropertyDto {
     public void setDomainUri(String domainUri) { this.domainUri = domainUri; }
     public String getDomainLocalName() { return domainLocalName; }
     public void setDomainLocalName(String domainLocalName) { this.domainLocalName = domainLocalName; }
-    public String getRangeUri() { return rangeUri; }
-    public void setRangeUri(String rangeUri) { this.rangeUri = rangeUri; }
-    public String getRangeLocalName() { return rangeLocalName; }
-    public void setRangeLocalName(String rangeLocalName) { this.rangeLocalName = rangeLocalName; }
+    public List<OntologyRangeDto> getRanges() { return ranges; }
+    public void setRanges(List<OntologyRangeDto> ranges) { this.ranges = ranges; }
     public DataTypeCategory getDatatypeCategory() { return dataTypeCategory; }
     public void setDatatypeCategory(DataTypeCategory datatypeCategory) { this.dataTypeCategory = dataTypeCategory; }
     public String getDatatypeUri() { return datatypeUri; }
