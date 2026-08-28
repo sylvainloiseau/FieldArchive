@@ -73,9 +73,12 @@ export class RicoPropertiesComponent implements OnInit {
 
     this.filteredPredicates = this.fixedFilteredPredicates;
     console.log("All predicates : ", this.filteredPredicates);
-    this.allRanges = this.predicates
-      .map((predicate: any) => predicate.rangeUri)
-      .filter((range: any) => !!range);          // ← drop null/undefined/empty
+    this.allRanges = [...new Set(
+      this.predicates
+        .flatMap((predicate: any) => predicate.ranges ?? [])
+        .map((range: any) => range.uri)
+        .filter((uri: any) => !!uri) // drop null or undefined
+    )];
     this.allRanges = [...new Set(this.allRanges)];
     
     console.log("All possible ranges : ", this.allRanges);
@@ -138,13 +141,13 @@ export class RicoPropertiesComponent implements OnInit {
     this.addRangeFilter(filterUrl);
   }
 
-  filterRangesByFilters() : void {
+  filterRangesByFilters(): void {
     for (let filter of this.filters) {
-      if (filter.startsWith("range : ")){  
+      if (filter.startsWith("range : ")) {
         let rangeName = filter.substring('range : '.length).trim();
         console.log("Filtering only with range : ", rangeName);
         this.filteredPredicates = this.filteredPredicates.filter(
-          p => p.rangeUri === rangeName
+          p => (p.ranges ?? []).some((r: any) => r.uri === rangeName)
         );
       }
     }

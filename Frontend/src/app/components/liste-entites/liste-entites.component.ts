@@ -20,6 +20,8 @@ export class ListeEntitesComponent {
   @Input() allEntities:  any [] = [];
   @Input() ontologiesData: any;
   @Input() selectedType: string | null = '';
+  @Input() isLoading: boolean = false;   // ← add this
+
   @Output() selectedEntity = new EventEmitter<any>();
 
 

@@ -113,7 +113,8 @@ export class EntityDetailsComponent implements OnInit {
       width: '600px',
       data: {
         types,
-        ontologiesData: this.ontologyLabels
+        ontologiesData: this.ontologyLabels,
+        update : true
       }
     });
     dialogRef.afterClosed().subscribe(result => {

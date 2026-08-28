@@ -194,18 +194,22 @@ public class RdfEntityService {
         if (req.types == null || req.types.isEmpty()) {
             throw new BadRequestException("Entity type is mandatory (at least one)");
         }
+        for (TypeRefDto t : req.types) {
+            if (t == null || t.iri == null || t.iri.isBlank()) {
+                throw new BadRequestException("Each entity type must have a non-empty iri");
+            }
+        }
 
         String entityKey = UUID.randomUUID().toString();
-        IRI subject = iriFromKey(req.types.get(0),entityKey);
-
+        IRI subject = iriFromKey(req.types.get(0).iri, entityKey);
 
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
             conn.begin();
             IRI CTX_INTERNAL = internalCtx();
 
             // rdf:type
-            for (String t : req.types) {
-                IRI typeIri = vf.createIRI(expand(t));
+            for (TypeRefDto t : req.types) {
+                IRI typeIri = vf.createIRI(expand(t.iri));
                 conn.add(subject, RDF.TYPE, typeIri, CTX_INTERNAL);
             }
 
@@ -224,7 +228,6 @@ public class RdfEntityService {
         }
 
         return getByIri(subject);
-
     }
 
     private void addType(RepositoryConnection conn, IRI subject, String type){

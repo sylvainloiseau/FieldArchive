@@ -221,9 +221,6 @@
                 Not typed
               </mat-panel-title>
 
-              <mat-panel-description class="justify-end">
-                <span class="text-xs text-gray-400">3</span>
-              </mat-panel-description>
             </mat-expansion-panel-header>
           </mat-expansion-panel>
 
@@ -244,9 +241,17 @@
     </aside>
 
     <div *ngIf="activeView === 'tableau'" class="p-0! w-[85%]!" [@slideIn]>
-      <div class="p-1! flex-1 overflow-y-auto bg-gray-50 ">
-        <app-liste-entites [ontologiesData]="ontologyLabels" *ngIf="formattedEntities" [selectedType]="selectedType" [allEntities]="formattedEntities" (selectedEntity)="handleChildData($event)"></app-liste-entites>
-      </div>    
+      <div class="p-1! flex-1 overflow-y-auto bg-gray-50">
+        
+      <app-liste-entites
+        [ontologiesData]="ontologyLabels"
+        [selectedType]="selectedType"
+        [allEntities]="formattedEntities || []"
+        [isLoading]="isLoadingEntities"
+        (selectedEntity)="handleChildData($event)">
+      </app-liste-entites>
+
+      </div>
     </div>
 
     <div *ngIf="activeView === 'sparql'" class="flex-1 flex items-start justify-center overflow-y-auto bg-gray-50" [@slideIn]>

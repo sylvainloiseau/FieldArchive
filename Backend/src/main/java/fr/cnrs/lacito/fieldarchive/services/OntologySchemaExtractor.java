@@ -75,7 +75,7 @@ public final class OntologySchemaExtractor {
                 .collect(Collectors.toSet());
 
         Map<PropertyContextKey, CardinalityDto> restrictionCardinalities = new LinkedHashMap<>();
-        Map<PropertyContextKey, IRI> restrictionRangeOverride = new LinkedHashMap<>();
+        Map<PropertyContextKey, List<IRI>> restrictionRangeOverride = new LinkedHashMap<>();
         collectRestrictions(model, restrictionCardinalities, restrictionRangeOverride);
 
         List<OntologyPropertyDto> result = new ArrayList<>();
@@ -89,11 +89,17 @@ public final class OntologySchemaExtractor {
             List<IRI> domainIris = model.filter(propertyIri, RDFS.DOMAIN, null).objects().stream()
                     .filter(v -> v instanceof IRI).map(v -> (IRI) v).collect(Collectors.toList());
 
-            IRI globalRange = model.filter(propertyIri, RDFS.RANGE, null).objects().stream()
-                    .filter(v -> v instanceof IRI).map(v -> (IRI) v).findFirst().orElse(null);
+            // Range(s): resolve plain IRI ranges AND owl:unionOf ranges into a flat list
+            List<IRI> globalRanges = new ArrayList<>();
+            for (Value v : model.filter(propertyIri, RDFS.RANGE, null).objects()) {
+                if (v instanceof Resource r) {
+                    globalRanges.addAll(resolveRangeIris(model, r));
+                }
+            }
+            IRI globalRangeForDatatype = globalRanges.isEmpty() ? null : globalRanges.get(0);
 
             if (kind == PropertyKind.UNKNOWN) {
-                kind = (globalRange != null && isDatatype(globalRange))
+                kind = (globalRangeForDatatype != null && isDatatype(globalRangeForDatatype))
                         ? PropertyKind.DATA_PROPERTY : PropertyKind.OBJECT_PROPERTY;
             }
 
@@ -121,15 +127,16 @@ public final class OntologySchemaExtractor {
                 }
 
                 PropertyContextKey ctxKey = domainCtx != null ? new PropertyContextKey(propertyIri, domainCtx) : null;
-                IRI effectiveRange = (ctxKey != null && restrictionRangeOverride.containsKey(ctxKey))
-                        ? restrictionRangeOverride.get(ctxKey) : globalRange;
+                List<IRI> effectiveRanges = (ctxKey != null && restrictionRangeOverride.containsKey(ctxKey))
+                        ? restrictionRangeOverride.get(ctxKey) : globalRanges;
 
                 if (kind == PropertyKind.OBJECT_PROPERTY) {
-                    if (effectiveRange != null) {
-                        dto.setRangeUri(effectiveRange.stringValue());
-                        dto.setRangeLocalName(localName(effectiveRange.stringValue()));
-                    }
+                    List<OntologyRangeDto> rangeDtos = effectiveRanges.stream()
+                            .map(r -> new OntologyRangeDto(r.stringValue(), localName(r.stringValue())))
+                            .collect(Collectors.toList());
+                    dto.setRanges(rangeDtos);
                 } else if (kind == PropertyKind.DATA_PROPERTY) {
+                    IRI effectiveRange = effectiveRanges.isEmpty() ? null : effectiveRanges.get(0);
                     applyDatatypeInfo(dto, effectiveRange);
                 }
 
@@ -158,7 +165,7 @@ public final class OntologySchemaExtractor {
 
     private static void collectRestrictions(Model model,
                                             Map<PropertyContextKey, CardinalityDto> cardinalities,
-                                            Map<PropertyContextKey, IRI> rangeOverrides) {
+                                            Map<PropertyContextKey, List<IRI>> rangeOverrides) {
 
         Set<Statement> hostLinks = new LinkedHashSet<>();
         hostLinks.addAll(model.filter(null, RDFS.SUBCLASSOF, null));
@@ -183,9 +190,12 @@ public final class OntologySchemaExtractor {
             applyCardinality(model, restriction, OWL_MAX_QUALIFIED_CARDINALITY, cardinality, false);
             applyExactCardinality(model, restriction, OWL_QUALIFIED_CARDINALITY, cardinality);
 
-            IRI onClass = getFirstIri(model, restriction, OWL_ON_CLASS);
-            if (onClass == null) onClass = getFirstIri(model, restriction, OWL.ALLVALUESFROM);
-            if (onClass != null) rangeOverrides.put(key, onClass);
+            // onClass / allValuesFrom may itself be a union -> resolve to a list
+            List<IRI> onClassRanges = new ArrayList<>();
+            Resource onClassNode = getFirstResource(model, restriction, OWL_ON_CLASS);
+            if (onClassNode == null) onClassNode = getFirstResource(model, restriction, OWL.ALLVALUESFROM);
+            if (onClassNode != null) onClassRanges.addAll(resolveRangeIris(model, onClassNode));
+            if (!onClassRanges.isEmpty()) rangeOverrides.put(key, onClassRanges);
         }
     }
 
@@ -212,6 +222,50 @@ public final class OntologySchemaExtractor {
                         cardinality.setMax(value);
                     } catch (NumberFormatException ignored) {}
                 });
+    }
+
+    // ================= RANGE / UNION RESOLUTION =================
+
+    /**
+     * Resolves a range node into a flat list of IRIs.
+     * - Plain IRI -> singleton list.
+     * - Blank node owl:Class with owl:unionOf -> walks the RDF collection,
+     *   flattening nested unions.
+     * - Anything else -> empty list.
+     */
+    private static List<IRI> resolveRangeIris(Model model, Resource rangeNode) {
+        Optional<Resource> unionListHead = model.filter(rangeNode, OWL.UNIONOF, null).objects().stream()
+                .filter(v -> v instanceof Resource).map(v -> (Resource) v).findFirst();
+
+        if (unionListHead.isPresent()) {
+            List<IRI> result = new ArrayList<>();
+            for (Resource member : readRdfCollection(model, unionListHead.get())) {
+                result.addAll(resolveRangeIris(model, member)); // flatten nested unions
+            }
+            return result;
+        }
+
+        if (rangeNode instanceof IRI iri) {
+            return Collections.singletonList(iri);
+        }
+        return Collections.emptyList();
+    }
+
+    /** Reads an rdf:List (rdf:first/rdf:rest/rdf:nil) into an ordered list of its member resources. */
+    private static List<Resource> readRdfCollection(Model model, Resource listHead) {
+        List<Resource> items = new ArrayList<>();
+        Resource current = listHead;
+        Set<Resource> visited = new HashSet<>(); // guard against malformed cyclic lists
+        while (current != null && !current.equals(RDF.NIL) && visited.add(current)) {
+            model.filter(current, RDF.FIRST, null).objects().stream()
+                    .filter(v -> v instanceof Resource).map(v -> (Resource) v).findFirst()
+                    .ifPresent(items::add);
+
+            current = model.filter(current, RDF.REST, null).objects().stream()
+                    .filter(v -> v instanceof Resource).map(v -> (Resource) v).findFirst()
+                    .orElse(null);
+        }
+        return items;
     }
 
     // ================= DATATYPES =================
@@ -274,6 +328,11 @@ public final class OntologySchemaExtractor {
     private static IRI getFirstIri(Model model, Resource subject, IRI predicate) {
         return model.filter(subject, predicate, null).objects().stream()
                 .filter(v -> v instanceof IRI).map(v -> (IRI) v).findFirst().orElse(null);
+    }
+
+    private static Resource getFirstResource(Model model, Resource subject, IRI predicate) {
+        return model.filter(subject, predicate, null).objects().stream()
+                .filter(v -> v instanceof Resource).map(v -> (Resource) v).findFirst().orElse(null);
     }
 
     private static Optional<String> firstLabel(Model model, IRI subject) {
