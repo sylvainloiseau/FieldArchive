@@ -4,8 +4,8 @@ Linguistic fieldwork data are made of a variety of objects: texts, maps, recordi
 
 This application try to address these needs. It has with the following features:
 
-- Many usefull applications exist for the annotation of specific type of data. They can obviously not be replaced. The FieldArchive app offers to define "External sources" for data imported from such apps and to aggregate data from various such sources, together with data created directly in the app. Data coming from external sources cannot be modified or deleted in the application ; instead, they can be edited in the source application and imported again (unless one decide to import them definitely).
-- Linguistic field archive offer an algorithm for data deduplication (or record linkage): identical entities can be refered to using different IDs in different data sources. The algorithm identifies IDs likely to refer to the same real-world entity, and offers to the user the choice to confirm or infirm such linkage. Once linked, the application will smoothly aggregate data from different sources.
+- Many usefull applications exist for the annotation of specific type of data (photo, biography, etc.). They can obviously not be replaced. The FieldArchive app offers to define "External sources" for data imported from such apps and to aggregate data from various such sources, together with data created directly in the app. Data coming from external sources cannot be modified or deleted in the application ; instead, they can be edited in the source application and imported again (unless one decide to import them definitely).
+- Linguistic field archive offers an algorithm for data deduplication (or record linkage): identical entities can be refered to using different IDs in different data sources. The algorithm identifies IDs likely to refer to the same real-world entity in two data sources, and offers to the user the choice to confirm or infirm such linkage. Once linked, the application will smoothly aggregate data from different sources.
 - Linguistic field archive use RDF as the data model for the representation of data. RFD allows to link data easily and to use various ontologies according to the need of the user.
 - Linguistic field archive use the RICO [Records in context](https://www.ica.org/standards/RiC/RiC-O_1-1.html) has the base ontology to represent data. RICO is defined for archivistic use and helps to describe the data in an archivist-sensible way. However, the user can refers to any new ontology to describe the data, such as PNV [Person Name Vocabulary](https://www.lodewijkpetram.nl/vocab/pnv/doc/) for complexe naming system, [Bio](https://vocab.org/bio/) for biographical data, etc.
 
@@ -234,7 +234,7 @@ The backend exposes the following endpoints on `http://localhost:8080/api` :
 | POST | /api/projects/close | Close the active project |
 | ...  | ... | ... |
 
-#### Sources de données
+#### Data Sources
 
 | Méthode | URL | Description |
 |---------|-----|-------------|
