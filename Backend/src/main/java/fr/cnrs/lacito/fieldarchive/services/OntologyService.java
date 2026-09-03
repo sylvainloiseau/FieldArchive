@@ -266,6 +266,9 @@ public class OntologyService {
                 data.put(prefix, merged);
             }
 
+            Map<String, List<String>> hierarchy = ontologySchemaDto.getHierarchy();
+            merged.put("hierarchy", Map.of("name", "Class Hierarchy", "value", hierarchy != null ? hierarchy : Map.of()));
+
         });
 
         return data;
@@ -486,13 +489,13 @@ public class OntologyService {
         return schemaCache.computeIfAbsent(namespacePrefix, p -> {
             Map<String, Object> ontologies = (Map<String, Object>) ontologyConfig.get("ontologies");
             Map<String, Object> ontologyData = ontologies != null ? (Map<String, Object>) ontologies.get(p) : null;
-            if (ontologyData == null) return new OntologySchemaDto(List.of(), List.of());
+            if (ontologyData == null) return new OntologySchemaDto(List.of(), List.of(), Map.of());
 
             String file = (String) ontologyData.get("file");
-            if (file == null || file.isBlank()) return new OntologySchemaDto(List.of(), List.of());
+            if (file == null || file.isBlank()) return new OntologySchemaDto(List.of(), List.of(), Map.of());
 
             ClassPathResource resource = new ClassPathResource(file);
-            if (!resource.exists()) return new OntologySchemaDto(List.of(), List.of());
+            if (!resource.exists()) return new OntologySchemaDto(List.of(), List.of(), Map.of());
 
             Model model;
             try (InputStream is = resource.getInputStream()) {
@@ -500,7 +503,7 @@ public class OntologyService {
                 model = Rio.parse(is, "", format);
             } catch (Exception e) {
                 e.printStackTrace();
-                return new OntologySchemaDto(List.of(), List.of());
+                return new OntologySchemaDto(List.of(), List.of(), Map.of());
             }
 
             return OntologySchemaExtractor.extract(model, normalizeNamespace(p));

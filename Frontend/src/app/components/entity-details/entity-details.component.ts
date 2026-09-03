@@ -16,10 +16,11 @@ import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 import { CreateEntityComponent } from '../create-entity/create-entity.component';
 import {RicoPropertiesComponent} from '../rico-properties/rico-properties.component';
+import { RangeSelectionDialogComponent } from '../range-selection-dialog/range-selection-dialog.component';
 
 import {MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
-
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-entity-details',
@@ -34,6 +35,7 @@ import {MatIconModule} from '@angular/material/icon';
     FileViewerComponent,
     CreateEntityComponent,
     RicoPropertiesComponent,
+    RangeSelectionDialogComponent,
     MatChipsModule,
     MatIconModule
   ],
@@ -104,6 +106,7 @@ export class EntityDetailsComponent implements OnInit {
       });
     }
   }
+
 
   openCreateEntityDialog() {  
 
@@ -227,16 +230,52 @@ export class EntityDetailsComponent implements OnInit {
     
   }
 
-  openCreateEntityDialogForRange(rangeTypeIRI : string) {
+  openCreateEntityDialogForRange(property: any): void {
+  const rangeUris: string[] = Array.isArray(property.rangeUri)
+    ? property.rangeUri
+    : [property.rangeUri];
 
-    this.dialog.open(CreateEntityComponent, {
-      width: '600px',
-      data: {
-        fullType : rangeTypeIRI,
-        ontologiesData: this.ontologyLabels
+  const rangeLocalNames: string[] = Array.isArray(property.rangeLocalName)
+    ? property.rangeLocalName
+    : [property.rangeLocalName];
+
+  if (!rangeUris.length || !rangeUris[0]) return;
+
+  // Multiple possible types -> let the user pick one first
+  if (rangeUris.length > 1) {
+    const ranges = rangeUris.map((uri, i) => ({
+      uri,
+      localName: rangeLocalNames[i] || this.extractPropertyNameFromIRI(uri)
+    }));
+
+    const selectionDialogRef = this.dialog.open(RangeSelectionDialogComponent, {
+      width: '450px',
+      data: { ranges }
+    });
+
+    selectionDialogRef.afterClosed().subscribe((selectedRange: any) => {
+      if (selectedRange?.uri) {
+        this.openCreateEntityDialogWithType(selectedRange.uri);
       }
     });
+    return;
   }
+
+  // Single possible type -> go straight to entity creation
+  this.openCreateEntityDialogWithType(rangeUris[0]);
+}
+
+private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
+  this.dialog.open(CreateEntityComponent, {
+    width: '600px',
+    data: {
+      fullType: rangeTypeIRI,
+      ontologiesData: this.ontologyLabels
+    }
+  });
+}
+
+
 
   changeSelectedEntity(entityIri : string) {
     if (entityIri) {
@@ -420,29 +459,43 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   cleanProperties(ontologyLabels: any, selectedEntity: any) {
-    for (const property of selectedEntity.properties) {
-      for (const value of Object.values(ontologyLabels) as any[]) {
-        for (const propvalue of value.properties.value) {
-          if (property.predicate === propvalue.uri) {
-            property.label = propvalue.label;
-            property.cardinality = propvalue.cardinality;
-            property.rangeLocalName = propvalue.rangeLocalName;
-            property.rangeUri = propvalue.rangeUri;
-            property.domainUri = propvalue.domainUri;
-            property.domainLocalName = propvalue.domainLocalName;
-            property.datatypeCategory = propvalue.datatypeCategory;
-            property.datatypeUri = propvalue.datatypeUri;
-            property.lang = propvalue.lang;
+      for (const property of selectedEntity.properties) {
+          for (const value of Object.values(ontologyLabels) as any[]) {
+              for (const propvalue of value.properties.value) {
+
+                  if (property.predicate === propvalue.uri) {
+
+                      property.label = propvalue.label;
+                      property.cardinality = propvalue.cardinality;
+
+                    if (propvalue.ranges?.length === 1) {
+                        property.rangeUri = propvalue.ranges[0].uri;
+                        property.rangeLocalName = propvalue.ranges[0].localName;
+                    } else if (propvalue.ranges?.length > 1) {
+                        property.rangeUri = propvalue.ranges.map((r: any) => r.uri);
+                        property.rangeLocalName = propvalue.ranges.map((r: any) => r.localName);
+                    } else {
+                        property.rangeUri = null;
+                        property.rangeLocalName = null;
+                    }
+
+                      property.domainUri = propvalue.domainUri;
+                      property.domainLocalName = propvalue.domainLocalName;
+                      property.datatypeCategory = propvalue.datatypeCategory;
+                      property.datatypeUri = propvalue.datatypeUri;
+                      property.lang = propvalue.lang;
+                  }
+              }
           }
-        }
       }
-    }
 
-    // Enrich mainProperties once
-    this.checkIfEntityPropertyIsInMainProperties(selectedEntity, ontologyLabels);
+      this.checkIfEntityPropertyIsInMainProperties(
+          selectedEntity,
+          ontologyLabels
+      );
 
-    console.log("NEW CLEANED SELECTED OBJECT :", selectedEntity);
-    console.log("NEW CLEANED ONTOLOGY OBJECT :", ontologyLabels);
+      console.log("NEW CLEANED SELECTED OBJECT :", selectedEntity);
+      console.log("NEW CLEANED ONTOLOGY OBJECT :", ontologyLabels);
   }
 
   buildEntityDetails(properties : any[], ontologyLabels : any[]) : void {
@@ -477,6 +530,35 @@ export class EntityDetailsComponent implements OnInit {
 
     return a.value.name.localeCompare(b.value.name);
   };
+
+
+  private expandWithSuperClasses(typeIris: Iterable<string>, ontologyLabels: any): Set<string> {
+    const hierarchyMap: Record<string, string[]> = {};
+    for (const ontologyData of Object.values<any>(ontologyLabels)) {
+      const h = ontologyData?.hierarchy?.value;
+      if (h && typeof h === 'object') {
+        Object.assign(hierarchyMap, h);
+      }
+    }
+
+    const result = new Set<string>(typeIris);
+    const toVisit: string[] = [...result];
+
+    while (toVisit.length) {
+      const current = toVisit.pop()!;
+      const superClasses = hierarchyMap[current];
+      if (!superClasses) continue;
+
+      for (const sup of superClasses) {
+        if (!result.has(sup)) {
+          result.add(sup);
+          toVisit.push(sup);
+        }
+      }
+    }
+
+    return result;
+  }
 
 
   ngOnInit(): void {
@@ -677,7 +759,12 @@ export class EntityDetailsComponent implements OnInit {
   }
 
   addAssociation(): void {
-    const typeSet = new Set(this.selectedEntity.types.map((t : any) => t.iri));    
+    const baseTypes = this.selectedEntity.types.map((t: any) => t.iri);
+    const typeSet = this.expandWithSuperClasses(baseTypes, this.ontologyLabels);
+
+    console.log("BASE TYPES : ", baseTypes);
+    console.log("ALL TYPES : ", typeSet);
+
     const usedPredicates = this.getUsedPredicateUris(this.selectedOntologyTab.value);
 
     const matches = this.selectedOntologyTab.value.properties.value.filter(
@@ -694,7 +781,8 @@ export class EntityDetailsComponent implements OnInit {
       data: { 
         predicates: matches,
         predefinedRanges: this.selectedOntologyTab.value.mainTypes.value,
-        removeProperty : this.selectedOntologyTab.value.removeProperty
+        removeProperty : this.selectedOntologyTab.value.removeProperty,
+        hierarchy: this.selectedOntologyTab.value.hierarchy
         
       }
     });
@@ -745,9 +833,20 @@ export class EntityDetailsComponent implements OnInit {
         });
       }
     } else {
+      let rangeUri = '';
+      let rangeLocalName = '';
+      if(predicateDef.ranges && predicateDef.ranges.length === 1){
+        console.log("HERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRE");
+        rangeUri = predicateDef.ranges[0].uri;
+        rangeLocalName = predicateDef.ranges[0].localName;
+      }
+      console.log("RANGE URI : ", rangeUri);
+
       this.selectedEntity.properties.push({
         predicate: predicateUri,
         kind,
+        rangeUri : rangeUri,
+        rangeLocalName : rangeLocalName,
         values: [{
           value: null,
           datatype: predicateDef.datatypeUri ?? null,
@@ -767,6 +866,36 @@ export class EntityDetailsComponent implements OnInit {
     this.cleanProperties(this.ontologyLabels, this.selectedEntity);
 
     this.cdr.markForCheck();
+  }
+
+  getEntitiesByTypes(rangeUris: string[]): void {
+    this.listOfAllRanges = [];
+
+    if (!rangeUris || rangeUris.length === 0) {
+      return;
+    }
+
+    const uniqueRangeUris = [...new Set(rangeUris)];
+
+    forkJoin(
+      uniqueRangeUris.map(uri =>
+        this.gestionRessourceService.getAllEntitiesByType(uri)
+      )
+    ).subscribe({
+      next: (results) => {
+        this.listOfAllRanges = results.flat();
+
+        //remove duplicate entities by IRI
+        // this.listOfAllRanges = Array.from(
+        //   new Map(
+        //     this.listOfAllRanges.map(entity => [entity.iri, entity])
+        //   ).values()
+        // );
+      },
+      error: (err) => {
+        console.error("Error fetching possible ranges: ", err);
+      }
+    });
   }
 
 

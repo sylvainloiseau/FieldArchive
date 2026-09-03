@@ -45,6 +45,7 @@ export class RicoPropertiesComponent implements OnInit {
   filterByKindValue : string = "";
 
   predicates: any[] = [];
+  hierarchy: any[] = [];
   removeProperty : string[] = [];
   predefinedRanges: string[] = [];
   remainingRanges : string[] = [];
@@ -62,10 +63,13 @@ export class RicoPropertiesComponent implements OnInit {
     this.predicates = data.predicates;
     this.predefinedRanges = data.predefinedRanges;
     this.removeProperty = data.removeProperty;
+    this.hierarchy = data.hierarchy;
   }
 
   ngOnInit() {
     console.log("Properties to be removed  :", this.removeProperty);
+
+    console.log("Hierarchy ", this.hierarchy);
 
     this.fixedFilteredPredicates = this.predicates.filter((pred: any) =>
       !this.removeProperty.includes(this.getNameOfRicoTypeFromURL(pred.uri))

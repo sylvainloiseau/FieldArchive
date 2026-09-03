@@ -31,7 +31,8 @@ public final class OntologySchemaExtractor {
     public static OntologySchemaDto extract(Model model, String namespacePrefix) {
         List<OntologyClassDto> types = extractTypes(model, namespacePrefix);
         List<OntologyPropertyDto> properties = extractProperties(model, namespacePrefix);
-        return new OntologySchemaDto(types, properties);
+        Map<String, List<String>> hierarchy = extractHierarchy(model, namespacePrefix);
+        return new OntologySchemaDto(types, properties, hierarchy);
     }
 
     // ================= TYPES =================
@@ -349,6 +350,27 @@ public final class OntologySchemaExtractor {
         if (uri.contains("#")) return uri.substring(uri.indexOf('#') + 1);
         int lastSlash = uri.lastIndexOf('/');
         return (lastSlash != -1) ? uri.substring(lastSlash + 1) : uri;
+    }
+    // ================= CLASS HIERARCHY =================
+
+    /**
+     * Builds a map: class URI -> list of its direct superclass URIs (rdfs:subClassOf),
+     * restricted to plain named classes (blank-node owl:Restriction objects are ignored).
+     */
+    private static Map<String, List<String>> extractHierarchy(Model model, String namespacePrefix) {
+        Map<String, List<String>> hierarchy = new LinkedHashMap<>();
+
+        for (Statement st : model.filter(null, RDFS.SUBCLASSOF, null)) {
+            if (!(st.getSubject() instanceof IRI subIri)) continue;
+            if (!(st.getObject() instanceof IRI superIri)) continue; // skips owl:Restriction blank nodes
+
+            if (namespacePrefix != null && !subIri.stringValue().startsWith(namespacePrefix)) continue;
+
+            hierarchy.computeIfAbsent(subIri.stringValue(), k -> new ArrayList<>())
+                    .add(superIri.stringValue());
+        }
+
+        return hierarchy;
     }
 
     private record PropertyContextKey(IRI property, IRI domainClass) {}

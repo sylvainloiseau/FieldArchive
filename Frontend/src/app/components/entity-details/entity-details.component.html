@@ -171,7 +171,7 @@
                         <option *ngFor="let t of listOfAllRanges; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
                       </select>
                         <button
-                          (click)="openCreateEntityDialogForRange(property.schema.rangeUri)"
+                          (click)="openCreateEntityDialogForRange(property.schema)"
                           type="button"
                           class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
                                 rounded-full bg-blue-600 text-white
@@ -366,25 +366,34 @@
                 <div class="flex gap-1 items-center">
 
                   <select
+                    *ngIf="property.rangeUri.length === 1"
                     (click)="getEntitiesByType(property.rangeUri)"
                     (change)="onRangeSelected($event, property)"
                     class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
                     <option value="" selected disabled>Add new range value</option>
                     <option *ngFor="let t of listOfAllRanges; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
                   </select>
-                    <button
-                      (click)="openCreateEntityDialogForRange(property.rangeUri)"
-                      type="button"
-                      class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
-                            rounded-full bg-blue-600 text-white
-                            shadow-sm hover:bg-blue-700 hover:shadow-md
-                            active:scale-95
-                            focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
-                            transition-all duration-150"
-                      title="Create type"
-                    >
-                      Create
-                    </button>
+                  <select
+                    *ngIf="property.rangeUri.length > 1"
+                    (click)="getEntitiesByTypes(property.rangeUri)"
+                    (change)="onRangeSelected($event, property)"
+                    class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
+                    <option value="" selected disabled>Add new range value</option>
+                    <option *ngFor="let t of listOfAllRanges; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
+                  </select>
+                  <button
+                    (click)="openCreateEntityDialogForRange(property)"
+                    type="button"
+                    class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
+                          rounded-full bg-blue-600 text-white
+                          shadow-sm hover:bg-blue-700 hover:shadow-md
+                          active:scale-95
+                          focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
+                          transition-all duration-150"
+                    title="Create type"
+                  >
+                    Create
+                  </button>
                     
                 </div>
 
