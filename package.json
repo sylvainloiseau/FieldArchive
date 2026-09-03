@@ -11,7 +11,7 @@
     "build:all": "npm run build:frontend && npm run build:backend",
     "start": "npm run build:all && electron .",
     "package": "npm run build:all && electron-builder --dir",
-    "dist": "npm run build:all && electron-builder"
+    "dist": "npm run build:all && electron-builder --publish never"
   },
   "build": {
     "appId": "fr.cnrs.lacito.FieldArchive",
