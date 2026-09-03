@@ -50,61 +50,17 @@ jobs:
         with:
           node-version: '20'
 
-      # - name: Install Angular CLI
-      #   shell: bash
-      #   run: npm install -g @angular/cli@16
+      - name: Install root dependencies
+        shell: bash
+        run: npm ci
 
-      # - name: Install Angular Material Schematics
-      #   shell: bash
-      #   run: npm install -g @angular/material@16
-
-      # - name: Install Angular Tailwind Schematics
-      #   shell: bash
-      #   run: npm install -g @angular/tailwind@16
-
-      # - name: Install Spring boot CLI 4
-      #   shell: bash
-      #   run: curl -s https://get.sdkman.io | bash && source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install springboot 4
+      - name: Install frontend dependencies
+        shell: bash
+        run: npm ci --prefix Frontend
 
       - name: generate App
         shell: bash
         run: npm run dist
-      
-      # - name: Install packaging tools (Linux)
-      #   if: runner.os == 'Linux'
-      #   run: sudo apt-get update && sudo apt-get install -y fakeroot rpm
-
-      # - name: Image jlink + installer debian (deb) (Linux)
-      #   if: runner.os == 'Linux'
-      #   shell: bash
-      #   run: |
-      #     mvn -B -ntp clean package -pl lift-gui -am -Pdist -DskipTests \
-      #       "-Djavafx.platform=${{ matrix.javafx }}" \
-      #       -Djpackage.type=DEB -Djpackage.destSuffix=-deb
-
-      # - name: Image jlink + installer MSI (Windows)
-      #   if: runner.os == 'Windows'
-      #   shell: bash
-      #   run: |
-      #     mvn -B -ntp clean package -pl lift-gui -am -Pdist -DskipTests \
-      #       "-Djavafx.platform=${{ matrix.javafx }}" \
-      #       -Djpackage.type=MSI -Djpackage.destSuffix=-msi
-
-      # - name: Installer EXE (Windows)
-      #   if: runner.os == 'Windows'
-      #   shell: bash
-      #   run: |
-      #     mvn -B -ntp -pl lift-gui -Pdist jpackage:jpackage -DskipTests \
-      #       "-Djavafx.platform=${{ matrix.javafx }}" \
-      #       -Djpackage.type=EXE -Djpackage.destSuffix=-exe
-
-      # - name: Image jlink + installer DMG (macOS)
-      #   if: runner.os == 'macOS'
-      #   shell: bash
-      #   run: |
-      #     mvn -B -ntp clean package -pl lift-gui -am -Pdist -DskipTests \
-      #       "-Djavafx.platform=${{ matrix.javafx }}" \
-      #       -Djpackage.type=DMG
 
       - name: Publish artifacts on the GitHub release
         uses: softprops/action-gh-release@v2
