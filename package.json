@@ -6,7 +6,7 @@
   "scripts": {
     "electron": "electron .",
     "electron:dev": "NODE_ENV=development electron .",
-    "build:frontend": "cd Frontend && ng build --output-path ../electron/dist/frontend --base-href ./",
+    "build:frontend": "cd Frontend && npm run ng -- build --output-path ../electron/dist/frontend --base-href ./",
     "build:backend": "cd Backend && mvn clean package -DskipTests",
     "build:all": "npm run build:frontend && npm run build:backend",
     "start": "npm run build:all && electron .",
