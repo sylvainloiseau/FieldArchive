@@ -1,0 +1,115 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: ${{ matrix.runner }} (${{ matrix.javafx }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            javafx: linux
+          - runner: windows-latest
+            javafx: win
+          - runner: macos-latest
+            javafx: mac-aarch64
+
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Install Maven 3.9.9
+        shell: bash
+        run: |
+          curl -fsSL "https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz" | tar xz -C /tmp
+          echo "/tmp/apache-maven-3.9.9/bin" >> "$GITHUB_PATH"
+
+      - name: Install Node.js 20
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      # - name: Install Angular CLI
+      #   shell: bash
+      #   run: npm install -g @angular/cli@16
+
+      # - name: Install Angular Material Schematics
+      #   shell: bash
+      #   run: npm install -g @angular/material@16
+
+      # - name: Install Angular Tailwind Schematics
+      #   shell: bash
+      #   run: npm install -g @angular/tailwind@16
+
+      # - name: Install Spring boot CLI 4
+      #   shell: bash
+      #   run: curl -s https://get.sdkman.io | bash && source "$HOME/.sdkman/bin/sdkman-init.sh" && sdk install springboot 4
+
+      - name: generate App
+        shell: bash
+        run: npm run dist
+      
+      # - name: Install packaging tools (Linux)
+      #   if: runner.os == 'Linux'
+      #   run: sudo apt-get update && sudo apt-get install -y fakeroot rpm
+
+      # - name: Image jlink + installer debian (deb) (Linux)
+      #   if: runner.os == 'Linux'
+      #   shell: bash
+      #   run: |
+      #     mvn -B -ntp clean package -pl lift-gui -am -Pdist -DskipTests \
+      #       "-Djavafx.platform=${{ matrix.javafx }}" \
+      #       -Djpackage.type=DEB -Djpackage.destSuffix=-deb
+
+      # - name: Image jlink + installer MSI (Windows)
+      #   if: runner.os == 'Windows'
+      #   shell: bash
+      #   run: |
+      #     mvn -B -ntp clean package -pl lift-gui -am -Pdist -DskipTests \
+      #       "-Djavafx.platform=${{ matrix.javafx }}" \
+      #       -Djpackage.type=MSI -Djpackage.destSuffix=-msi
+
+      # - name: Installer EXE (Windows)
+      #   if: runner.os == 'Windows'
+      #   shell: bash
+      #   run: |
+      #     mvn -B -ntp -pl lift-gui -Pdist jpackage:jpackage -DskipTests \
+      #       "-Djavafx.platform=${{ matrix.javafx }}" \
+      #       -Djpackage.type=EXE -Djpackage.destSuffix=-exe
+
+      # - name: Image jlink + installer DMG (macOS)
+      #   if: runner.os == 'macOS'
+      #   shell: bash
+      #   run: |
+      #     mvn -B -ntp clean package -pl lift-gui -am -Pdist -DskipTests \
+      #       "-Djavafx.platform=${{ matrix.javafx }}" \
+      #       -Djpackage.type=DMG
+
+      - name: Publish artifacts on the GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: false
+          generate_release_notes: true
+          files: |
+            dist-electron/**/*
