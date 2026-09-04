@@ -385,13 +385,17 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
         mainPropertyMap[typeName] = propList.map((propIdentifier: any) => {
 
-          if (typeof propIdentifier === 'object' && propIdentifier !== null) {
-            return propIdentifier;
-          }
+          // Always reduce to a plain string key — a predicate URI or local
+          // name — whether the config gave us a string or a pre-built
+          // object ({ predicate, kind, schema, ... }). Never skip matching
+          // just because the entry happens to already be an object.
+          const key = (typeof propIdentifier === 'object' && propIdentifier !== null)
+            ? (propIdentifier.predicate || propIdentifier.uri)
+            : propIdentifier;
 
           const propDef = propertyDefs.find((p: any) =>
-            p.uri === propIdentifier ||
-            this.extractPropertyNameFromIRI(p.uri) === propIdentifier
+            p.uri === key ||
+            this.extractPropertyNameFromIRI(p.uri) === key
           ) || {};
 
           let matchedEntity: any = null;
@@ -400,7 +404,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
           for (let i = 0; i < entities.length; i++) {
             const entity = entities[i];
             const localName = this.extractPropertyNameFromIRI(entity.predicate);
-            if (entity.predicate === propIdentifier || localName === propIdentifier) {
+            if (entity.predicate === key || localName === key) {
               matchedEntity = entity;
               matchedIndex = i;
               break;
@@ -411,13 +415,25 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
             entities.splice(matchedIndex, 1);
           }
 
+          // Derive rangeUri / rangeLocalName from propDef.ranges — same
+          // logic cleanProperties() already uses for "other properties".
+          let rangeUri: any = null;
+          let rangeLocalName: any = null;
+          if (propDef.ranges?.length === 1) {
+            rangeUri = propDef.ranges[0].uri;
+            rangeLocalName = propDef.ranges[0].localName;
+          } else if (propDef.ranges?.length > 1) {
+            rangeUri = propDef.ranges.map((r: any) => r.uri);
+            rangeLocalName = propDef.ranges.map((r: any) => r.localName);
+          }
+
           if (matchedEntity) {
             matchedEntity.schema = {
-              uri: propIdentifier,
+              uri: key,
               label: propDef.label,
               cardinality: propDef.cardinality,
-              rangeLocalName: propDef.rangeLocalName,
-              rangeUri: propDef.rangeUri,
+              rangeLocalName,
+              rangeUri,
               domainUri: propDef.domainUri,
               domainLocalName: propDef.domainLocalName,
               datatypeCategory: propDef.datatypeCategory,
@@ -427,10 +443,9 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
             return matchedEntity;
           }
 
-          // No existing value yet — build a placeholder, give it a real
-          // predicate, and register it in selectedEntity.properties so
-          // it's tracked from the start (not orphaned once a value is added).
-          const predicateUri = propDef.uri || propIdentifier;
+          // No existing value yet — build a placeholder with a real
+          // predicate, so it's tracked from the start.
+          const predicateUri = propDef.uri || key;
 
           const placeholder: any = {
             predicate: predicateUri,
@@ -440,17 +455,15 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
               uri: predicateUri,
               label: propDef.label,
               cardinality: propDef.cardinality,
-              rangeLocalName: propDef.rangeLocalName,
-              rangeUri: propDef.rangeUri,
+              rangeLocalName,
+              rangeUri,
               domainUri: propDef.domainUri,
               domainLocalName: propDef.domainLocalName,
               datatypeCategory: propDef.datatypeCategory,
               datatypeUri: propDef.datatypeUri,
               lang: propDef.lang,
-            }, 
+            },
           };
-
-          // selectedEntity.properties.push(placeholder);
 
           return placeholder;
         });
