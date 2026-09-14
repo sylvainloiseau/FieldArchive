@@ -17,11 +17,13 @@ import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.RepositoryResult;
 import org.eclipse.rdf4j.rio.RDFFormat;
+import org.eclipse.rdf4j.rio.RDFParseException;
 import org.eclipse.rdf4j.rio.Rio;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -53,17 +55,8 @@ public class OntologyService {
 //    }
 
     private List<Map<String, String>> loadDefinedTypesFromFile(String classpathFile, String namespacePrefix) {
-        ClassPathResource resource = new ClassPathResource(classpathFile);
-        if (!resource.exists()) {
-            return List.of(); // no local definition shipped for this ontology, nothing to add
-        }
-
-        Model model;
-        try (InputStream is = resource.getInputStream()) {
-            RDFFormat format = Rio.getParserFormatForFileName(classpathFile).orElse(RDFFormat.RDFXML);
-            model = Rio.parse(is, "", format);
-        } catch (Exception e) {
-            e.printStackTrace();
+        Model model = parseOntologyModel(classpathFile).orElse(null);
+        if (model == null) {
             return List.of();
         }
 
@@ -100,6 +93,55 @@ public class OntologyService {
 
         result.sort(Comparator.comparing(m -> m.get("localName")));
         return result;
+    }
+
+    /**
+     * Parses an ontology file from the classpath, guessing the RDF format from its file name.
+     * Never throws: a missing resource or a parse failure is logged (with, when detectable, a
+     * hint about *why* it failed) and reported as an empty result, so that one broken or
+     * unsupported ontology file never prevents the application from starting or from serving
+     * the other, well-formed ontologies.
+     */
+    private Optional<Model> parseOntologyModel(String classpathFile) {
+        ClassPathResource resource = new ClassPathResource(classpathFile);
+        if (!resource.exists()) {
+            return Optional.empty(); // no local definition shipped for this ontology, nothing to add
+        }
+
+        RDFFormat format = Rio.getParserFormatForFileName(classpathFile).orElse(RDFFormat.RDFXML);
+
+        try (InputStream is = resource.getInputStream()) {
+            return Optional.of(Rio.parse(is, "", format));
+        } catch (RDFParseException e) {
+            System.err.println("WARNING: ontology file '" + classpathFile + "' could not be parsed as "
+                    + format.getName() + " (line " + e.getLineNumber() + ", column " + e.getColumnNumber() + "): "
+                    + e.getMessage() + owlXmlHint(resource));
+            return Optional.empty();
+        } catch (Exception e) {
+            System.err.println("WARNING: ontology file '" + classpathFile + "' could not be read: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * RDF4J's Rio only parses RDF serializations (RDF/XML, Turtle, ...); it has no parser for
+     * OWL/XML, OWL's native "Functional-Style XML" syntax, whose root element is a bare
+     * {@code <Ontology>} rather than {@code <rdf:RDF>} — that file is structurally not RDF/XML at
+     * all, so failing to parse it is expected, not a bug. Detect that shape and say so plainly,
+     * instead of leaving only a cryptic low-level parser error. Converting the file to RDF/XML
+     * (RDF4J ships no OWL/XML parser to switch to) is the only fix.
+     */
+    private String owlXmlHint(ClassPathResource resource) {
+        try (InputStream is = resource.getInputStream()) {
+            String head = new String(is.readNBytes(2048), StandardCharsets.UTF_8);
+            if (head.contains("<Ontology ") && head.contains("www.w3.org/2002/07/owl#")) {
+                return " -- this file looks like OWL/XML (Functional-Style XML) syntax, which RDF4J cannot parse;"
+                        + " re-export it as RDF/XML to fix this.";
+            }
+        } catch (Exception ignored) {
+            // best-effort hint only
+        }
+        return "";
     }
 
 
@@ -494,17 +536,8 @@ public class OntologyService {
             String file = (String) ontologyData.get("file");
             if (file == null || file.isBlank()) return new OntologySchemaDto(List.of(), List.of(), Map.of());
 
-            ClassPathResource resource = new ClassPathResource(file);
-            if (!resource.exists()) return new OntologySchemaDto(List.of(), List.of(), Map.of());
-
-            Model model;
-            try (InputStream is = resource.getInputStream()) {
-                RDFFormat format = Rio.getParserFormatForFileName(file).orElse(RDFFormat.RDFXML);
-                model = Rio.parse(is, "", format);
-            } catch (Exception e) {
-                e.printStackTrace();
-                return new OntologySchemaDto(List.of(), List.of(), Map.of());
-            }
+            Model model = parseOntologyModel(file).orElse(null);
+            if (model == null) return new OntologySchemaDto(List.of(), List.of(), Map.of());
 
             return OntologySchemaExtractor.extract(model, normalizeNamespace(p));
         });
