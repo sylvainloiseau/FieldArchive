@@ -4,7 +4,7 @@
       "name": "skos",
       "description": "An RDF vocabulary for describing the basic structure and content of concept schemes such as thesauri, classification schemes, subject heading lists, taxonomies, 'folksonomies', other types of controlled vocabulary, and also concept schemes embedded in glossaries and terminologies.",
       "url": "https://www.w3.org/2004/02/skos/",
-      "file": "ontologies/skos.owl",
+      "file": "ontologies/skos.rdf",
       "mainTypes": {
         "name": "Main Types",
         "value": [
