@@ -139,7 +139,12 @@ export class CreateEntityComponent implements OnInit {
         this.listSelectedTypes.push(
           {
             label: this.typeMode+':'+this.extractEntityTypeFromIRI(value),
-            iri :value
+            iri: value,
+            // Newly picked types are always created in the internal source: without this,
+            // entity-details' editEntity() (which keeps only source === 'internal' types)
+            // silently drops the new type when saving.
+            source: 'internal',
+            datasourceShortName: 'internal'
           }
         );
         this.entityForm.get('entityType')?.disable();
