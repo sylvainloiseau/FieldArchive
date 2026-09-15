@@ -1,6 +1,6 @@
 import { Component, Input,Inject, OnInit, OnDestroy,
   ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
-import { CommonModule, NgComponentOutlet  } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatButtonModule} from '@angular/material/button';
@@ -27,8 +27,7 @@ import { GestionRessourcesService } from '../../services/gestion-ressources.serv
     MatIconModule,
     MatBadgeModule,
     MatRadioModule,
-    MatDividerModule,
-    NgComponentOutlet 
+    MatDividerModule
   ],
   templateUrl: './rico-properties.component.html',
   styleUrl: './rico-properties.component.scss'

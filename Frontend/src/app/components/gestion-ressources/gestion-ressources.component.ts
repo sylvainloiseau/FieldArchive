@@ -36,7 +36,7 @@ import { ActivatedRoute } from '@angular/router';
     MatListModule,
     MatDialogModule,
     CdkAccordionModule,
-    EntityDetailsComponent, ListeEntitesComponent, SparqlComponent],
+    ListeEntitesComponent, SparqlComponent],
   templateUrl: './gestion-ressources.component.html',
   styleUrl: './gestion-ressources.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

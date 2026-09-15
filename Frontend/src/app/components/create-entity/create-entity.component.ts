@@ -9,7 +9,6 @@ import {MatIconModule} from '@angular/material/icon';
 
 import { debounceTime } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 import { MatDialog } from '@angular/material/dialog';
 
 import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
@@ -32,8 +31,7 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
   imports: [FormsModule,
     ReactiveFormsModule,
     CommonModule, 
-    MatSnackBarModule, 
-    FileViewerComponent,
+    MatSnackBarModule,
     MatButtonToggleModule,
     MatChipsModule,
     MatIconModule

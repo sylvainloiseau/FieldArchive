@@ -561,7 +561,7 @@
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">Project name</label>
         <div class="relative w-full">
-          @if (selectedProject?.name === activeProject?.name) {
+          @if (selectedProject.name === activeProject?.name) {
           <input
             class="w-full p-3 pr-10 bg-gray-50 border border-gray-200 rounded-lg
                   focus:outline-none focus:ring-0 focus:border-gray-200"
@@ -667,7 +667,7 @@
           Update Project
         </button>
 
-        @if (selectedProject?.name === originalProject!.name) {
+        @if (selectedProject.name === originalProject!.name) {
         <button
           (click)="onOpenProject(selectedProject)"
           [disabled]="activeProject?.name === selectedProject.name || isLoading"
