@@ -148,6 +148,7 @@ public class OntologyService {
     public OntologyService() {
         loadConfig();
         preloadSchemas();
+        buildDescendantsIndex();
     }
 
 
@@ -541,6 +542,35 @@ public class OntologyService {
 
             return OntologySchemaExtractor.extract(model, normalizeNamespace(p));
         });
+    }
+
+    private Map<String, Set<String>> descendantsIndex; // superclass URI -> direct subclass URIs
+
+    @SuppressWarnings("unchecked")
+    private void buildDescendantsIndex() {
+        descendantsIndex = new HashMap<>();
+        Map<String, Object> ontologies = (Map<String, Object>) ontologyConfig.get("ontologies");
+        if (ontologies == null) return;
+        for (String prefix : ontologies.keySet()) {
+            Map<String, List<String>> hierarchy = getOntologySchema(prefix).getHierarchy();
+            if (hierarchy == null) continue;
+            hierarchy.forEach((child, supers) -> supers.forEach(sup ->
+                    descendantsIndex.computeIfAbsent(sup, k -> new LinkedHashSet<>()).add(child)));
+        }
+    }
+
+    /** Returns typeIri plus every transitive subclass known from the loaded ontology schemas. */
+    public Set<String> expandWithSubtypes(String typeIri) {
+        Set<String> result = new LinkedHashSet<>();
+        Deque<String> toVisit = new ArrayDeque<>();
+        result.add(typeIri);
+        toVisit.push(typeIri);
+        while (!toVisit.isEmpty()) {
+            for (String child : descendantsIndex.getOrDefault(toVisit.pop(), Set.of())) {
+                if (result.add(child)) toVisit.push(child);
+            }
+        }
+        return result;
     }
 
 }

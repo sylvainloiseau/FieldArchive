@@ -107,12 +107,17 @@ export class GestionRessourcesService {
   /**
   * Récupère les entités par type / sans type
   */
-  getAllEntitiesByType(typeUrl: string | ''): Observable<any> {
-    if (typeUrl !== '') {
-      const params = new HttpParams().set('type', typeUrl);
-      return this.http.get<any>(`${this.rdfUrl}/entities`, { params });
+  getAllEntitiesByType(typeUrl: string | string[] | '', includeSubtypes = false): Observable<any> {
+    if (typeUrl === '') {
+      return this.http.get<any>(`${this.rdfUrl}/entities`);
     }
-    else return this.http.get<any>(`${this.rdfUrl}/entities`);
+    const typeUrls = Array.isArray(typeUrl) ? typeUrl : [typeUrl];
+    let params = new HttpParams();
+    for (const uri of typeUrls) {
+      params = params.append('type', uri);
+    }
+    if (includeSubtypes) params = params.set('includeSubtypes', 'true');
+    return this.http.get<any>(`${this.rdfUrl}/entities`, { params });
   }
 
 

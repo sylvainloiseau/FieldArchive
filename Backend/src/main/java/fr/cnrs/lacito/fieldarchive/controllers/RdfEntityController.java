@@ -27,13 +27,14 @@ public class RdfEntityController {
     // =========================
     @GetMapping("/entities")
     public List<RdfEntitySummaryDto> listEntities(
-            @RequestParam(value = "type", required = false) String type) {
+            @RequestParam(value = "type", required = false) List<String> types,
+            @RequestParam(value = "includeSubtypes", required = false, defaultValue = "false") boolean includeSubtypes) {
 
-        if (type != null) {
-            return service.listByType(type);
+        if (types == null || types.isEmpty()) {
+            return service.listWithoutType();
         }
 
-        return service.listWithoutType();
+        return service.listByTypes(types, includeSubtypes);
     }
 
     // =========================

@@ -286,43 +286,58 @@ public class RdfEntityService {
         conn.add(subject, pred, lit, ctx);
     }
 
-    public List<RdfEntitySummaryDto> listByType(String typeCurieOrIri) {
-
+    public List<RdfEntitySummaryDto> listByTypes(List<String> typeCuriesOrIris, boolean includeSubtypes) {
         requireProjectOpen();
-        if (typeCurieOrIri == null || typeCurieOrIri.isBlank()) {
+        if (typeCuriesOrIris == null || typeCuriesOrIris.isEmpty()) {
             throw new BadRequestException("Type parameter is mandatory.");
         }
 
-        IRI typeIri = vf.createIRI(expand(typeCurieOrIri));
-        List<RdfEntitySummaryDto> out = new ArrayList<>();
+        // Union, across every declared range, of (range ∪ its transitive subtypes).
+        Set<IRI> candidateTypes = new LinkedHashSet<>();
+        for (String typeCurieOrIri : typeCuriesOrIris) {
+            String seedIri = expand(typeCurieOrIri);
+            Set<String> seeds = includeSubtypes
+                    ? ontologyService.expandWithSubtypes(seedIri)
+                    : Set.of(seedIri);
+            for (String s : seeds) candidateTypes.add(vf.createIRI(s));
+        }
 
+        // De-dupe by subject: an entity may match more than one candidate type
+        // (e.g. two declared ranges whose subtype trees overlap). For each subject, also
+        // record which of the candidate types it is actually asserted with (matchedTypes),
+        // so callers can group results by the entity's own type rather than the requested range.
+        Map<IRI, RdfEntitySummaryDto> bySubject = new LinkedHashMap<>();
+        Map<IRI, Set<String>> matchedTypesBySubject = new LinkedHashMap<>();
         try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
-
-            try (var stmts = conn.getStatements(null, RDF.TYPE, typeIri)) {
-                while (stmts.hasNext()) {
-
-                    Statement st = stmts.next();
-                    Resource s = st.getSubject();
-                    if (!s.isIRI()) continue;
-
-                    IRI subject = (IRI) s;
-                    boolean internal = isInternalEntity(conn, subject);
-
-                    RdfEntitySummaryDto dto = new RdfEntitySummaryDto();
-                    dto.entityKey = keyFromIri(subject);
-                    dto.iri = subject.stringValue();
-                    dto.source = internal ? "internal" : "external";
-                    dto.editable = internal;
-                    dto.label = bestLabel(conn, subject);
-                    dto.creationDate = getCreationDate(conn, subject);
-                    dto.modificationDate = getModificationDate(conn, subject);
-
-                    out.add(dto);
+            for (IRI typeIri : candidateTypes) {
+                try (var stmts = conn.getStatements(null, RDF.TYPE, typeIri)) {
+                    while (stmts.hasNext()) {
+                        Resource s = stmts.next().getSubject();
+                        if (!(s instanceof IRI subject)) continue;
+                        bySubject.computeIfAbsent(subject, subj -> {
+                            boolean internal = isInternalEntity(conn, subj);
+                            RdfEntitySummaryDto dto = new RdfEntitySummaryDto();
+                            dto.entityKey = keyFromIri(subj);
+                            dto.iri = subj.stringValue();
+                            dto.source = internal ? "internal" : "external";
+                            dto.editable = internal;
+                            dto.label = bestLabel(conn, subj);
+                            dto.creationDate = getCreationDate(conn, subj);
+                            dto.modificationDate = getModificationDate(conn, subj);
+                            return dto;
+                        });
+                        matchedTypesBySubject
+                                .computeIfAbsent(subject, k -> new LinkedHashSet<>())
+                                .add(typeIri.stringValue());
+                    }
                 }
             }
         }
 
-        // Tri simple par label
+        bySubject.forEach((subject, dto) ->
+                dto.matchedTypes = new ArrayList<>(matchedTypesBySubject.get(subject)));
+
+        List<RdfEntitySummaryDto> out = new ArrayList<>(bySubject.values());
         out.sort(Comparator.comparing(a -> a.label == null ? "" : a.label));
         return out;
     }

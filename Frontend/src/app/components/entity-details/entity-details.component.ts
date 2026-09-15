@@ -20,7 +20,6 @@ import { RangeSelectionDialogComponent } from '../range-selection-dialog/range-s
 
 import {MatChipsModule} from '@angular/material/chips';
 import {MatIconModule} from '@angular/material/icon';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-entity-details',
@@ -69,6 +68,7 @@ export class EntityDetailsComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
 
   public listOfAllRanges : any[] = [];
+  public groupedRanges: { typeIri: string; typeLabel: string; entities: any[] }[] = [];
 
   private lastLoadedRangeUri: string = '';
 
@@ -883,6 +883,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
   getEntitiesByTypes(rangeUris: string[]): void {
     this.listOfAllRanges = [];
+    this.groupedRanges = [];
 
     if (!rangeUris || rangeUris.length === 0) {
       return;
@@ -890,20 +891,10 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
     const uniqueRangeUris = [...new Set(rangeUris)];
 
-    forkJoin(
-      uniqueRangeUris.map(uri =>
-        this.gestionRessourceService.getAllEntitiesByType(uri)
-      )
-    ).subscribe({
-      next: (results) => {
-        this.listOfAllRanges = results.flat();
-
-        //remove duplicate entities by IRI
-        // this.listOfAllRanges = Array.from(
-        //   new Map(
-        //     this.listOfAllRanges.map(entity => [entity.iri, entity])
-        //   ).values()
-        // );
+    this.gestionRessourceService.getAllEntitiesByType(uniqueRangeUris, true).subscribe({
+      next: (res) => {
+        this.listOfAllRanges = res;
+        this.groupedRanges = this.buildGroupedRanges(res);
       },
       error: (err) => {
         console.error("Error fetching possible ranges: ", err);
@@ -913,19 +904,49 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
 
   getEntitiesByType(rangeUri: string): void {
-    this.listOfAllRanges = []; 
     if (this.lastLoadedRangeUri === rangeUri && this.listOfAllRanges?.length) {
       return; // already loaded, don't refetch/reassign
     }
+    this.listOfAllRanges = [];
+    this.groupedRanges = [];
     this.lastLoadedRangeUri = rangeUri;
-    this.gestionRessourceService.getAllEntitiesByType(rangeUri).subscribe({
+    this.gestionRessourceService.getAllEntitiesByType(rangeUri, true).subscribe({
       next: (res) => {
         this.listOfAllRanges = res;
+        this.groupedRanges = this.buildGroupedRanges(res);
       },
       error: (err) => {
         console.error("Error fetching possible ranges: ", err);
-      } 
+      }
     });
+  }
+
+  /**
+   * Groups entities by their own asserted type(s) among those matched by the query
+   * (`matchedTypes`, set by the backend), sorted alphabetically by type label. An entity
+   * asserted with several matching types appears once per matching group.
+   */
+  private buildGroupedRanges(entities: any[]): { typeIri: string; typeLabel: string; entities: any[] }[] {
+    const groups = new Map<string, { typeIri: string; typeLabel: string; entities: any[] }>();
+
+    for (const entity of entities) {
+      const types: string[] = entity.matchedTypes && entity.matchedTypes.length
+        ? entity.matchedTypes
+        : [''];
+
+      for (const typeIri of types) {
+        if (!groups.has(typeIri)) {
+          groups.set(typeIri, {
+            typeIri,
+            typeLabel: typeIri ? this.extractPropertyNameFromIRI(typeIri) : 'Other',
+            entities: []
+          });
+        }
+        groups.get(typeIri)!.entities.push(entity);
+      }
+    }
+
+    return Array.from(groups.values()).sort((a, b) => a.typeLabel.localeCompare(b.typeLabel));
   }
 
   confirmAddAssociation() {
