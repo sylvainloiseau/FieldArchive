@@ -285,6 +285,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
           // this.getEntityPropertiesDict();
           this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
           this.buildTypesChips(data.types, this.ontologyLabels);
+          this.cleanProperties(this.ontologyLabels, this.selectedEntity);
           this.buildMainProperties(this.ontologyLabels);
           this.extractNameProperty(this.ontologyLabels);
           this.cdr.markForCheck();
@@ -717,7 +718,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     // this.getEntityPropertiesDict(); // ← ajouter
     this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
     this.buildTypesChips(this.selectedEntity.types, this.ontologyLabels);
-
+    this.cleanProperties(this.ontologyLabels, this.selectedEntity);
     this.buildMainProperties(this.ontologyLabels);
     this.extractNameProperty(this.ontologyLabels);
     this.cdr.markForCheck();
@@ -964,8 +965,8 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     // Rebuild derived views so the new property shows up correctly
     // (either inside mainProperties for its type, or in the ontology's "entities" / other-properties list)
     this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
-    this.buildMainProperties(this.ontologyLabels);
     this.cleanProperties(this.ontologyLabels, this.selectedEntity);
+    this.buildMainProperties(this.ontologyLabels);
     this.extractNameProperty(this.ontologyLabels);
 
     this.cdr.markForCheck();
