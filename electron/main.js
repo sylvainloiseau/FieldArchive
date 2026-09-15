@@ -41,7 +41,7 @@ async function startBackend() {
   const jarPath = app.isPackaged
     ? path.join(process.resourcesPath, 'Backend-0.0.1-SNAPSHOT.jar')
     : path.join(projectRoot, 'Backend', 'target', 'Backend-0.0.1-SNAPSHOT.jar');
-  
+
   const backendCwd = app.isPackaged
   ? process.resourcesPath
   : path.join(projectRoot, 'Backend');
@@ -129,7 +129,7 @@ function createWindow() {
     // MODE DEV :  ng serve (port 4200)
     console.log('[Electron] Mode développement — chargement depuis http://localhost:4200');
     mainWindow.loadURL('http://localhost:4200');
-    mainWindow.webContents.openDevTools();
+    //mainWindow.webContents.openDevTools();
   } else {
     // MODE PROD : charger le build Angular statique
     console.log('[Electron] Mode production — chargement depuis', indexPath);
