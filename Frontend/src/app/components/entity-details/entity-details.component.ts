@@ -43,6 +43,8 @@ import {MatIconModule} from '@angular/material/icon';
 })
 export class EntityDetailsComponent implements OnInit {
 
+  private readonly RICO_NAME_PREDICATE = 'https://www.ica.org/standards/RiC/ontology#name';
+
   selectedEntityId: string = "";  
   ontologyLabels: Record<string, any>[] = [];
   @Output() close = new EventEmitter<void>();
@@ -288,6 +290,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
           this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
           this.buildTypesChips(data.types, this.ontologyLabels);
           this.buildMainProperties(this.ontologyLabels);
+          this.extractNameProperty(this.ontologyLabels);
           this.cdr.markForCheck();
         },
         error: (err) => console.error("ERROR:", err)
@@ -515,6 +518,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
     for (const [key, value] of Object.entries(ontologyLabels)) {
       value.entities = [];
+      value.nameProperty = null;
     }
 
 
@@ -530,6 +534,91 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     }
 
     console.log("ONTOLOGY LABELS NEW :" ,ontologyLabels);
+  }
+
+  /**
+   * Pull rico:name out of the regular property lists so it can be rendered as
+   * its own "Name" section at the top of the form. The predicate's namespace
+   * only ever matches the RiC-O bucket built by buildEntityDetails(), so this
+   * naturally shows up on the RiC-O tab only.
+   */
+  extractNameProperty(ontologyLabels: any): void {
+
+    for (const [namespaceUri, ontologyData] of Object.entries<any>(ontologyLabels)) {
+
+      const entities: any[] = ontologyData?.entities || [];
+      const propertyDefs: any[] = ontologyData?.properties?.value || [];
+
+      let nameProperty: any = null;
+
+      // "Other Properties" backing array
+      const index = entities.findIndex(
+        (entity: any) => entity?.predicate === this.RICO_NAME_PREDICATE
+      );
+      if (index !== -1) {
+        nameProperty = entities.splice(index, 1)[0];
+      }
+
+      // Defensive: if configuration.json ever lists `name` under mainProperties,
+      // splice it out of there too so it is never rendered twice.
+      const mainProperties = ontologyData?.main_Properties;
+      if (mainProperties && typeof mainProperties === 'object') {
+        for (const propList of Object.values<any>(mainProperties)) {
+          if (!Array.isArray(propList)) {
+            continue;
+          }
+          for (let i = propList.length - 1; i >= 0; i--) {
+            if (propList[i]?.predicate === this.RICO_NAME_PREDICATE) {
+              const [spliced] = propList.splice(i, 1);
+              nameProperty = nameProperty || spliced;
+            }
+          }
+        }
+      }
+
+      // The entity carries no rico:name triple (creation always sets one, but
+      // imported entities may lack it) — render an empty, editable field.
+      if (!nameProperty && this.RICO_NAME_PREDICATE.startsWith(namespaceUri)) {
+        const propDef = propertyDefs.find(
+          (p: any) => p.uri === this.RICO_NAME_PREDICATE
+        ) || {};
+
+        nameProperty = {
+          predicate: this.RICO_NAME_PREDICATE,
+          kind: 'literal',
+          key: this.extractPropertyNameFromIRI(this.RICO_NAME_PREDICATE),
+          values: [{
+            value: '',
+            datatype: propDef.datatypeUri ?? 'http://www.w3.org/2001/XMLSchema#string',
+            lang: null,
+            name: '',
+            source: 'internal',
+            editing: true,
+            datasourceShortName: 'internal'
+          }],
+          schema: {
+            uri: this.RICO_NAME_PREDICATE,
+            label: propDef.label,
+            cardinality: propDef.cardinality,
+            rangeLocalName: propDef.ranges?.length === 1 ? propDef.ranges[0].localName : null,
+            rangeUri: propDef.ranges?.length === 1 ? propDef.ranges[0].uri : null,
+            domainUri: propDef.domainUri,
+            domainLocalName: propDef.domainLocalName,
+            datatypeCategory: propDef.datatypeCategory,
+            datatypeUri: propDef.datatypeUri,
+            lang: propDef.lang,
+          },
+        };
+
+        // Track it on the entity itself, otherwise editEntity() — which
+        // serializes selectedEntity.properties — would not persist the name.
+        if (this.selectedEntity?.properties) {
+          this.selectedEntity.properties.push(nameProperty);
+        }
+      }
+
+      ontologyData.nameProperty = nameProperty;
+    }
   }
 
   ontologyOrderComparator = (
@@ -595,6 +684,9 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
             // THEN build the object used by the template
             this.buildMainProperties(this.ontologyLabels);
 
+            // FINALLY pull rico:name out into its own top-level section
+            this.extractNameProperty(this.ontologyLabels);
+
             this.cdr.detectChanges();
           },
           error: (err) => console.error("ERROR:", err)
@@ -631,6 +723,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     this.buildTypesChips(this.selectedEntity.types, this.ontologyLabels);
 
     this.buildMainProperties(this.ontologyLabels);
+    this.extractNameProperty(this.ontologyLabels);
     this.cdr.markForCheck();
   }
 
@@ -877,6 +970,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
     this.buildMainProperties(this.ontologyLabels);
     this.cleanProperties(this.ontologyLabels, this.selectedEntity);
+    this.extractNameProperty(this.ontologyLabels);
 
     this.cdr.markForCheck();
   }
