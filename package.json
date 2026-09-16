@@ -32,18 +32,6 @@
       {
         "from": "Backend/target/Backend-0.0.1-SNAPSHOT.jar",
         "to": "Backend-0.0.1-SNAPSHOT.jar"
-      },
-      {
-        "from": "data",
-        "to": "data"
-      },
-      {
-        "from": "projects",
-        "to": "projects"
-      },
-      {
-        "from": "jre",
-        "to": "jre"
       }
     ],
     "win": {
@@ -51,7 +39,15 @@
       "icon": "electron/assets/icon.ico"
     },
     "mac": {
-      "target": "dmg",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
       "icon": "electron/assets/icon.icns"
     },
     "linux": {
