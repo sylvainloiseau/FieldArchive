@@ -21,16 +21,16 @@
           <ng-template #spinner>
             <div class="flex items-center gap-2">
 
-              <svg           
+              <svg
                 class="animate-spin h-5 w-5 text-white opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
               </svg>
-              
+
               <span class="text-white opacity-50 text-sm italic">Loading...</span>
             </div>
           </ng-template>
-          <p class="text-xs text-blue-100">RDF Project Entities Management</p>
+          <p class="text-xs text-blue-100">Manage the entities of the project</p>
         </div>
       </div>
 
@@ -38,7 +38,7 @@
       <!-- Right: View Tabs -->
 
       <div class="flex items-center gap-4">
-        <button 
+        <button
           (click)="router.navigate(['/gestion-sources'])"
           class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,9 +46,9 @@
           </svg>
           <span class="text-sm text-white font-medium">Datasources</span>
         </button>
-        
 
-        <button 
+
+        <button
           *ngIf="activeView !== 'sparql'"
           class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors"
           (click)="setView('sparql')" >
@@ -56,7 +56,7 @@
           <span  class="text-sm text-white font-medium">SPARQL</span>
         </button>
 
-        <button 
+        <button
           *ngIf="activeView === 'sparql'"
           class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors"
           (click)="setView('tableau')" [class.bg-white]="activeView === 'sparql'" [class.text-blue-600]="activeView === 'sparql'" [class.shadow-sm]="activeView === 'sparql'">
@@ -65,7 +65,7 @@
 
         </button>
 
-        <button 
+        <button
           (click)="router.navigate(['/gestion-projets'])"
           class="ml-10 cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <span class="text-sm text-white font-medium">Projects</span>
@@ -73,8 +73,8 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </button>
-      </div>   
-        
+      </div>
+
 
     </div>
   </header>
@@ -92,14 +92,14 @@
           <div class="flex items-center gap-3">
 
             <!-- Manage button (cleaner + modern) -->
-            <button 
+            <button
               class="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 hover:text-gray-900 border-none transition-all duration-200 shadow-sm hover:shadow">
-              
+
               <!-- Clean gear/sliders icon -->
-              <svg 
-                class="w-4 h-4" 
-                fill="none" 
-                stroke="blue" 
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="blue"
                 viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -122,16 +122,16 @@
           </span> -->
 
         </div>
-        
+
         <mat-accordion class="flex flex-col gap-2">
 
-          <mat-expansion-panel 
+          <mat-expansion-panel
             *ngFor="let ontology of ontologyLabels | keyvalue:ontologyOrderComparator"
             class="border-none! shadow-none! rounded-lg! overflow-hidden transition-all duration-200"
             [class.!bg-gray-50]="panelOpenState()"
-            (opened)="panelOpenState.set(true)" 
+            (opened)="panelOpenState.set(true)"
             (closed)="panelOpenState.set(false)">
-            
+
             <mat-expansion-panel-header class="px-3! py-2! hover:bg-gray-50! transition-colors duration-150 rounded-lg">
               <mat-panel-title class="text-sm font-medium text-gray-700">
                 {{ ontology.value.name }}
@@ -178,7 +178,7 @@
                 </button>
 
                 @if (accordionItem.expanded) {
-                  <button 
+                  <button
                     *ngFor="let entityType of item.value"
                     [class.bg-blue-50]="selectedType === entityType"
                     [class.border-l-3]="selectedType === entityType"
@@ -203,12 +203,12 @@
                 }
               </cdk-accordion-item>
               }
-              
+
             </cdk-accordion>
-            
+
 
           </mat-expansion-panel>
-          
+
           <mat-expansion-panel
             class="border-none! shadow-none! rounded-lg! overflow-hidden"
             [hideToggle]="true"
@@ -242,7 +242,7 @@
 
     <div *ngIf="activeView === 'tableau'" class="p-0! w-[85%]!" [@slideIn]>
       <div class="p-1! flex-1 overflow-y-auto bg-gray-50">
-        
+
       <app-liste-entites
         [ontologiesData]="ontologyLabels"
         [selectedType]="selectedType"

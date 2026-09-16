@@ -11,14 +11,14 @@
         </div>
         <div>
           <h1 class="text-xl font-bold text-white tracking-tight">RDF Data Sources Management</h1>
-          <p class="text-xs text-blue-100">Named graphs and RDF subgraphs</p>
+          <p class="text-xs text-blue-100">Manage external datasources</p>
         </div>
       </div>
 
       <!-- Right: navigation -->
       <div class="flex items-center gap-4">
 
-        <button 
+        <button
           (click)="router.navigate(['/gestion-ressources'])"
           class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,13 +28,13 @@
 
         </button>
 
-        <button 
-          (click)="router.navigate(['/gestion-ressources'], { queryParams: { view: 'sparql' } })"          
+        <button
+          (click)="router.navigate(['/gestion-ressources'], { queryParams: { view: 'sparql' } })"
           class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <span class="text-sm text-white font-medium">SPARQL</span>
         </button>
 
-        <button 
+        <button
           (click)="router.navigate(['/gestion-projets'])"
           class="ml-10 cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
           <span class="text-sm text-white font-medium">Projects</span>
@@ -42,7 +42,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </button>
-       
+
       </div>
     </div>
   </header>
@@ -69,7 +69,7 @@
 
         <!-- Actions Bar -->
         <div class="flex items-center gap-3 mb-6">
-          <button 
+          <button
             (click)="openCreateForm()"
             *ngIf="!showForm"
             class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-sm font-medium shadow-sm hover:shadow-md transform hover:scale-105 duration-200">
@@ -79,6 +79,7 @@
             <span>New Data Source</span>
           </button>
 
+          <!--
           <div *ngIf="!canCreateInternalSource()" class="px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
             <div class="flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,20 +88,21 @@
               <span>An internal data source already exists. You can only create external sources.</span>
             </div>
           </div>
+          -->
 
           <div class="flex-1"></div>
 
           <div class="flex items-center gap-2">
             <!-- IMPORT BUTTON -->
             <div class="relative">
-              <input 
-                #fileInput 
-                type="file" 
+              <input
+                #fileInput
+                type="file"
                 accept=".json"
                 (change)="onFileSelected($event)"
                 class="hidden">
-              
-              <button 
+
+              <button
                 (click)="fileInput.click()"
                 class="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 aria-label="Import configuration">
@@ -112,17 +114,17 @@
 
             <!-- FILTER BUTTON -->
             <div class="relative">
-              <button 
+              <button
                 (click)="toggleFilterMenu()"
                 [class.bg-blue-50]="showFilterMenu"
                 [class.border-blue-300]="showFilterMenu"
-                class="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" 
+                class="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 aria-label="Advanced filters">
                 <svg class="w-5 h-5" [class.text-blue-600]="showFilterMenu" [class.text-gray-600]="!showFilterMenu" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                 </svg>
               </button>
-              
+
               <!-- Filter Menu -->
               <div *ngIf="showFilterMenu" class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] p-4">
                 <div class="space-y-4">
@@ -130,7 +132,7 @@
                   <div>
                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Source type</h4>
                     <div class="flex gap-2">
-                      <button 
+                      <button
                         (click)="applyTypeFilter('ALL')"
                         [class.bg-blue-600]="filterType === 'ALL'"
                         [class.text-white]="filterType === 'ALL'"
@@ -138,7 +140,7 @@
                         class="px-3 py-1.5 rounded text-xs font-medium transition-colors">
                         All
                       </button>
-                      <button 
+                      <button
                         (click)="applyTypeFilter('INTERNAL')"
                         [class.bg-blue-600]="filterType === 'INTERNAL'"
                         [class.text-white]="filterType === 'INTERNAL'"
@@ -146,7 +148,7 @@
                         class="px-3 py-1.5 rounded text-xs font-medium transition-colors">
                         Internal
                       </button>
-                      <button 
+                      <button
                         (click)="applyTypeFilter('EXTERNAL')"
                         [class.bg-blue-600]="filterType === 'EXTERNAL'"
                         [class.text-white]="filterType === 'EXTERNAL'"
@@ -156,12 +158,12 @@
                       </button>
                     </div>
                   </div>
-                  
+
                   <!-- Tool Filter -->
                   <div *ngIf="getAvailableTools().length > 0">
                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Source tool</h4>
                     <div class="flex flex-wrap gap-2">
-                      <button 
+                      <button
                         (click)="applyToolFilter('ALL')"
                         [class.bg-blue-600]="filterTool === 'ALL'"
                         [class.text-white]="filterTool === 'ALL'"
@@ -169,7 +171,7 @@
                         class="px-3 py-1.5 rounded text-xs font-medium transition-colors">
                         All
                       </button>
-                      <button 
+                      <button
                         *ngFor="let tool of getAvailableTools()"
                         (click)="applyToolFilter(tool)"
                         [class.bg-blue-600]="filterTool === tool"
@@ -180,20 +182,20 @@
                       </button>
                     </div>
                   </div>
-                  
+
                   <!-- Search -->
                   <div>
                     <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Search</h4>
-                    <input 
+                    <input
                       type="text"
                       [(ngModel)]="searchTerm"
                       placeholder="Search..."
                       class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   </div>
-                  
+
                   <!-- Actions -->
                   <div class="pt-3 border-t border-gray-200 flex justify-end">
-                    <button 
+                    <button
                       (click)="resetFilters()"
                       class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors">
                       Reset
@@ -205,20 +207,20 @@
 
             <!-- EXPORT BUTTON -->
             <div class="relative">
-              <button 
+              <button
                 (click)="showExportMenu = !showExportMenu"
                 [class.bg-blue-50]="showExportMenu"
                 [class.border-blue-300]="showExportMenu"
-                class="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" 
+                class="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 aria-label="Export data">
                 <svg class="w-5 h-5" [class.text-blue-600]="showExportMenu" [class.text-gray-600]="!showExportMenu" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
               </button>
-              
+
               <!-- Export Menu -->
               <div *ngIf="showExportMenu" class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-[9999] py-1">
-                <button 
+                <button
                   (click)="exportAsJSON(); showExportMenu = false"
                   class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3">
                   <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,7 +228,7 @@
                   </svg>
                   <span>Export as JSON</span>
                 </button>
-                <button 
+                <button
                   (click)="exportAsCSV(); showExportMenu = false"
                   class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3">
                   <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +236,7 @@
                   </svg>
                   <span>Export as CSV</span>
                 </button>
-                <button 
+                <button
                   (click)="exportConfiguration(); showExportMenu = false"
                   class="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3">
                   <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,9 +290,9 @@
                   <label class="block text-sm font-medium text-gray-700 mb-2">
                     Short Name (Graph ID) *
                   </label>
-                  <input 
-                    type="text" 
-                    formControlName="shortName" 
+                  <input
+                    type="text"
+                    formControlName="shortName"
                     placeholder="e.g., lameta-recordings"
                     [readonly]="isEditing"
                     class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
@@ -304,9 +306,9 @@
                 <!-- Name -->
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Display Name *</label>
-                  <input 
-                    type="text" 
-                    formControlName="name" 
+                  <input
+                    type="text"
+                    formControlName="name"
                     placeholder="e.g., Lameta Audio Recordings"
                     class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"
                     [class.border-red-300]="dataSourceForm.get('name')?.invalid && dataSourceForm.get('name')?.touched">
@@ -318,8 +320,8 @@
                 <!-- Description -->
                 <div class="md:col-span-2">
                   <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <textarea 
-                    formControlName="description" 
+                  <textarea
+                    formControlName="description"
                     rows="3"
                     placeholder="Describe the content of this data source..."
                     class="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all"></textarea>
@@ -334,7 +336,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                       </svg>
                       <p class="text-sm text-blue-700">
-                        <strong>Note:</strong> External sources are read-only. 
+                        <strong>Note:</strong> External sources are read-only.
                         To modify this data, edit it in the source tool and then re-import.
                       </p>
                     </div>
@@ -387,14 +389,14 @@
 
               <!-- Form Actions -->
               <div class="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   (click)="cancelForm()"
                   class="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   [disabled]="!dataSourceForm.valid"
                   class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
                   {{ isEditing ? 'Update' : 'Create Source' }}
@@ -443,8 +445,8 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
-                <tr 
-                  *ngFor="let source of getFilteredSources()" 
+                <tr
+                  *ngFor="let source of getFilteredSources()"
                   (click)="selectDataSource(source)"
                   [class.bg-blue-50]="selectedDataSource?.id === source.id"
                   class="hover:bg-gray-50 cursor-pointer transition-colors group">
@@ -461,7 +463,7 @@
                     </div>
                   </td>
                   <td class="px-6 py-4">
-                    <span 
+                    <span
                       [class.bg-blue-100]="source.sourceType === 'INTERNAL'"
                       [class.text-blue-700]="source.sourceType === 'INTERNAL'"
                       [class.bg-purple-100]="source.sourceType === 'EXTERNAL'"
@@ -485,7 +487,7 @@
                     <span *ngIf="!source.lastSyncDate" class="text-gray-400">-</span>
                   </td>
                   <td class="px-6 py-4">
-                    <span 
+                    <span
                       [class.bg-green-100]="source.editable !== false"
                       [class.text-green-700]="source.editable !== false"
                       [class.bg-red-100]="source.editable === false"
@@ -499,28 +501,28 @@
                   </td>
                   <td class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        (click)="openEditForm(source); $event.stopPropagation()" 
+                      <button
+                        (click)="openEditForm(source); $event.stopPropagation()"
                         [disabled]="source.editable === false"
                         [class.opacity-50]="source.editable === false"
-                        class="text-blue-600 hover:text-blue-800 transition-colors disabled:cursor-not-allowed" 
+                        class="text-blue-600 hover:text-blue-800 transition-colors disabled:cursor-not-allowed"
                         [attr.aria-label]="source.editable === false ? 'Cannot edit external source' : 'Edit'">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
                       </button>
-                      <button 
+                      <button
                         *ngIf="source.sourceType === 'EXTERNAL'"
-                        (click)="reimportSource(source); $event.stopPropagation()" 
-                        class="text-purple-600 hover:text-purple-800 transition-colors" 
+                        (click)="reimportSource(source); $event.stopPropagation()"
+                        class="text-purple-600 hover:text-purple-800 transition-colors"
                         aria-label="Re-import">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                         </svg>
                       </button>
-                      <button 
-                        (click)="deleteDataSource(source); $event.stopPropagation()" 
-                        class="text-red-600 hover:text-red-800 transition-colors" 
+                      <button
+                        (click)="deleteDataSource(source); $event.stopPropagation()"
+                        class="text-red-600 hover:text-red-800 transition-colors"
                         aria-label="Delete">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -541,7 +543,7 @@
           </svg>
           <h3 class="mt-4 text-lg font-medium text-gray-900">No Data Sources</h3>
           <p class="mt-2 text-sm text-gray-500">Create your first source to start managing your RDF metadata</p>
-          <button 
+          <button
             (click)="openCreateForm()"
             class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -608,7 +610,7 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Type</label>
-              <span 
+              <span
                 [class.bg-blue-100]="selectedDataSource.sourceType === 'INTERNAL'"
                 [class.text-blue-700]="selectedDataSource.sourceType === 'INTERNAL'"
                 [class.bg-purple-100]="selectedDataSource.sourceType === 'EXTERNAL'"
@@ -620,7 +622,7 @@
 
             <div>
               <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Editable</label>
-              <span 
+              <span
                 [class.bg-green-100]="selectedDataSource.editable !== false"
                 [class.text-green-700]="selectedDataSource.editable !== false"
                 [class.bg-red-100]="selectedDataSource.editable === false"
@@ -652,12 +654,12 @@
 
           <!-- Import History -->
           <div *ngIf="selectedDataSource.previousImportDates && selectedDataSource.previousImportDates.length > 0">
-            <button 
+            <button
               (click)="toggleHistory(selectedDataSource.id!)"
               class="flex items-center justify-between w-full text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
               <span>Import History ({{ selectedDataSource.previousImportDates.length }})</span>
-              <svg 
-                class="w-4 h-4 transition-transform" 
+              <svg
+                class="w-4 h-4 transition-transform"
                 [class.rotate-180]="expandedHistory === selectedDataSource.id"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
