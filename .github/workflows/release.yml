@@ -67,6 +67,29 @@ jobs:
         with:
           fail_on_unmatched_files: false
           generate_release_notes: true
+          body: |
+            ## First launch on macOS
+
+            The macOS application is **not notarized by Apple** (notarization requires a paid
+            Developer ID this project does not have), so the first launch of the downloaded
+            app shows « Apple n'a pas pu confirmer que "FieldArchive" ne contenait pas de
+            logiciel malveillant… ». This is expected. Lift the restriction once, using
+            either route:
+
+            - **System Settings** (all recent macOS, including 15 Sequoia): drag
+              `FieldArchive.app` to `/Applications`, double-click it, dismiss the warning,
+              then open **System Settings → Privacy & Security**, and at the bottom of the
+              **Security** section click **Ouvrir quand même / Open Anyway** and confirm with
+              Touch ID or your password. On Sequoia, a second double-click and confirmation
+              may be needed.
+            - **Terminal** (one command), after copying the app to `/Applications`:
+              ```
+              xattr -dr com.apple.quarantine /Applications/FieldArchive.app
+              ```
+
+            Right-click → **Ouvrir** worked up to macOS 14 but no longer bypasses this check
+            on macOS 15 (Sequoia). See the [README](https://github.com/sylvainloiseau/fieldArchive#first-launch-on-macos)
+            for details.
           files: |
             dist-electron/*.dmg
             dist-electron/*.dmg.blockmap

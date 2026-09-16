@@ -14,6 +14,48 @@ Manage and describe linguistic fieldwork archive using RDF
 
 Download the latest release from the [GitHub releases page](https://github.com/sylvainloiseau/fieldArchive).
 
+### First launch on macOS
+
+The macOS application is **not notarized by Apple**, because notarization requires a paid
+Developer ID (Apple Developer Program, 99 USD/year) that this project does not have. As a
+consequence, the first time you open the downloaded application macOS displays:
+
+> « Apple n'a pas pu confirmer que "FieldArchive" ne contenait pas de logiciel malveillant… »
+> (*Apple could not verify "FieldArchive" is free of malware…*)
+
+This is expected and does not mean the application is broken. Downloading a file sets the
+`com.apple.quarantine` attribute on it, and macOS refuses to run a quarantined application
+that carries no notarization ticket. You only have to lift that restriction **once**; every
+later launch works normally. Choose either of the two routes below.
+
+#### Route 1 — System Settings (works on all recent macOS, including 15 Sequoia)
+
+1. Open the downloaded `.dmg` and drag **FieldArchive.app** into your `/Applications` folder.
+2. Double-click **FieldArchive** in `/Applications`. The warning above appears: dismiss it
+   (**Terminer** / **Done**).
+3. Open **System Settings → Privacy & Security** (*Réglages Système → Confidentialité et
+   sécurité*), scroll down to the bottom of the **Security** section: a notice reads
+   « "FieldArchive" a été bloqué… » (*"FieldArchive" was blocked…*).
+4. Click **Ouvrir quand même** / **Open Anyway** and confirm with Touch ID or your password.
+5. On macOS 15 (Sequoia) you may need to double-click the application a second time and
+   confirm once more. After that, FieldArchive opens directly.
+
+#### Route 2 — Terminal (a single command)
+
+After copying **FieldArchive.app** to `/Applications`, run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/FieldArchive.app
+```
+
+This removes the quarantine attribute, so the notarization check no longer applies and the
+application opens on a normal double-click.
+
+> **Note:** up to macOS 14, right-clicking the application and choosing **Ouvrir** / **Open**
+> was enough to bypass this warning. Apple removed that Control-click override in macOS 15
+> (Sequoia), so instructions you may find elsewhere telling you to right-click → Open no
+> longer work — use one of the two routes above instead.
+
 ## User manual
 
 See Doc/Manual.md
@@ -141,6 +183,17 @@ The application follows a three-layer architecture:
 - **Persistence**: an RDF4J NativeStore triplestore that persists RDF data on disk
 
 The communication between the frontend and backend is done via HTTP REST on port 8080. The frontend runs on port 4200 in development.
+
+### Create a release on GitHub
+
+A GitHub workflow (`.github/workflows/release.yml`) automatically builds the installers for **Linux**, **Windows** and **macOS** when a **tag** is pushed, for example :
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The artifacts are attached to the corresponding **Release** on GitHub (`.deb`, `.msi`, `.exe`, `.dmg` files according to the successful jobs).
 
 ### API REST
 

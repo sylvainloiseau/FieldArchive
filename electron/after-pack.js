@@ -10,10 +10,15 @@
 // usable signature as « FieldArchive » est endommagé et ne peut pas être ouvert — which
 // right-click → Ouvrir cannot bypass.
 //
-// An ad-hoc signature does not make the app *trusted*: users still get the "unidentified
-// developer" prompt on first launch. But that prompt is bypassable with right-click →
-// Ouvrir, so the app becomes installable. Removing the prompt entirely requires a paid
-// Developer ID certificate plus notarization.
+// An ad-hoc signature clears that *damaged* rejection, but it does not make the app
+// *trusted*: a quarantined download then hits the notarization gate instead, « Apple n'a
+// pas pu confirmer que "FieldArchive" ne contenait pas de logiciel malveillant… ». Users
+// clear that one themselves, once, either through System Settings → Privacy & Security →
+// Ouvrir quand même / Open Anyway, or with `xattr -dr com.apple.quarantine`. Note that
+// right-click → Ouvrir no longer bypasses Gatekeeper since macOS 15 (Sequoia), where Apple
+// removed the Control-click override. Removing the prompt entirely — i.e. actually
+// notarizing — requires a paid Developer ID certificate. See the "First launch on macOS"
+// section of README.md for the user-facing instructions.
 //
 // electron-builder runs afterPack *before* its own signing step (app-builder-lib
 // platformPackager.js: afterPack at :232, doSignAfterPack at :238). So if a real
