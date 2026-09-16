@@ -96,16 +96,24 @@
             <!-- IMPORT BUTTON -->
             <div class="relative">
               <input
-                #fileInput
+                #configFileInput
                 type="file"
                 accept=".json"
-                (change)="onFileSelected($event)"
+                (change)="onConfigFileSelected($event)"
                 class="hidden">
 
               <button
-                (click)="fileInput.click()"
+                (click)="configFileInput.click()"
                 class="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 aria-label="Import configuration">
+
+              <!-- Used by reimportSource() when the source has no usable recorded path -->
+              <input
+                #reimportFileInput
+                type="file"
+                accept=".ttl,.turtle"
+                (change)="onReimportFileSelected($event)"
+                class="hidden">
                 <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                 </svg>
@@ -345,15 +353,15 @@
 
                   <div class="md:col-span-2 w-full">
                       <label class="block text-sm font-medium text-gray-700 mb-2">
-                        RDF File
+                        File path (on the machine running FieldArchive)
                       </label>
 
                       <input
-                        #fileInput
+                        #rdfFileInput
                         type="file"
                         accept=".ttl,.turtle"
                         class="hidden"
-                        (change)="onFileSelected($event)"
+                        (change)="onRdfFileSelected($event)"
                       />
 
                       <div class="flex w-full gap-1 items-center">
@@ -364,24 +372,18 @@
                           Import
                         </button>
 
-                        <!-- <input
-                          type="text"
-                          formControlName="url"
-                          readonly
-                          placeholder="file:///path/to/data.ttl or https://example.com/data.rdf"
-                          class="w-full px-3 py-2.5 border border-gray-300 rounded-lg"
-                        > -->
                         <input
                           type="text"
                           formControlName="url"
-                          readonly
-                          placeholder="Select a file"
+                          placeholder="/absolute/path/to/data.ttl"
                           class="w-full px-3 py-2.5 border border-gray-300 rounded-lg"
                         >
                       </div>
 
                       <p class="mt-1 text-xs text-gray-500">
-                        Path to the RDF file to import
+                        Filled automatically in the desktop app; in a browser, type the absolute
+                        path yourself. Optional — without it the file is still imported, but
+                        re-importing will ask you to select it again.
                       </p>
                   </div>
                 </ng-container>

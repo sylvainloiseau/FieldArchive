@@ -58,7 +58,7 @@ export class FileViewerComponent implements OnInit {
 
   async openFile(pathParam: string) {
 
-    let path = pathParam !== '' ? pathParam : await window.electronAPI.selectFile();
+    let path = pathParam !== '' ? pathParam : await window.electronAPI?.selectFile();
 
     if (path) {
       this.filePathChange.emit(path);

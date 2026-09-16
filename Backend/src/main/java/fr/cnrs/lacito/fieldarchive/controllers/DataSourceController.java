@@ -68,10 +68,15 @@ public class DataSourceController {
         return ResponseEntity.ok(Map.of("status", "created"));
     }
 
+    // @RequestParam rather than @RequestPart so the historical body-less POST keeps working
+    // while a multipart upload also binds (same style as ProjectController.importBackup).
     @PostMapping("/{shortName}/sync")
-    public ResponseEntity<?> syncExternal(@PathVariable String shortName) {
+    public ResponseEntity<?> syncExternal(
+            @PathVariable String shortName,
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "sourceLocation", required = false) String sourceLocation) {
 
-        dataSourceService.synchronizeExternalDataSource(shortName);
+        dataSourceService.synchronizeExternalDataSource(shortName, file, sourceLocation);
         return ResponseEntity.ok(Map.of("status", "synchronized"));
     }
 

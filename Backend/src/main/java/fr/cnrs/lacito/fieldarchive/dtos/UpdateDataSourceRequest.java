@@ -8,4 +8,7 @@ import lombok.Setter;
 public class UpdateDataSourceRequest {
     private String longName;
     private String description;
+
+    // external sources only: path of the RDF file to re-read on sync
+    private String sourceLocation;
 }

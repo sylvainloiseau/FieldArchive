@@ -67,9 +67,16 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
 
   //props pour les stats
   showExportMenu = false;
-  selectedFile: File | null | any = null;
+  selectedFile: File | null = null;
 
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  // The source awaiting a file for re-import, set while the picker is open.
+  private pendingReimport: DataSource | null = null;
+
+  // Three distinct hidden inputs: a single #fileInput ref used to resolve to whichever
+  // came first in the template (the .json one), so the wrong picker opened.
+  @ViewChild('rdfFileInput') rdfFileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('configFileInput') configFileInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('reimportFileInput') reimportFileInput!: ElementRef<HTMLInputElement>;
 
   constructor(
     private dataSourceService: DataSourceHttpService,
@@ -92,11 +99,11 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   }
 
   onImportFile(): void {
-    this.fileInput.nativeElement.value = ''; // reset so re-selecting the same file still fires 'change'
-    this.fileInput.nativeElement.click();
+    this.rdfFileInput.nativeElement.value = ''; // reset so re-selecting the same file still fires 'change'
+    this.rdfFileInput.nativeElement.click();
   }
 
-  onFileSelected(event: Event): void {
+  onRdfFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
@@ -105,10 +112,25 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     this.selectedFile = file;
     this.isFileLoading = true;
 
-    this.dataSourceForm.patchValue({
-      url: this.selectedFile.path
-    });
-    console.log('Selected file:', this.selectedFile);
+    // A browser never exposes an absolute path; Electron does, through the preload bridge.
+    // Leave whatever the user typed in place when no path comes back.
+    const path = this.pathOf(file);
+    if (path) {
+      this.dataSourceForm.patchValue({ url: path });
+    }
+    console.log('Selected file:', file.name, 'path:', path ?? '(unavailable)');
+  }
+
+  /** Absolute path of a picked file, when running inside Electron. */
+  private pathOf(file: File): string | undefined {
+    return window.electronAPI?.getPathForFile?.(file) || undefined;
+  }
+
+  onConfigFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.[0]) return;
+    input.value = '';
+    this.showNotification('Configuration import is not available yet.', 'info');
   }
  
   ngOnInit(): void {
@@ -192,11 +214,15 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   }
  
   openEditForm(dataSource: DataSource): void {
-    if (dataSource.editable === false) {
-      this.showNotification('External sources cannot be edited. Edit in source tool and re-import.', 'warning');
-      return;
+    // The *content* of an external source stays read-only, but its metadata — name,
+    // description, and above all the file path used on re-import — must be editable.
+    if (dataSource.sourceType === 'EXTERNAL') {
+      this.showNotification(
+        'External data is read-only: you can edit the name, description and file path only.',
+        'info'
+      );
     }
- 
+
     this.showForm = true;
     this.isEditing = true;
     this.currentEditId = dataSource.id || null;
@@ -230,14 +256,9 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
         return;
       }
       
-      //vérification external
-      if (formValue.sourceType === 'EXTERNAL') {
-        if (!formValue.url || formValue.url.trim() === '') {
-          this.showNotification('RDF file path is required for external sources.', 'error');
-          return;
-        }
-      }
-      
+      // No path check here: an external source can be created from the uploaded bytes
+      // alone. Without a path it simply is not syncable in one click (see reimportSource).
+
       if (this.isEditing && this.currentEditId) {
         this.updateDataSource(this.currentEditId, formValue);
       } else {
@@ -356,21 +377,64 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   }
  
   reimportSource(dataSource: DataSource): void {
-    if (confirm(`Re-import from ${dataSource.url}?`)) {
-      this.dataSourceService.syncExternalSource(dataSource.shortName)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.showNotification('Data re-imported', 'success');
-          },
-          error: (error) => {
-            this.showNotification(
-              `Error: ${error.message}`, 
-              'error'
-            );
-          }
-        });
+    if (dataSource.url) {
+      if (confirm(`Re-import "${dataSource.name}" from ${dataSource.url}?`)) {
+        this.syncSource(dataSource);
+      }
+      return;
     }
+
+    // Nothing recorded to read back from: ask for the file and upload its bytes.
+    if (confirm(`No file path is recorded for "${dataSource.name}". Select the RDF file to re-import?`)) {
+      this.pickFileForReimport(dataSource);
+    }
+  }
+
+  private syncSource(dataSource: DataSource, file?: File, sourceLocation?: string): void {
+    this.dataSourceService.syncExternalSource(dataSource.shortName, file, sourceLocation)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.showNotification('Data re-imported', 'success');
+        },
+        error: (error) => {
+          // The recorded path is unusable — offer the picker rather than dead-ending.
+          if (!file && this.isMissingFileError(error)) {
+            if (confirm(`${error.message}\n\nSelect the RDF file to re-import now?`)) {
+              this.pickFileForReimport(dataSource);
+              return;
+            }
+          }
+          this.showNotification(`Error: ${error.message}`, 'error');
+        }
+      });
+  }
+
+  /** True for the 400s that mean "the file I was told about is not usable". */
+  private isMissingFileError(error: any): boolean {
+    const message = String(error?.message ?? '');
+    return error?.status === 400 && (
+      message.includes('No file location recorded') ||
+      message.includes('RDF file not found')
+    );
+  }
+
+  private pickFileForReimport(dataSource: DataSource): void {
+    this.pendingReimport = dataSource;
+    this.reimportFileInput.nativeElement.value = '';
+    this.reimportFileInput.nativeElement.click();
+  }
+
+  onReimportFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    const dataSource = this.pendingReimport;
+    this.pendingReimport = null;
+
+    if (!file || !dataSource) return;
+
+    // Passing the path along (when Electron gives us one) makes the next sync one-click.
+    this.syncSource(dataSource, file, this.pathOf(file));
   }
  
   selectDataSource(source: DataSource): void {

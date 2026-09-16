@@ -60,27 +60,6 @@ export class DataSourceHttpService {
   }
 
 
-  // createExternalSource(data: CreateExternalDataSourceRequest): Observable<DataSource> {
-  //   console.log('📡 POST /datasources/external', data);
-
-  //   const payload = {
-  //     shortName: data.shortName,
-  //     name: data.name,
-  //     description: data.description || '',
-  //     sourceTool: data.tool || '',
-  //     sourceLocation: data.url || ''
-  //   };
-
-  //   return this.http.post<any>(`${this.apiUrl}/external`, payload).pipe(
-  //     map(source => this.mapSingleBackendToFrontend(source)),
-  //     tap(created => {
-  //       console.log('✅ External source created:', created);
-  //       this.refreshDataSources();
-  //     }),
-  //     catchError(this.handleError)
-  //   );
-  // }
-
   /**
   * POST /datasources/external - Crée une source externe avec son fichier
   */
@@ -89,11 +68,20 @@ export class DataSourceHttpService {
 
     const formData = new FormData();
 
+    // Map the form value onto the backend DTO: the form calls the path `url`, the
+    // backend expects `sourceLocation`, and Jackson silently drops unknown names.
+    const payload = {
+      shortName: data.dataSource.shortName,
+      name: data.dataSource.name,
+      description: data.dataSource.description || '',
+      sourceLocation: data.dataSource.url || ''
+    };
+
     // Datasource metadata
     formData.append(
       'dataSource',
       new Blob(
-        [JSON.stringify(data.dataSource)],
+        [JSON.stringify(payload)],
         { type: 'application/json' }
       )
     );
@@ -123,7 +111,8 @@ export class DataSourceHttpService {
     const payload = {
       //name: data.name,
       longName: data.name,
-      description: data.description
+      description: data.description,
+      sourceLocation: data.url
     };
     //Debug
     console.log('Payload envoyé:', payload);  
@@ -155,11 +144,25 @@ export class DataSourceHttpService {
 
   /**
    * POST /datasources/{shortName}/sync - Réimporte depuis le fichier
+   *
+   * Without `file`, the backend re-reads the path it recorded for the source. With one,
+   * it imports the uploaded bytes instead — which also works when no path is known, or
+   * when the backend runs on another machine.
    */
-  syncExternalSource(shortName: string): Observable<void> {
-    console.log(`📡 POST /datasources/${shortName}/sync`);
+  syncExternalSource(shortName: string, file?: File, sourceLocation?: string): Observable<void> {
+    console.log(`📡 POST /datasources/${shortName}/sync`, file?.name ?? '(no file)');
 
-    return this.http.post<void>(`${this.apiUrl}/${shortName}/sync`, {}).pipe(
+    let body: FormData | {} = {};
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file, file.name);
+      if (sourceLocation) {
+        formData.append('sourceLocation', sourceLocation);
+      }
+      body = formData;
+    }
+
+    return this.http.post<void>(`${this.apiUrl}/${shortName}/sync`, body).pipe(
       tap(() => {
         console.log('✅ Source synchronized');
         this.refreshDataSources();
@@ -230,6 +233,10 @@ export class DataSourceHttpService {
     if (error.error instanceof ErrorEvent) {
       // Erreur côté client
       errorMessage = `Erreur: ${error.error.message}`;
+    } else if (error.error && typeof error.error === 'object' && error.error.error) {
+      // ApiExceptionHandler answers {"error": "..."} — that message is the useful one,
+      // and callers branch on it (e.g. to offer a file picker when no path is recorded).
+      errorMessage = error.error.error;
     } else {
       // Erreur côté serveur
       errorMessage = `Erreur ${error.status}: ${error.message}`;
@@ -240,6 +247,8 @@ export class DataSourceHttpService {
     }
 
     console.error('❌ HTTP Error:', errorMessage, error);
-    return throwError(() => new Error(errorMessage));
+    const wrapped = new Error(errorMessage) as Error & { status?: number };
+    wrapped.status = error.status;
+    return throwError(() => wrapped);
   }
 }

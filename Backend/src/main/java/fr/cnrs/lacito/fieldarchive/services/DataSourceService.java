@@ -58,6 +58,23 @@ public class DataSourceService {
         return vf.createIRI(RdfNamespaces.APP, "InternalDataSource");
     }
 
+    /**
+     * Canonical form of a user-supplied file location: trimmed, without any {@code file://}
+     * prefix. Returns null when nothing usable is left, so the write and read paths agree on
+     * what "no location" means.
+     */
+    private String normalizeFileLocation(String raw) {
+        if (raw == null) return null;
+        String clean = raw.trim();
+        if (clean.startsWith("file:///")) {
+            clean = clean.substring(7);      // keep the leading '/' of the absolute path
+        } else if (clean.startsWith("file://")) {
+            clean = clean.substring(7);
+        }
+        clean = clean.trim();
+        return clean.isEmpty() ? null : clean;
+    }
+
     private IRI pShortName() {
         return vf.createIRI(RdfNamespaces.APP, "shortName");
     }
@@ -312,6 +329,15 @@ public class DataSourceService {
                     conn.add(ds, DCTERMS.DESCRIPTION, vf.createLiteral(req.getDescription()), ctxMeta);
                 }
             }
+            // sourceLocation -> app:sourceLocation (lets a user repoint a moved file)
+            if (req.getSourceLocation() != null) {
+                conn.remove(ds, pSourceLocation(), null, ctxMeta);
+                String location = normalizeFileLocation(req.getSourceLocation());
+                if (location != null) {
+                    conn.add(ds, pSourceLocation(), vf.createLiteral(location), ctxMeta);
+                }
+            }
+
             // Mise à jour automatique de la date de modification
             String now = OffsetDateTime.now().toString();
             conn.remove(ds, pLastSync(), null, ctxMeta);
@@ -396,10 +422,13 @@ public class DataSourceService {
             conn.add(ds, pSourceType(), vf.createLiteral("external"), ctxMeta);
             conn.add(ds, pEditable(), vf.createLiteral(false), ctxMeta);
 
-//            // persist the source location — currently never written!
-//            if (req.getUrl() != null && !req.getUrl().isBlank()) {
-//                conn.add(ds, pSourceLocation(), vf.createLiteral(req.getUrl()), ctxMeta);
-//            }
+            // Persisted so later re-imports can re-read the file without asking again.
+            // Absent is not fatal: the uploaded bytes are still imported below, the source
+            // simply is not syncable by path until a location is supplied.
+            String sourceLocation = normalizeFileLocation(req.getSourceLocation());
+            if (sourceLocation != null) {
+                conn.add(ds, pSourceLocation(), vf.createLiteral(sourceLocation), ctxMeta);
+            }
 
             String now = OffsetDateTime.now().toString();
             conn.add(ds, DCTERMS.CREATED, vf.createLiteral(now), ctxMeta);
@@ -442,7 +471,19 @@ public class DataSourceService {
     }
 
 
-    public void synchronizeExternalDataSource(String shortName) {
+    /**
+     * Replaces the content of an external source's named graph.
+     *
+     * <p>Two ways in: either the caller uploads the bytes ({@code uploadedFile}), which works
+     * whatever machine the file sits on, or the source has an {@code app:sourceLocation}
+     * recorded and the backend re-reads that path from its own filesystem.</p>
+     *
+     * @param uploadedFile      optional freshly uploaded RDF file; wins over the recorded path
+     * @param newSourceLocation optional path to remember, so the next sync is one click
+     */
+    public void synchronizeExternalDataSource(String shortName,
+                                              MultipartFile uploadedFile,
+                                              String newSourceLocation) {
 
         requireProjectOpen();
         validateShortName(shortName);
@@ -466,69 +507,94 @@ public class DataSourceService {
                 );
             }
 
-            // 3 Récupérer le graphe et le fichier
+            // 3 Le graphe à remplacer
             String graphIri = getIri(conn, ds, pGraph(), ctxMeta);
-            String filePath = getLiteral(conn, ds, pSourceLocation(), ctxMeta);
-
-            if (graphIri == null || filePath == null) {
+            if (graphIri == null) {
                 throw new BadRequestException(
-                        "Graphe ou chemin du fichier manquant"
+                        "Graphe manquant pour la source : " + shortName
                 );
             }
-
             IRI ctxGraph = vf.createIRI(graphIri);
 
-            // 4 Transaction RDF
-            conn.begin();
-
-            // 5 Vider le graphe
-            conn.clear(ctxGraph);
-
-            // 6 Lire le fichier RDF
-            /*Path path = Path.of(filePath);
-
-            if (!Files.exists(path)) {
-                throw new BadRequestException(
-                        "Fichier RDF introuvable : " + filePath
-                );
-            }*/
-
-            String cleanPath = filePath;
-            if (cleanPath.startsWith("file:///")) {
-                cleanPath = cleanPath.substring(8);  // Enlève "file:///"
-            } else if (cleanPath.startsWith("file://")) {
-                cleanPath = cleanPath.substring(7);   // Enlève "file://"
+            // 4a Bytes uploaded by the client: no filesystem access needed on this side
+            if (uploadedFile != null && !uploadedFile.isEmpty()) {
+                String location = normalizeFileLocation(newSourceLocation);
+                String label = uploadedFile.getOriginalFilename() != null
+                        ? uploadedFile.getOriginalFilename()
+                        : "uploaded file";
+                try (InputStream in = uploadedFile.getInputStream()) {
+                    replaceGraphContent(conn, ds, ctxGraph, ctxMeta, in, location, label);
+                } catch (IOException e) {
+                    throw new BadRequestException(
+                            "Unreadable uploaded file " + label + " : " + e.getMessage()
+                    );
+                }
+                return;
             }
 
-            System.out.println("📍 Original path: " + filePath);
-            System.out.println("📂 Clean path: " + cleanPath);
+            // 4b Otherwise re-read the location recorded at creation / edition time
+            String location = normalizeFileLocation(
+                    getLiteral(conn, ds, pSourceLocation(), ctxMeta)
+            );
+            if (location == null) {
+                throw new BadRequestException(
+                        "No file location recorded for this source. " +
+                        "Set its location or re-import by selecting the file."
+                );
+            }
 
-            Path path = Path.of(cleanPath);
-
-            System.out.println("✅ Absolute path: " + path.toAbsolutePath());
-
+            Path path = Path.of(location);
             if (!Files.exists(path)) {
                 throw new BadRequestException(
-                        "Fichier RDF introuvable : " + path.toAbsolutePath()
+                        "RDF file not found: " + path.toAbsolutePath()
                 );
             }
 
             try (InputStream in = Files.newInputStream(path)) {
-                conn.add(in, "", RDFFormat.TURTLE, ctxGraph);
-                long tripleCount = conn.size(ctxGraph);
-                System.out.println("📊 Imported " + tripleCount + " triples into graph: " + ctxGraph);
+                replaceGraphContent(conn, ds, ctxGraph, ctxMeta, in, null,
+                        path.toAbsolutePath().toString());
+            } catch (IOException e) {
+                throw new BadRequestException(
+                        "Unreadable RDF file " + path.toAbsolutePath() + " : " + e.getMessage()
+                );
             }
+        }
+    }
 
-            // 7 Mettre à jour lastSync
+    /**
+     * Empties {@code ctxGraph} and re-fills it from {@code in}, then refreshes app:lastSync —
+     * all in one transaction, so a parse failure rolls back instead of leaving the source empty.
+     * When {@code newLocation} is non-null it is upserted as app:sourceLocation.
+     */
+    private void replaceGraphContent(RepositoryConnection conn,
+                                     IRI ds,
+                                     IRI ctxGraph,
+                                     IRI ctxMeta,
+                                     InputStream in,
+                                     String newLocation,
+                                     String fileLabel) {
+        conn.begin();
+        try {
+            conn.clear(ctxGraph);
+            conn.add(in, "", RDFFormat.TURTLE, ctxGraph);
+
             String now = OffsetDateTime.now().toString();
             conn.remove(ds, pLastSync(), null, ctxMeta);
             conn.add(ds, pLastSync(), vf.createLiteral(now), ctxMeta);
 
-            // 8 Commit
+            if (newLocation != null) {
+                conn.remove(ds, pSourceLocation(), null, ctxMeta);
+                conn.add(ds, pSourceLocation(), vf.createLiteral(newLocation), ctxMeta);
+            }
+
             conn.commit();
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Erreur lors de la synchronisation", e);
+        } catch (Exception e) {
+            conn.rollback();
+            // A malformed or unreadable file is the caller's problem, not a server fault:
+            // report it as a 400 naming the file rather than a generic 500.
+            throw new BadRequestException(
+                    "Import failed for " + fileLabel + " : " + e.getMessage()
+            );
         }
     }
 
