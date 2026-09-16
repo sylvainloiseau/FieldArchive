@@ -19,6 +19,7 @@
     "directories": {
       "output": "dist-electron"
     },
+    "afterPack": "./electron/after-pack.js",
     "files": [
       "electron/**/*",
       "node_modules/**/*"
