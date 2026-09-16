@@ -328,7 +328,8 @@ public class DataSourceService {
         requireProjectOpen();
         validateShortName(shortName);
         // RÈGLE MÉTIER : la source interne ne peut pas être supprimée
-        if ("internal".equalsIgnoreCase(shortName)) {
+        String internalShortName = projectService.readCurrentProject().name + "_internal";
+        if (internalShortName.equalsIgnoreCase(shortName)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "La source interne ne peut pas être supprimée"
