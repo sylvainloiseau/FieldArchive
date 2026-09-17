@@ -1,30 +1,31 @@
 # FieldArchive — An application for the description of linguistic fieldwork data
 
-Manage and describe linguistic fieldwork archive using RDF
+Manage and describe linguistic fieldwork archives using RDF.
 
 ## Features
 
-- Create and manage projects
-- Define one or more ExternalDataSource to your project: an ExternalDataSource is an RDF files exported from another app, whose data will not be editable in the FieldArchive application and that you can import again, erasing the previous import.
-- perform record linkage between the various data source, allowing to aggregated description of place, person, event, document, realia comming from various annotation tools
-- Create and edit entities (person, place, document, event...) in the app
-- Perform query on the data
+- Create and manage projects.
+- Define optional *ExternalDataSources* for your project: an ExternalDataSource is an RDF file exported from another application (a photo editor, etc.) that you can import into FieldArchive. Such a dataset is not editable within FieldArchive, but you can replace it with a fresh import (syncing) so that it reflects the changes you have made in the third-party application.
+- Perform *record linkage* (matching, deduplication) between corresponding entities in different ExternalDataSources, producing an aggregated description of the places, persons, events, documents and realia coming from various annotation tools.
+- Extend the application with additional RDF ontologies (for complex biographical information, detailed proper-name descriptions, etc.): the ontologies are loaded by the application at startup, and the types and properties they define become available in every editing form.
+- Create and edit entities (person, place, document, event, etc.) within the app.
+- Query the data with SPARQL.
 
 ## Installation
 
-Download the latest release from the [GitHub releases page](https://github.com/sylvainloiseau/fieldArchive) for your OS.
+Download the latest release from the [GitHub releases page](https://github.com/sylvainloiseau/FieldArchive/releases) for your OS.
 
 ### Prerequisite
 
-A java runtime environment.
+A Java runtime environment (JRE or JDK), version 17 or later, available on your `PATH`.
 
 ### First launch on macOS
 
 The macOS application is **not notarized by Apple**, because notarization requires a paid
-Developer ID. As a
-consequence, the first time you open the downloaded application macOS displays:
+Developer ID. As a consequence, the first time you open the downloaded application, macOS
+displays a warning of the form:
 
-> (*Apple could not verify "FieldArchive" is free of malware…*)
+> *Apple could not verify "FieldArchive" is free of malware…*
 
 This is expected and does not mean the application is broken. Downloading a file sets the
 `com.apple.quarantine` attribute on it, and macOS refuses to run a quarantined application
@@ -35,9 +36,9 @@ later launch works normally. Choose either of the two routes below.
 
 1. Open the downloaded `.dmg` and drag **FieldArchive.app** into your `/Applications` folder.
 2. Double-click **FieldArchive** in `/Applications`. The warning above appears: dismiss it
-   (**Terminer** / **Done**).
-3. Open **System Settings → Privacy & Security**, scroll down to the bottom of the **Security** section: a notice reads
-   (*"FieldArchive" was blocked…*).
+   with **Done**.
+3. Open **System Settings → Privacy & Security** and scroll to the bottom of the
+   **Security** section, where a notice reads *"FieldArchive" was blocked…*.
 4. Click **Open Anyway** and confirm with Touch ID or your password.
 5. On macOS 15 (Sequoia) you may need to double-click the application a second time and
    confirm once more. After that, FieldArchive opens directly.
@@ -50,16 +51,17 @@ After copying **FieldArchive.app** to `/Applications`, run:
 xattr -dr com.apple.quarantine /Applications/FieldArchive.app
 ```
 
-This removes the quarantine attribute, so the notarization check no longer applies and the application opens on a normal double-click.
+This removes the quarantine attribute, so the notarization check no longer applies and the
+application opens on a normal double-click.
 
-> **Note:** up to macOS 14, right-clicking the application and choosing ***Open**
+> **Note:** up to macOS 14, right-clicking the application and choosing **Open**
 > was enough to bypass this warning. Apple removed that Control-click override in macOS 15
 > (Sequoia), so instructions you may find elsewhere telling you to right-click → Open no
 > longer work — use one of the two routes above instead.
 
 ## User manual
 
-See Doc/Manual.md
+See [Doc/Manual.md](Doc/Manual.md).
 
 ## Running the application from sources
 
@@ -75,8 +77,8 @@ Running the project from sources requires:
 ### Clone the project
 
 ```bash
-git clone https://github.com/sylvainloiseau/fieldArchive
-cd fieldArchive
+git clone https://github.com/sylvainloiseau/FieldArchive
+cd FieldArchive
 ```
 
 ### Run the application in a browser from the sources
@@ -90,14 +92,14 @@ cd Backend
 mvn spring-boot:run
 ```
 
-Windows:
+On Windows:
 
 ```bash
 cd Backend
 mvnw.cmd spring-boot:run
 ```
 
-The Backend starts on `http://localhost:8080`. Wait for the message:
+The backend starts on `http://localhost:8080`. Wait for the following message:
 
 ```
 Started RdfBackApplication in X seconds
@@ -117,9 +119,9 @@ The application is accessible in the browser at `http://localhost:4200`.
 
 ### Launch the Electron desktop app from the sources
 
-#### Test
+#### Quick test
 
-At project root:
+From the project root:
 
 ```bash
 cd Frontend
@@ -127,7 +129,7 @@ npm install
 ng serve
 ```
 
-On a second terminal:
+In a second terminal:
 
 ```bash
 cd ../
@@ -151,8 +153,8 @@ A window opens and loads the Angular application from `localhost:4200`.
 Compile the frontend and backend first:
 
 ```bash
-npm run build:frontend   # Compile angular in electron/dist/frontend
-npm run build:backend    # Compile spring boot in backend/target/
+npm run build:frontend   # Build the Angular app into electron/dist/frontend
+npm run build:backend    # Build the Spring Boot backend into Backend/target/
 ```
 
 Then launch:
@@ -169,7 +171,7 @@ In production mode, Electron loads the compiled Angular static files and automat
 npm run dist
 ```
 
-This will generate a standalone executable for your platform (Windows, Linux, macOS) in the `dist-electron/` directory.
+This generates a standalone executable for your platform in the `dist-electron/` directory.
 
 ## Contributing
 
@@ -183,20 +185,20 @@ The application follows a three-layer architecture:
 - **Backend**: a Spring Boot REST API that exposes data and manages business logic
 - **Persistence**: an RDF4J NativeStore triplestore that persists RDF data on disk
 
-The communication between the frontend and backend is done via HTTP REST on port 8080. The frontend runs on port 4200 in development.
+The frontend and the backend communicate over HTTP REST on port 8080. In development, the frontend runs on port 4200.
 
 ### Create a release on GitHub
 
-A GitHub workflow (`.github/workflows/release.yml`) automatically builds the installers for **Linux**, **Windows** and **macOS** when a **tag** is pushed, for example :
+A GitHub workflow (`.github/workflows/release.yml`) automatically builds the installers for **Linux**, **Windows** and **macOS** when a **tag** is pushed, for example:
 
 ```bash
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The artifacts are attached to the corresponding **Release** on GitHub (`.deb`, `.msi`, `.exe`, `.dmg` files according to the successful jobs).
+The artifacts are attached to the corresponding **Release** on GitHub (`.exe`, `.dmg` and `.AppImage` files, depending on which jobs succeeded).
 
-### API REST
+### REST API
 
 The backend exposes the following endpoints on `http://localhost:8080/`:
 
@@ -223,16 +225,16 @@ The backend exposes the following endpoints on `http://localhost:8080/`:
 
 #### SPARQL
 
-| Méthode | URL | Description |
+| Method | URL | Description |
 |---------|-----|-------------|
-| POST | /sparql/select | Executer une requête SELECT |
-| POST | /sparql/update | Executer une requête UPDATE |
+| POST | /sparql/select | Run a SELECT query |
+| POST | /sparql/update | Run an UPDATE query |
 
 ## Authors
 
 - Mohamed Saber Mahjoub (Main developer and computer science student at [Institut Galilée](https://galilee.univ-paris13.fr))
-- Khaoula Charef (computer science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
-- Mehrez Bey (computer science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
-- Noha Aqaoui (computer science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
-- Vitor Tomas Rodrigues Jordã (computer science Student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Khaoula Charef (computer science student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Mehrez Bey (computer science student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Noha Aqaoui (computer science student at [Institut Galilée](https://galilee.univ-paris13.fr))
+- Vitor Tomas Rodrigues Jordã (computer science student at [Institut Galilée](https://galilee.univ-paris13.fr))
 - Sylvain Loiseau
