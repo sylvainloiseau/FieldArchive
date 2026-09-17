@@ -12,7 +12,7 @@
     <artifactId>Backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>Backend</name>
-    <description>RDF_Back</description>
+    <description>Backend of FieldArchive application</description>
     <url/>
     <licenses>
         <license/>
