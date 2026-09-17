@@ -1,19 +1,14 @@
 package fr.cnrs.lacito.fieldarchive;
 
-import fr.cnrs.lacito.fieldarchive.example.Example;
-import org.eclipse.rdf4j.spring.RDF4JConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
 @SpringBootApplication
-@Import(RDF4JConfig.class)
 public class RdfBackApplication {
 
     public static void main(String[] args) {
