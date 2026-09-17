@@ -12,15 +12,18 @@ Manage and describe linguistic fieldwork archive using RDF
 
 ## Installation
 
-Download the latest release from the [GitHub releases page](https://github.com/sylvainloiseau/fieldArchive).
+Download the latest release from the [GitHub releases page](https://github.com/sylvainloiseau/fieldArchive) for your OS.
+
+### Prerequisite
+
+A java runtime environment.
 
 ### First launch on macOS
 
 The macOS application is **not notarized by Apple**, because notarization requires a paid
-Developer ID (Apple Developer Program, 99 USD/year) that this project does not have. As a
+Developer ID. As a
 consequence, the first time you open the downloaded application macOS displays:
 
-> « Apple n'a pas pu confirmer que "FieldArchive" ne contenait pas de logiciel malveillant… »
 > (*Apple could not verify "FieldArchive" is free of malware…*)
 
 This is expected and does not mean the application is broken. Downloading a file sets the
@@ -33,10 +36,9 @@ later launch works normally. Choose either of the two routes below.
 1. Open the downloaded `.dmg` and drag **FieldArchive.app** into your `/Applications` folder.
 2. Double-click **FieldArchive** in `/Applications`. The warning above appears: dismiss it
    (**Terminer** / **Done**).
-3. Open **System Settings → Privacy & Security** (*Réglages Système → Confidentialité et
-   sécurité*), scroll down to the bottom of the **Security** section: a notice reads
-   « "FieldArchive" a été bloqué… » (*"FieldArchive" was blocked…*).
-4. Click **Ouvrir quand même** / **Open Anyway** and confirm with Touch ID or your password.
+3. Open **System Settings → Privacy & Security**, scroll down to the bottom of the **Security** section: a notice reads
+   (*"FieldArchive" was blocked…*).
+4. Click **Open Anyway** and confirm with Touch ID or your password.
 5. On macOS 15 (Sequoia) you may need to double-click the application a second time and
    confirm once more. After that, FieldArchive opens directly.
 
@@ -48,10 +50,9 @@ After copying **FieldArchive.app** to `/Applications`, run:
 xattr -dr com.apple.quarantine /Applications/FieldArchive.app
 ```
 
-This removes the quarantine attribute, so the notarization check no longer applies and the
-application opens on a normal double-click.
+This removes the quarantine attribute, so the notarization check no longer applies and the application opens on a normal double-click.
 
-> **Note:** up to macOS 14, right-clicking the application and choosing **Ouvrir** / **Open**
+> **Note:** up to macOS 14, right-clicking the application and choosing ***Open**
 > was enough to bypass this warning. Apple removed that Control-click override in macOS 15
 > (Sequoia), so instructions you may find elsewhere telling you to right-click → Open no
 > longer work — use one of the two routes above instead.

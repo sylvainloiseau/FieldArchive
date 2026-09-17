@@ -23,7 +23,7 @@ public class RdfEntityController {
     }
 
     // =========================
-    // Liste des entités par type (vue tableau)
+    // List of entities by type
     // =========================
     @GetMapping("/entities")
     public List<RdfEntitySummaryDto> listEntities(
@@ -38,7 +38,7 @@ public class RdfEntityController {
     }
 
     // =========================
-    // Détail d’une entité (panneau de droite)
+    // Detail on an entity
     // =========================
     @GetMapping("/entity")
     public RdfEntityDto getEntity(@RequestParam("key") String key) {
@@ -46,7 +46,7 @@ public class RdfEntityController {
     }
 
     // =========================
-    // Création d’une entité RDF (interne)
+    // Entity creation (always in the InternalDataSource of a project)
     // =========================
     @PostMapping("/entities")
     public RdfEntityDto createEntity(@RequestBody CreateRdfEntityRequest req) {
@@ -54,7 +54,7 @@ public class RdfEntityController {
     }
 
     // =========================
-    // Mise à jour d’une entité RDF (interne uniquement)
+    // Update of an entity (always in the InternalDataSource of a project)
     // =========================
     @PutMapping("/entity")
     public RdfEntityDto updateEntity(@RequestParam("key") String key,
@@ -63,7 +63,7 @@ public class RdfEntityController {
     }
 
     // =========================
-    // Suppression d’une entité RDF (interne uniquement)
+    // Deleting an entity (always in the InternalDataSource of a project)
     // =========================
     @DeleteMapping("/entity")
     public ResponseEntity<?> deleteEntity(@RequestParam("key") String key) {

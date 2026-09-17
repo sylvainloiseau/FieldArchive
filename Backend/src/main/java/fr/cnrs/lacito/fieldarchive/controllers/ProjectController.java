@@ -177,7 +177,7 @@ public class ProjectController {
 //        return projectService.listProjects();
 //    }
 
-    // Liste détaillée
+    // Detailled list
     @GetMapping("/list/details")
     public List<Map<String, Object>> listProjectsDetailed() {
         return projectService.listProjectsDetailed();

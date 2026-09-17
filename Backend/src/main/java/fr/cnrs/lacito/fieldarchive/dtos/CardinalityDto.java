@@ -2,7 +2,7 @@ package fr.cnrs.lacito.fieldarchive.dtos;
 
 public class CardinalityDto {
     private Integer min; // null = 0
-    private Integer max; // null = illimité
+    private Integer max; // null = unbounded
 
     public CardinalityDto() {}
     public CardinalityDto(Integer min, Integer max) { this.min = min; this.max = max; }
