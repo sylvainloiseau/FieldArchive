@@ -482,8 +482,8 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
                       property.cardinality = propvalue.cardinality;
 
                     if (propvalue.ranges?.length === 1) {
-                        property.rangeUri = propvalue.ranges[0].uri;
-                        property.rangeLocalName = propvalue.ranges[0].localName;
+                        property.rangeUri = [propvalue.ranges[0].uri];
+                        property.rangeLocalName = [propvalue.ranges[0].localName];
                     } else if (propvalue.ranges?.length > 1) {
                         property.rangeUri = propvalue.ranges.map((r: any) => r.uri);
                         property.rangeLocalName = propvalue.ranges.map((r: any) => r.localName);

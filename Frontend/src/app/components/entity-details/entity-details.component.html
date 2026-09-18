@@ -446,17 +446,7 @@
                 <div class="flex gap-1 items-center">
 
                   <select
-                    *ngIf="property.rangeUri.length === 1"
-                    (click)="getEntitiesByType(property.rangeUri)"
-                    (change)="onRangeSelected($event, property)"
-                    class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-                    <option value="" selected disabled>Add new range value</option>
-                    <optgroup *ngFor="let g of groupedRanges" [label]="g.typeLabel">
-                      <option *ngFor="let t of g.entities; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
-                    </optgroup>
-                  </select>
-                  <select
-                    *ngIf="property.rangeUri.length > 1"
+                    *ngIf="property.rangeUri?.length"
                     (click)="getEntitiesByTypes(property.rangeUri)"
                     (change)="onRangeSelected($event, property)"
                     class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
