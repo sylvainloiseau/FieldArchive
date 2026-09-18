@@ -317,6 +317,13 @@ export class CreateEntityComponent implements OnInit {
             }
           );
 
+          // Only close/reset once the entity is actually created: closing
+          // eagerly (before the request settles) closed the dialog even on
+          // failure, hiding the error snackbar behind an already-dismissed
+          // window and discarding what the user had typed.
+          this.entityForm.reset();
+          this.closed.emit(true);
+          this.dialogRef?.close(res);
         },
         error: (err) => {
           this.snackBar.open(
@@ -328,12 +335,15 @@ export class CreateEntityComponent implements OnInit {
               verticalPosition: 'top',
               panelClass: ['snackbar-error']
             }
-          );      
+          );
         }
       });
+    } else {
+      // update mode: the caller (closeWithData()) already closed the dialog
+      // and will read the returned types itself, this just resets the form.
+      this.closed.emit(true);
+      this.entityForm.reset();
     }
-    this.closed.emit(true);
-    this.entityForm.reset();
 
   }
 
