@@ -248,7 +248,8 @@
         [selectedType]="selectedType"
         [allEntities]="formattedEntities || []"
         [isLoading]="isLoadingEntities"
-        (selectedEntity)="handleChildData($event)">
+        (selectedEntity)="handleChildData($event)"
+        (entityCreated)="onEntityCreated()">
       </app-liste-entites>
 
       </div>

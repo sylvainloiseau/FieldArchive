@@ -203,6 +203,14 @@ export class GestionRessourcesComponent implements OnInit {
     }
   }
 
+  onEntityCreated(): void {
+    if (this.selectedType) {
+      this.getAllEntitiesByPath(this.selectedOntology ?? '', this.selectedType);
+    } else {
+      this.getAllEntitiesWithoutType();
+    }
+  }
+
   getAllEntitiesWithoutType() {
     this.isLoadingEntities = true;
 

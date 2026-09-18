@@ -23,6 +23,7 @@ export class ListeEntitesComponent {
   @Input() isLoading: boolean = false;   // ← add this
 
   @Output() selectedEntity = new EventEmitter<any>();
+  @Output() entityCreated = new EventEmitter<any>();
 
 
   // selectedEntity: Entity | null = null;
@@ -42,12 +43,18 @@ export class ListeEntitesComponent {
 
     // const [ontology, type] = this.selectedType.split(':');
 
-    this.dialog.open(CreateEntityComponent, {
+    const dialogRef = this.dialog.open(CreateEntityComponent, {
       width: '600px',
       data: {
         ontology : "ont",
         type : this.selectedType,
         ontologiesData: this.ontologiesData
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.entityCreated.emit(result);
       }
     });
   }
@@ -57,10 +64,16 @@ export class ListeEntitesComponent {
 
     // const [ontology, type] = this.selectedType.split(':');
 
-    this.dialog.open(CreateEntityComponent, {
+    const dialogRef = this.dialog.open(CreateEntityComponent, {
       width: '600px',
       data: {
         ontologiesData: this.ontologiesData
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.entityCreated.emit(result);
       }
     });
   }
