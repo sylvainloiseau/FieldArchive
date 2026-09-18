@@ -370,8 +370,11 @@ public class DataSourceService {
             }
 
             // retrouver le graphe associé
-            var gSt = conn.getStatements(ds, pGraph(), null, ctxMeta).stream().findFirst().orElse(null);
-            IRI ctxGraph = (gSt != null && gSt.getObject() instanceof IRI) ? (IRI) gSt.getObject() : null;
+            IRI ctxGraph;
+            try (var gSt = conn.getStatements(ds, pGraph(), null, ctxMeta)) {
+                var obj = gSt.hasNext() ? gSt.next().getObject() : null;
+                ctxGraph = (obj instanceof IRI) ? (IRI) obj : null;
+            }
 
             conn.begin();
 
