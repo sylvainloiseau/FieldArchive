@@ -290,9 +290,12 @@ public class ProjectService {
             // 3) Copy ALL triples from old → new
             // ─────────────────────────────────────────────
             if (rename) {
-                conn.getStatements(oldProject, null, null, ctx).forEach(st -> {
-                    conn.add(newProject, st.getPredicate(), st.getObject(), ctx);
-                });
+                try (var st = conn.getStatements(oldProject, null, null, ctx)) {
+                    while (st.hasNext()) {
+                        var stmt = st.next();
+                        conn.add(newProject, stmt.getPredicate(), stmt.getObject(), ctx);
+                    }
+                }
 
                 // ─────────────────────────────────────────────
                 // 4) Delete old triples
@@ -336,19 +339,21 @@ public class ProjectService {
             IRI ctx = metadataCtx(name,vf);
 
             // read description
-            var descSt = conn.getStatements(project, DCTERMS.DESCRIPTION, null, ctx).stream().findFirst().orElse(null);
-            dto.description = (descSt != null) ? descSt.getObject().stringValue() : null;
+            try (var st = conn.getStatements(project, DCTERMS.DESCRIPTION, null, ctx)) {
+                dto.description = st.hasNext() ? st.next().getObject().stringValue() : null;
+            }
 
-            var createdSt = conn.getStatements(project, DCTERMS.CREATED, null, ctx).stream().findFirst().orElse(null);
-            dto.created = (createdSt != null) ? createdSt.getObject().stringValue() : null;
+            try (var st = conn.getStatements(project, DCTERMS.CREATED, null, ctx)) {
+                dto.created = st.hasNext() ? st.next().getObject().stringValue() : null;
+            }
 
-            var modifiedSt = conn.getStatements(project, DCTERMS.MODIFIED, null, ctx).stream().findFirst().orElse(null);
-            dto.modified = (modifiedSt != null) ? modifiedSt.getObject().stringValue() : null;
+            try (var st = conn.getStatements(project, DCTERMS.MODIFIED, null, ctx)) {
+                dto.modified = st.hasNext() ? st.next().getObject().stringValue() : null;
+            }
 
-            var prefix = conn.getStatements(project, PROP_PREFIX, null, ctx).stream().findFirst().orElse(null);
-            dto.prefix = (prefix != null) ? prefix.getObject().stringValue() : null;
-
-
+            try (var st = conn.getStatements(project, PROP_PREFIX, null, ctx)) {
+                dto.prefix = st.hasNext() ? st.next().getObject().stringValue() : null;
+            }
         }
 
         return dto;
