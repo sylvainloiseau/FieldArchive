@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { ProjectDto, OpenProjectRequest } from '../models/project.model';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { firstValueFrom } from 'rxjs';
@@ -51,9 +51,10 @@ export class GestionProjetService {
    * Open or create an RDF Project.
    */
   openProject(request: OpenProjectRequest): Observable<ProjectDto> {
-    return this.http.post<ProjectDto>(`${this.API_BASE}/open`, request).pipe(
-      tap(project => {
-        this._activeProject$.next(project);
+    // The POST returns {status, project}, not a ProjectDto: re-read /current for the real state.
+    return this.http.post<unknown>(`${this.API_BASE}/open`, request).pipe(
+      switchMap(() => this.getActiveProject()),
+      tap(() => {
         this.snackBar.open(`Project opened`, 'Close', {
           duration: 3000, panelClass: ['snackbar-success']
         });
@@ -63,9 +64,9 @@ export class GestionProjetService {
   }
 
   createProject(request: OpenProjectRequest): Observable<ProjectDto> {
-    return this.http.post<ProjectDto>(`${this.API_BASE}/create`, request).pipe(
-      tap(project => {
-        this._activeProject$.next(project);
+    return this.http.post<unknown>(`${this.API_BASE}/create`, request).pipe(
+      switchMap(() => this.getActiveProject()),
+      tap(() => {
         this.snackBar.open(`Project created`, 'Close', {
           duration: 3000, panelClass: ['snackbar-success']
         });
@@ -77,7 +78,9 @@ export class GestionProjetService {
   deleteProject(projectName: string): Observable<string> {
     return this.http.delete(`${this.API_BASE}/${projectName}`, {
       responseType: 'text'
-    } as const);
+    } as const).pipe(
+      switchMap(response => this.getActiveProject().pipe(map(() => response)))
+    );
   }
 
   updateProject(oldProjectName: string, newProject: any): Observable<any> {
@@ -87,6 +90,7 @@ export class GestionProjetService {
       tap(response => {
         console.log("Project updated:", response?.message ?? response);
       }),
+      switchMap(response => this.getActiveProject().pipe(map(() => response))),
       catchError(err => {
         console.error("Update project failed:", err);
         return throwError(() => err);
@@ -141,12 +145,9 @@ export class GestionProjetService {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.http.post<any>(`${this.API_BASE}/import-backup`, formData, 
-    // {
-    //   reportProgress: true,
-    //   observe: 'events'
-    // }
-  );
+    return this.http.post<any>(`${this.API_BASE}/import-backup`, formData).pipe(
+      switchMap(response => this.getActiveProject().pipe(map(() => response)))
+    );
   }
 
   importTurtleSource(file: File): Observable<any> {

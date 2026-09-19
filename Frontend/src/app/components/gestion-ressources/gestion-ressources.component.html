@@ -1,88 +1,8 @@
-<div class="flex flex-col h-screen bg-gray-50">
-  <!-- Header -->
-  <header class="bg-gradient-to-r from-blue-900 to-blue-600 shadow-lg">
-    <div class="flex items-center justify-between px-6 py-4">
-
-      <!-- Left: Logo and Title -->
-      <div class="flex items-center gap-4">
-        <div (click)="router.navigate(['/gestion-projets'])" class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all duration-300 cursor-pointer">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5z"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 17l10 5 10-5"></path>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12l10 5 10-5"></path>
-          </svg>
-        </div>
-
-
-        <div>
-          <h1 *ngIf="projectName; else spinner" class="text-xl font-bold text-white tracking-tight">
-            {{ projectName }}
-          </h1>
-          <ng-template #spinner>
-            <div class="flex items-center gap-2">
-
-              <svg
-                class="animate-spin h-5 w-5 text-white opacity-70" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-              </svg>
-
-              <span class="text-white opacity-50 text-sm italic">Loading...</span>
-            </div>
-          </ng-template>
-          <p class="text-xs text-blue-100">Manage the entities of the project</p>
-        </div>
-      </div>
-
-
-      <!-- Right: View Tabs -->
-
-      <div class="flex items-center gap-4">
-        <button
-          (click)="router.navigate(['/gestion-sources'])"
-          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-          </svg>
-          <span class="text-sm text-white font-medium">Datasources</span>
-        </button>
-
-
-        <button
-          *ngIf="activeView !== 'sparql'"
-          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors"
-          (click)="setView('sparql')" >
-
-          <span  class="text-sm text-white font-medium">SPARQL</span>
-        </button>
-
-        <button
-          *ngIf="activeView === 'sparql'"
-          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors"
-          (click)="setView('tableau')" [class.bg-white]="activeView === 'sparql'" [class.text-blue-600]="activeView === 'sparql'" [class.shadow-sm]="activeView === 'sparql'">
-
-          <span  class="text-sm text-white font-medium">Resources</span>
-
-        </button>
-
-        <button
-          (click)="router.navigate(['/gestion-projets'])"
-          class="ml-10 cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors">
-          <span class="text-sm text-white font-medium">Projects</span>
-          <svg class="w-4 h-4 text-white rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-          </svg>
-        </button>
-      </div>
-
-
-    </div>
-  </header>
-
+<div class="flex flex-col h-full bg-gray-50">
   <!-- Main Content Area -->
   <div class="flex flex-1 overflow-hidden">
     <!-- Sidebar -->
-    <aside *ngIf="activeView !== 'sparql'" class="w-[35%] bg-white border-r border-gray-200 overflow-y-auto shadow-sm flex flex-col">
+    <aside class="w-[35%] bg-white border-r border-gray-200 overflow-y-auto shadow-sm flex flex-col">
       <div class="p-4 flex-1">
 
         <!-- Header section with gradient accent -->
@@ -240,7 +160,7 @@
       </div>
     </aside>
 
-    <div *ngIf="activeView === 'tableau'" class="p-0! w-[85%]!" [@slideIn]>
+    <div class="p-0! w-[85%]!" [@slideIn]>
       <div class="p-1! flex-1 overflow-y-auto bg-gray-50">
 
       <app-liste-entites
@@ -252,12 +172,6 @@
         (entityCreated)="onEntityCreated()">
       </app-liste-entites>
 
-      </div>
-    </div>
-
-    <div *ngIf="activeView === 'sparql'" class="flex-1 flex items-start justify-center overflow-y-auto bg-gray-50" [@slideIn]>
-      <div class="w-full max-w-5xl">
-        <app-sparql></app-sparql>
       </div>
     </div>
 

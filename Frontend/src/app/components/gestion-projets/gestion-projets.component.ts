@@ -396,10 +396,6 @@ export class GestionProjetsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/gestion-sources']);
   }
 
-  goToRessources(): void {
-    this.router.navigate(['/gestion-ressources']);
-  }
-
   // ── Panneau détail ─────────────────────────────────────────────────────────
 
   selectProject(project: ProjectDto): void {

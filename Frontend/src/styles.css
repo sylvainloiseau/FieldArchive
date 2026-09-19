@@ -17,3 +17,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     background-color: #dc2626 !important; /* red-600 */
     color: white !important;
 }
+
+/* Routed page hosts default to display:inline; make them fill the <main> under the shared header */
+app-root main > router-outlet + * { display: block; height: 100%; }

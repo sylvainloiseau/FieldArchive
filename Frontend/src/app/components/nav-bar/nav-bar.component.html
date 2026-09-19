@@ -1,1 +1,49 @@
-<p>nav-bar works!</p>
+@let project = activeProject$ | async;
+<header class="bg-gradient-to-r from-blue-900 to-blue-600 shadow-lg">
+  <div class="flex items-center justify-between px-6 py-4">
+
+    <!-- Left: logo + active project -->
+    <div class="flex items-center gap-4">
+      <div routerLink="/gestion-projets" class="flex items-center justify-center w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-all duration-300 cursor-pointer">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2L2 7l10 5 10-5-10-5z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 17l10 5 10-5"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2 12l10 5 10-5"></path>
+        </svg>
+      </div>
+
+      @if (project?.name) {
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold text-white tracking-tight">{{ project?.name }}</h1>
+          <button (click)="onCloseProject()" class="cursor-pointer text-white/70 hover:text-white transition-colors" title="Close project">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Right: navigation -->
+    <nav class="flex items-center gap-4">
+      @for (item of navItems; track item.path) {
+        <button
+          [routerLink]="item.path"
+          routerLinkActive="bg-white! text-blue-600! shadow-sm"
+          [disabled]="item.needsProject && !project"
+          [title]="item.needsProject && !project ? 'Open a project first' : ''"
+          class="cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors text-sm text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/10">
+          {{ item.label }}
+        </button>
+      }
+
+      <button
+        routerLink="/gestion-projets"
+        routerLinkActive="bg-white! text-blue-600! shadow-sm"
+        class="ml-10 cursor-pointer flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-lg transition-colors text-sm text-white font-medium">
+        Projects
+      </button>
+    </nav>
+
+  </div>
+</header>

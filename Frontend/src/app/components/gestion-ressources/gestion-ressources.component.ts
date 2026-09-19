@@ -11,11 +11,9 @@ import {Entity, EntityType } from '../../models/ressource';
 
 import { EntityDetailsComponent } from '../entity-details/entity-details.component';
 import { ListeEntitesComponent } from '../liste-entites/liste-entites.component';
-import { SparqlComponent } from '../sparql/sparql.component';
 
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
 import { GestionProjetsComponent } from '../gestion-projets/gestion-projets.component';
-import { GestionProjetsService } from '../../services/gestion-projets.service';
 import { error } from 'console';
 
 import { Router } from '@angular/router';
@@ -23,7 +21,6 @@ import { Router } from '@angular/router';
 import { MatDialogRef } from '@angular/material/dialog';
 import {CdkAccordionModule} from '@angular/cdk/accordion';
 
-import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-gestion-ressources',
@@ -36,7 +33,7 @@ import { ActivatedRoute } from '@angular/router';
     MatListModule,
     MatDialogModule,
     CdkAccordionModule,
-    ListeEntitesComponent, SparqlComponent],
+    ListeEntitesComponent],
   templateUrl: './gestion-ressources.component.html',
   styleUrl: './gestion-ressources.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -61,8 +58,6 @@ export class GestionRessourcesComponent implements OnInit {
 
   allRicoClasses : any[] = [];
 
-  projectName : string = '';
-
   filteredEntityTypes: EntityType[] = [];
   selectedEntity: any | null = null;
   previousSelectedEntity: Entity | null = null;
@@ -70,7 +65,6 @@ export class GestionRessourcesComponent implements OnInit {
   selectedType: string | null = null;
   selectedOntology : string | null = null;
 
-  activeView: 'tableau' | 'graphe' | 'sources' | 'sparql' = 'tableau';
   detailTab: 'ric' | 'foaf' | 'metadata' = 'ric';
 
   showPersonForm: boolean = false;
@@ -96,10 +90,8 @@ export class GestionRessourcesComponent implements OnInit {
   constructor(
     public dialog: MatDialog,
     private ontologyService: GestionRessourcesService,
-    private projetService: GestionProjetsService,
     private cdr: ChangeDetectorRef,
-    public  router:         Router,
-    private route: ActivatedRoute
+    public  router:         Router
 
   ) {}
 
@@ -152,11 +144,6 @@ export class GestionRessourcesComponent implements OnInit {
 
   ngOnInit() {
 
-    this.route.queryParams.subscribe(params => {
-      if (params['view']) {
-        this.setView(params['view']);
-      }
-    });
     // this.filteredEntities = [...this.allEntities];
     // this.filteredEntityTypes = [...this.entityTypes];
     // this.updateEntityTypeCounts();
@@ -171,18 +158,6 @@ export class GestionRessourcesComponent implements OnInit {
       }
     });
 
-    this.projetService.getProject().subscribe({
-      next: (data) => {
-        this.projectName = data.name;
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error(err);
-      }
-    }
-    );
-
-  
   }
 
   handleChildData(data: any) {
@@ -305,10 +280,6 @@ export class GestionRessourcesComponent implements OnInit {
     return icons[iconName] || icons['file-text'];
   }
 
-  // Set active view
-  setView(view: 'tableau' | 'graphe' | 'sources' | 'sparql') {
-    this.activeView = view;
-  }
 
 
 }
