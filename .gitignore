@@ -22,3 +22,6 @@ node_modules/
 /Backend/target/
 **/target/
 /Backend/dist-electron/
+
+*~
+.DS_Store

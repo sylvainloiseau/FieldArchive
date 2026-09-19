@@ -88,7 +88,7 @@ jobs:
               ```
 
             Right-click → **Ouvrir** worked up to macOS 14 but no longer bypasses this check
-            on macOS 15 (Sequoia). See the [README](https://github.com/sylvainloiseau/fieldArchive#first-launch-on-macos)
+            on macOS 15 (Sequoia). See the [README](https://github.com/sylvainloiseau/FieldArchive#first-launch-on-macos)
             for details.
           files: |
             dist-electron/*.dmg

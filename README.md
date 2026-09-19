@@ -5,7 +5,7 @@ Manage and describe linguistic fieldwork archives using RDF.
 ## Features
 
 - Create and manage projects.
-- Define optional *ExternalDataSources* for your project: an ExternalDataSource is an RDF file exported from another application (a photo editor, etc.) that you can import into FieldArchive. Such a dataset is not editable within FieldArchive, but you can replace it with a fresh import (syncing) so that it reflects the changes you have made in the third-party application.
+- Define optional *ExternalDataSources* for your project: an ExternalDataSource is an RDF file exported from another application (a photo database manager, etc.) that you can import into FieldArchive. Such a dataset is not editable within FieldArchive, but you can replace it with a fresh import (syncing) so that it reflects the changes you have made in the third-party application.
 - Perform *record linkage* (matching, deduplication) between corresponding entities in different ExternalDataSources, producing an aggregated description of the places, persons, events, documents and realia coming from various annotation tools.
 - Extend the application with additional RDF ontologies (for complex biographical information, detailed proper-name descriptions, etc.): the ontologies are loaded by the application at startup, and the types and properties they define become available in every editing form.
 - Create and edit entities (person, place, document, event, etc.) within the app.
