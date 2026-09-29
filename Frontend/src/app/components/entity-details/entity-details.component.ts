@@ -25,10 +25,10 @@ import {MatIconModule} from '@angular/material/icon';
   selector: 'app-entity-details',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     MatTabsModule,
-    ReactiveFormsModule, 
+    ReactiveFormsModule,
     MatDialogModule,
     MatSnackBarModule,
     MatChipsModule,
@@ -41,7 +41,7 @@ export class EntityDetailsComponent implements OnInit {
 
   private readonly RICO_NAME_PREDICATE = 'https://www.ica.org/standards/RiC/ontology#name';
 
-  selectedEntityId: string = "";  
+  selectedEntityId: string = "";
   ontologyLabels: Record<string, any>[] = [];
   @Output() close = new EventEmitter<void>();
 
@@ -61,7 +61,7 @@ export class EntityDetailsComponent implements OnInit {
   allEntityTypesChips : any[] = [];
 
   private gestionRessourceService = inject(GestionRessourcesService);
-  private cdr = inject(ChangeDetectorRef); 
+  private cdr = inject(ChangeDetectorRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
@@ -80,6 +80,21 @@ export class EntityDetailsComponent implements OnInit {
   ) {
     this.ontologyLabels = data.ontologyLabels;
     this.selectedEntityId = data.selectedEntityId;
+  }
+
+  // Save the edited value of a literal property
+  saveLiteralEdit(propValue: any): void {
+    propValue.editing = false;
+    this.editEntity();
+  }
+
+  // Toggle the editing state of a literal property
+  toggleLiteralEdit(propValue: any): void {
+    if (propValue.editing) {
+      this.saveLiteralEdit(propValue);
+    } else {
+      propValue.editing = true;
+    }
   }
 
   MainPropertiesisNotEmpty(obj: any): boolean {
@@ -106,7 +121,7 @@ export class EntityDetailsComponent implements OnInit {
   }
 
 
-  openCreateEntityDialog() {  
+  openCreateEntityDialog() {
 
     const types = this.allEntityTypesChips;
 
@@ -135,7 +150,7 @@ export class EntityDetailsComponent implements OnInit {
   addNewDataTypeAuthorized(property : any) : boolean {
     for (const value of property.values) {
       if (!value.value || value.value.trim() === '') {
-        return false; 
+        return false;
       }
     }
     return true;
@@ -219,13 +234,13 @@ export class EntityDetailsComponent implements OnInit {
 
         this.editEntity();
 
-        // this.entityPropertiesDict = this.entityPropertiesDict.filter((p : any) => p.predicate !== property.predicate && p.value !== property.value); 
+        // this.entityPropertiesDict = this.entityPropertiesDict.filter((p : any) => p.predicate !== property.predicate && p.value !== property.value);
         // this.cdr.markForCheck();
 
       }
     });
-  
-    
+
+
   }
 
   openCreateEntityDialogForRange(property: any): void {
@@ -302,7 +317,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     else return iri;
   }
 
-  // Chips 
+  // Chips
   buildTypesChips(entityTypes: any[], ontologies: any[]): void {
 
     this.allEntityTypesChips = []; // Clear existing chips
@@ -316,7 +331,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
             {
               "label": value.name + ":" + this.extractPropertyNameFromIRI(typeIri),
               "iri": typeIri,
-              "source": type.source                  
+              "source": type.source
             }
           );
         }
@@ -692,7 +707,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
     this.ontologyEntries = Object.entries(this.ontologyLabels)
     .map(([key, value]) => ({ key, value }))
-    .sort(this.ontologyOrderComparator); 
+    .sort(this.ontologyOrderComparator);
 
     this.onTabChange(0); // Select the first tab (Rico) by default
   }
@@ -830,7 +845,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
       console.warn('Ontology not ready yet', index, this.ontologyEntries);
       return;
     }
-    this.selectedOntologyTab = entry ; 
+    this.selectedOntologyTab = entry ;
     console.log(entry.key, entry.value); // entry.value.name, entry.value.properties, etc.
   }
 
@@ -881,12 +896,12 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     const dialogRef = this.dialog.open(RicoPropertiesComponent, {
       width: '600px',
       height: '350px',
-      data: { 
+      data: {
         predicates: matches,
         predefinedRanges: this.selectedOntologyTab.value.mainTypes.value,
         removeProperty : this.selectedOntologyTab.value.removeProperty,
         hierarchy: this.selectedOntologyTab.value.hierarchy
-        
+
       }
     });
 
@@ -1076,7 +1091,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     });
 
     this.newAssociation = null;
-    this.cdr.markForCheck(); 
+    this.cdr.markForCheck();
   }
 
   cancelAddAssociation() {

@@ -1,4 +1,5 @@
-- when editing the string value of property whose range is Literal in the entity-details component, if I hit the small validating button in the right side of the text field, it does update the value. However, if I hit enter, it does not. It is possible to correct this?
+
+
 - `SparqlService` classifies queries by substring-matching lowercased text, so a SELECT whose variable or IRI contains e.g. "create" is rejected.
 - `OntologyService`'s `schemaCache` and the config map are loaded once at construction; ontology files and `configuration.json` changes require a backend restart.
 - Pourquoi les ExternalDataSource ne sont plus éditables?
@@ -28,10 +29,11 @@ If a project is closed, the buttons are disable again.
 
 The name of the open project should be displayed on the left, as it is now, in a consistent way. When the projet is closed, the project name is removed from the header.
 
-The gestion-ressources.component.html as a view toggle based on the value of the activeView variable. It has it's own toolbar. Could you please 
+The gestion-ressources.component.html as a view toggle based on the value of the activeView variable. It has it's own toolbar. Could you please make a separate component for the sparql query/result area, which is currently in <app-sparql> in gestion-ressources component
 
-- make a separate component for the sparql query/result area, which is currently in <app-sparql> in gestion-ressources component
+# Create a AI powered text-to-sparql assistant
 
+You will make a plan for the creation of a component that open a modal dialog with a textarea for the user to enter a natural language query, and a button to submit it. Then an IA agent will convert the natural language query to SPARQL and will offer with a button to execute it against the triplestore. The query can be an update or a select query. The modal dialog should be displayed thanks to a button in the header bar, together other buttons available when a project is open (entities, data source, sparql...). If the query is a select query, the sparql page is opened, with the query field filled in with the generated query and the result displayed in the dedicated area below. If the query is a create query, the entity detail modal window for the entity created or edited will be opened, if it is possible. 
 
 # A new map page
 
