@@ -13,6 +13,8 @@ import org.eclipse.rdf4j.model.vocabulary.DCTERMS;
 import org.eclipse.rdf4j.model.vocabulary.RDF;
 import org.eclipse.rdf4j.model.vocabulary.RDFS;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import fr.cnrs.lacito.fieldarchive.core.ProjectDataChangedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -106,10 +108,17 @@ public class DataSourceService {
 
     private FileImportService fileImportService;
     private ProjectService projectService;
+    private final ApplicationEventPublisher events;
 
-    public DataSourceService(@Lazy FileImportService fileImportService, ProjectService projectService){
+    public DataSourceService(@Lazy FileImportService fileImportService, ProjectService projectService,
+                             ApplicationEventPublisher events){
         this.fileImportService = fileImportService;
         this.projectService = projectService;
+        this.events = events;
+    }
+
+    private void publishDataChanged() {
+        events.publishEvent(new ProjectDataChangedEvent(ProjectContext.getProjectName()));
     }
 
     private void requireProjectOpen() {
@@ -389,6 +398,7 @@ public class DataSourceService {
 
             conn.commit();
         }
+        publishDataChanged();
     }
 
     private IRI typeExternalDataSource() {
@@ -591,6 +601,7 @@ public class DataSourceService {
             }
 
             conn.commit();
+            publishDataChanged();
         } catch (Exception e) {
             conn.rollback();
             // A malformed or unreadable file is the caller's problem, not a server fault:

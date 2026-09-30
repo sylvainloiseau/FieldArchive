@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { OntologyLabelsService } from './ontology-labels.service';
+import { NlHistoryContext } from './nl-query.service';
 
 @Injectable({
   providedIn: 'root'
@@ -229,14 +230,18 @@ export class GestionRessourcesService {
   }
 
 
-  runSelectQuery(query: string): Observable<any[]> {
+  /** `nl` is set only for a query that comes from a natural-language question: it is then recorded in the history. */
+  runSelectQuery(query: string, nl?: NlHistoryContext | null): Observable<any[]> {
     console.log("QUERY : ", {query});
-    return this.http.post<any[]>(`${this.apiUrl}/select`, { query });
+    return this.http.post<any[]>(`${this.apiUrl}/select`, nl ? { query, nl } : { query });
   }
 
-  // runUpdateQuery(query: string): Observable<void> {
-  //   return this.http.post<void>(`${this.apiUrl}/update`, { query });
-  // }
+  runUpdateQuery(query: string, nl?: NlHistoryContext | null): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/update`, nl ? { query, nl } : { query });
+  }
+
+  /** Emitted after the data was changed outside the entities page (e.g. an update run from a question). */
+  readonly entitiesChanged$ = new Subject<void>();
 
 }
 

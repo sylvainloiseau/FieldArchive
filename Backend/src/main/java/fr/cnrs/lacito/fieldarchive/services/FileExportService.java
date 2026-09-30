@@ -15,7 +15,12 @@ import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.springframework.stereotype.Service;
 
+import fr.cnrs.lacito.fieldarchive.services.nlquery.NlQueryHistoryService;
+import fr.cnrs.lacito.fieldarchive.utils.ProjectsDirectory;
+
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -24,10 +29,12 @@ public class FileExportService {
     private static final ValueFactory vf = SimpleValueFactory.getInstance();
     private final ProjectService projectService;
     private final DataSourceService dsService;
+    private final ProjectsDirectory projectsDirectory;
 
-    public FileExportService(ProjectService projectService,DataSourceService dsService) {
+    public FileExportService(ProjectService projectService, DataSourceService dsService, ProjectsDirectory projectsDirectory) {
         this.projectService = projectService;
         this.dsService = dsService;
+        this.projectsDirectory = projectsDirectory;
     }
 
     /**
@@ -101,6 +108,14 @@ public class FileExportService {
             conn.commit();
 
             zip.closeEntry();
+
+            // The natural-language query history lives next to the store, outside the RDF data.
+            Path history = projectsDirectory.getPublicPath().resolve(projectName).resolve(NlQueryHistoryService.FILE_NAME);
+            if (Files.exists(history)) {
+                zip.putNextEntry(new ZipEntry(projectName + "/" + NlQueryHistoryService.FILE_NAME));
+                zip.write(Files.readAllBytes(history));
+                zip.closeEntry();
+            }
             zip.finish();
         } catch (Exception e) {
             throw new ImportException("Backup export failed: " + e.getMessage());

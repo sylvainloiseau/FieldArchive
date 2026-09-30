@@ -16,7 +16,13 @@ import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.BasicParserSettings;
 import org.springframework.stereotype.Service;
 
+import fr.cnrs.lacito.fieldarchive.core.ProjectDataChangedEvent;
+import fr.cnrs.lacito.fieldarchive.services.nlquery.NlQueryHistoryService;
+import fr.cnrs.lacito.fieldarchive.utils.ProjectsDirectory;
+import org.springframework.context.ApplicationEventPublisher;
+
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.io.ByteArrayInputStream;
@@ -29,14 +35,20 @@ public class FileImportService {
     private final ProjectService projectService;
     private final DataSourceService dsService;
     private final BuiltinOntologyService builtinOntologyService; // ✅ pour recharger RICO après restauration
+    private final ProjectsDirectory projectsDirectory;
+    private final ApplicationEventPublisher events;
 
     public FileImportService(ProjectService projectService,
                              DataSourceService dsService,
-                             BuiltinOntologyService builtinOntologyService
+                             BuiltinOntologyService builtinOntologyService,
+                             ProjectsDirectory projectsDirectory,
+                             ApplicationEventPublisher events
     ) {
         this.projectService = projectService;
         this.dsService = dsService;
         this.builtinOntologyService = builtinOntologyService;
+        this.projectsDirectory = projectsDirectory;
+        this.events = events;
     }
 
     public ImportResult importTurtle(InputStream ttlStream, String baseURI, String graphName) {
@@ -74,6 +86,7 @@ public class FileImportService {
             parser.parse(ttlStream, baseURI);
 
             conn.commit();
+            events.publishEvent(new ProjectDataChangedEvent(ProjectContext.getProjectName()));
             return ImportResult.success(ctxName.stringValue(), conn.size(ctxName));
         } catch (RDFParseException e) {
             throw new ImportException(e.getLineNumber(), e.getColumnNumber(), e.getMessage());
@@ -90,10 +103,12 @@ public class FileImportService {
     */
     public ImportResult importBackup(InputStream zipStream) {
         byte[] trigContent = null;
+        byte[] historyContent = null;
         String projectName = null;
 
         try (ZipInputStream zip = new ZipInputStream(zipStream)) {
             ZipEntry entry;
+            // Read every entry: the natural-language query history may come after the .trig
             while ((entry = zip.getNextEntry()) != null) {
                 if (entry.getName().endsWith("project-backup.trig")) {
                     // ex: "archive2025/project-backup.trig" → "archive2025"
@@ -107,9 +122,14 @@ public class FileImportService {
                     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                     zip.transferTo(buffer);
                     trigContent = buffer.toByteArray();
-                    break;
+                } else if (entry.getName().endsWith("/" + NlQueryHistoryService.FILE_NAME)) {
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    zip.transferTo(buffer);
+                    historyContent = buffer.toByteArray();
                 }
             }
+        } catch (ImportException e) {
+            throw e;
         } catch (Exception e) {
             throw new ImportException("Cannot read the archive : " + e.getMessage());
         }
@@ -144,6 +164,17 @@ public class FileImportService {
         // 3) Recharger l'ontologie RICO — absente du backup, l'app en a besoin.
         //    ensureRicoLoaded() est idempotent : il ne réécrit rien si déjà présent.
         builtinOntologyService.ensureRicoLoaded();
+
+        // 4) The natural-language query history, when the backup has one
+        if (historyContent != null) {
+            try {
+                Files.write(projectsDirectory.getPublicPath().resolve(projectName).resolve(NlQueryHistoryService.FILE_NAME),
+                        historyContent);
+            } catch (Exception e) {
+                System.err.println("WARNING: could not restore the natural-language query history: " + e.getMessage());
+            }
+        }
+        events.publishEvent(new ProjectDataChangedEvent(projectName));
 
         return ImportResult.success(projectName, repo.getConnection().size());
     }

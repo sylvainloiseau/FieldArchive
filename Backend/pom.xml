@@ -62,6 +62,18 @@
             <artifactId>rdf4j-spring</artifactId>
             <version>5.2.2</version>
         </dependency>
+
+        <!-- Natural-language query agents (Claude, ChatGPT, local model through Ollama) -->
+        <dependency>
+            <groupId>com.anthropic</groupId>
+            <artifactId>anthropic-java</artifactId>
+            <version>2.66.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.openai</groupId>
+            <artifactId>openai-java</artifactId>
+            <version>4.71.0</version>
+        </dependency>
     </dependencies>
 
     <build>

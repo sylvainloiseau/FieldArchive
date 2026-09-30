@@ -1,0 +1,277 @@
+<div class="flex flex-col max-h-[85vh]">
+
+  <!-- Header: title + agent drop-down -->
+  <div class="flex items-center gap-3 px-6 pt-5 pb-3 border-b border-gray-100">
+    <svg class="w-5 h-5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>
+    </svg>
+    <h2 class="text-lg font-semibold text-gray-900 mr-auto">Ask about this project</h2>
+
+    <label class="text-xs text-gray-500">Agent</label>
+    <mat-select class="!w-72 text-sm border border-gray-200 rounded-lg px-2 py-1"
+                [value]="selectedProvider" (selectionChange)="onProviderChange($event.value)"
+                [disabled]="translating || running" panelWidth="360px">
+      <mat-select-trigger>
+        <span class="text-sm">{{ current?.label }}</span>
+        <span class="text-xs text-gray-400"> · {{ current?.model }}</span>
+      </mat-select-trigger>
+      @for (p of providers; track p.id) {
+        <mat-option [value]="p.id" [disabled]="!p.available">
+          <div class="flex flex-col py-1 leading-tight">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium">{{ p.label }}</span>
+              @if (p.free) { <span class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">free</span> }
+              @if (p.id === 'local') { <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">stays on this computer</span> }
+            </div>
+            <span class="text-xs text-gray-400">
+              {{ p.id === 'builtin' ? 'limited set of questions' : p.model }}
+              @if (!p.available && p.reason) { — {{ p.reason }} }
+            </span>
+          </div>
+        </mat-option>
+      }
+    </mat-select>
+    <button (click)="close()" class="ml-2 text-gray-400 hover:text-gray-700" title="Close">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="px-6 py-4 overflow-y-auto flex flex-col gap-4">
+
+    <!-- Unavailable agents: keys and setup -->
+    @if (current?.id === 'builtin') {
+      <div class="text-xs text-gray-500">
+        The built-in agent needs no AI and no account, but only understands a fixed set of phrasings.
+        <button class="text-indigo-600 hover:underline" (click)="showExamples = !showExamples">What can I ask?</button>
+        @if (showExamples) {
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            @for (e of builtinExamples; track e) {
+              <button class="px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700" (click)="useExample(e)">{{ e }}</button>
+            }
+          </div>
+        }
+      </div>
+    }
+    @if (current?.id === 'local') {
+      <div class="text-xs text-gray-500">
+        Runs on this computer through Ollama: free, and no data leaves the machine. Expect tens of seconds to a few minutes per question,
+        and more questions back than with Claude or ChatGPT.
+      </div>
+    }
+
+    @if (noPaidAgent || keyEditing) {
+      <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600 flex flex-col gap-2">
+        <div>
+          Claude and ChatGPT need an API key (Anthropic: console.anthropic.com; OpenAI: platform.openai.com).
+          A ChatGPT Plus/Pro or claude.ai subscription is <b>not</b> an API key.
+        </div>
+        @for (p of paidProviders; track p.id) {
+          <div class="flex items-center gap-2">
+            <span class="w-36 font-medium text-gray-700">{{ p.label }}</span>
+            @if (p.keySource === 'environment') {
+              <span class="text-gray-400">set by environment variable</span>
+            } @else if (keyEditing === p.id) {
+              <input type="password" [(ngModel)]="keyValue" placeholder="API key" (keydown.enter)="saveKey()"
+                     class="flex-1 px-2 py-1 rounded border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-indigo-400">
+              <button (click)="saveKey()" [disabled]="keySaving || !keyValue.trim()"
+                      class="px-3 py-1 rounded bg-indigo-600 text-white disabled:opacity-40">{{ keySaving ? 'Checking…' : 'Save' }}</button>
+              <button (click)="keyEditing = null" class="text-gray-400 hover:text-gray-700">Cancel</button>
+            } @else {
+              <span [class]="p.available ? 'text-green-600' : 'text-gray-400'">{{ p.available ? 'key saved' : 'no key' }}</span>
+              <button (click)="startKeyEdit(p.id)" class="text-indigo-600 hover:underline">{{ p.available ? 'Replace' : 'Set API key' }}</button>
+              @if (p.keySource === 'settings') {
+                <button (click)="deleteKey(p.id)" class="text-red-500 hover:underline">Remove</button>
+              }
+            }
+          </div>
+        }
+        @if (keyError) { <div class="text-red-600">{{ keyError }}</div> }
+      </div>
+    } @else if (current && !current.free) {
+      <div class="text-right -mt-2">
+        <button (click)="startKeyEdit(current.id)" class="text-[11px] text-gray-400 hover:text-indigo-600">API keys…</button>
+      </div>
+    }
+
+    <!-- Question -->
+    <div>
+      <textarea #questionBox [(ngModel)]="question" rows="3" (keydown)="onQuestionKeydown($event)" [disabled]="translating || running"
+                placeholder="e.g. Which recordings were made in 2019? — Rename Marie Dupond to Marie Durand"
+                class="w-full text-sm p-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-y"></textarea>
+      <div class="flex items-center justify-between mt-2">
+        <span class="text-[11px] text-gray-400">Ctrl/⌘ + Enter to translate</span>
+        @if (translating) {
+          <div class="flex items-center gap-3 text-sm text-gray-600">
+            <svg class="w-4 h-4 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
+            Looking up entities and writing the query… {{ elapsed }}s
+            <button (click)="cancelTranslation()" class="px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">Cancel</button>
+          </div>
+        } @else {
+          <button (click)="translate()" [disabled]="!question.trim() || !selectedProvider || running"
+                  class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-medium">
+            Translate
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Error -->
+    @if (error) {
+      <div class="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700 whitespace-pre-wrap">
+        {{ error }}
+        @if (isKeyError && otherAvailable.length) {
+          <div class="mt-2 text-xs text-red-600">
+            Try another agent:
+            @for (p of otherAvailable; track p.id) {
+              <button class="ml-1 underline" (click)="switchTo(p.id)">{{ p.label }}</button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Answer -->
+    @if (answer) {
+      <div class="rounded-xl border border-gray-200 p-4 flex flex-col gap-3">
+        <div class="flex items-center gap-2 text-xs text-gray-400">
+          Generated by {{ agentLabel(answer.provider) }} · {{ answer.model }}
+          @if (answer.queryType === 'SELECT') { <span class="ml-auto px-2 py-0.5 rounded bg-gray-100 text-gray-700 font-medium">SELECT</span> }
+          @if (answer.queryType === 'UPDATE') { <span class="ml-auto px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-medium">UPDATE — modifies the project</span> }
+        </div>
+
+        <p class="text-sm text-gray-800 whitespace-pre-wrap">{{ answer.explanation }}</p>
+
+        <!-- Which entity? -->
+        @if (answer.queryType === 'CLARIFY' && answer.clarifyKind === 'ENTITY') {
+          @if (answer.candidates.length) {
+            <div class="flex flex-col gap-1.5">
+              @for (c of answer.candidates; track c.iri) {
+                <button (click)="pickCandidate(c)" class="text-left px-3 py-2 rounded-lg border border-gray-200 hover:border-indigo-400 hover:bg-indigo-50">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-gray-900">{{ c.label }}</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded"
+                          [class]="c.source === 'internal' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'">
+                      {{ c.source === 'internal' ? 'internal' : (c.datasourceShortName || 'external') }}
+                    </span>
+                  </div>
+                  <div class="text-xs text-gray-400 truncate">{{ c.types.map(shortIri).join(', ') }} · {{ c.iri }}</div>
+                </button>
+              }
+            </div>
+          }
+          <button (click)="rephrase()" class="self-start text-xs text-gray-500 hover:text-indigo-600">
+            {{ answer.candidates.length ? 'None of these — rephrase' : 'Rephrase' }}
+          </button>
+        }
+
+        <!-- Which encoding? -->
+        @if (answer.queryType === 'CLARIFY' && answer.clarifyKind === 'ENCODING') {
+          <div class="flex flex-col gap-2">
+            @for (o of answer.encodingOptions; track o.id) {
+              <button (click)="pickEncoding(o)" class="text-left p-3 rounded-lg border border-gray-200 hover:border-indigo-400 hover:bg-indigo-50">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-gray-900">{{ o.label }}</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded"
+                        [class]="o.basis === 'project data' ? 'bg-green-100 text-green-700' : o.basis === 'configuration' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'">
+                    {{ o.basis === 'project data' ? 'used in this project' : o.basis === 'configuration' ? 'configuration' : 'RiC-O definition' }}
+                  </span>
+                </div>
+                @if (o.description) { <div class="text-xs text-gray-600 mt-1">{{ o.description }}</div> }
+                <code class="block text-xs font-mono text-gray-500 mt-1">{{ o.exampleTriple }}</code>
+              </button>
+            }
+            <div class="text-[11px] text-gray-400">The choice is remembered for this project.</div>
+            <button (click)="rephrase()" class="self-start text-xs text-gray-500 hover:text-indigo-600">None of these — rephrase</button>
+          </div>
+        }
+
+        <!-- Not understood (built-in agent) -->
+        @if (answer.queryType === 'UNSUPPORTED') {
+          @if (answer.examples.length) {
+            <div class="flex flex-wrap gap-1.5">
+              @for (e of answer.examples; track e) {
+                <button class="text-xs px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700" (click)="useExample(e)">{{ e }}</button>
+              }
+            </div>
+          }
+          @if (otherAvailable.length) {
+            <div class="text-xs text-gray-500">
+              Or switch to:
+              @for (p of otherAvailable; track p.id) {
+                <button class="ml-1 text-indigo-600 hover:underline" (click)="switchTo(p.id)">{{ p.label }}</button>
+              }
+            </div>
+          }
+        }
+
+        <!-- The query -->
+        @if (answer.sparql) {
+          @if (answer.createdEntityIris.length) {
+            <div class="text-xs text-gray-600">
+              Will be created: @for (iri of answer.createdEntityIris; track iri) { <code class="ml-1 text-gray-500">{{ iri }}</code> }
+            </div>
+          }
+          @if (answer.queryType === 'UPDATE' && answer.targetEntityIri && !answer.createdEntityIris.includes(answer.targetEntityIri)) {
+            <div class="text-xs text-gray-600">Changes: <code class="text-gray-500">{{ answer.targetEntityIri }}</code></div>
+          }
+          <div class="relative">
+            <pre class="text-xs font-mono p-3 rounded-lg bg-gray-900 text-gray-100 overflow-x-auto whitespace-pre-wrap max-h-64">{{ answer.sparql }}</pre>
+            <button (click)="copy()" class="absolute top-2 right-2 text-[11px] px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-gray-200">Copy</button>
+          </div>
+        }
+
+        @if (answer.lookups.length) {
+          <div>
+            <button (click)="showLookups = !showLookups" class="text-xs text-gray-500 hover:text-indigo-600">
+              {{ showLookups ? '▾' : '▸' }} What I looked up ({{ answer.lookups.length }})
+            </button>
+            @if (showLookups) {
+              <ul class="mt-1 ml-4 list-disc text-xs text-gray-500">
+                @for (l of answer.lookups; track $index) { <li>{{ l }}</li> }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- History -->
+    <div class="border-t border-gray-100 pt-3">
+      <button (click)="toggleHistory()" class="text-xs text-gray-500 hover:text-indigo-600">
+        {{ showHistory ? '▾' : '▸' }} History of this project's questions
+      </button>
+      @if (showHistory) {
+        @if (!history.length) {
+          <div class="text-xs text-gray-400 mt-2">No question has been run yet.</div>
+        }
+        <ul class="mt-2 flex flex-col gap-1">
+          @for (h of history; track h.id) {
+            <li class="flex items-center gap-2 text-xs group">
+              <button (click)="reuse(h)" class="text-left truncate flex-1 text-gray-700 hover:text-indigo-600" [title]="h.sparql">{{ h.question }}</button>
+              <span class="text-gray-400">{{ h.queryType }}</span>
+              @if (isCorrected(h)) { <span class="px-1.5 rounded bg-amber-100 text-amber-800">corrected</span> }
+              <span class="text-gray-400">{{ agentLabel(h.provider) }}</span>
+              <span class="text-gray-300">{{ h.timestamp | date:'shortDate' }}</span>
+              <button (click)="deleteEntry(h)" [title]="confirmDeleteId === h.id ? 'Click again to delete' : 'Delete this example'"
+                      [class]="confirmDeleteId === h.id ? 'text-red-600 font-medium' : 'text-gray-300 hover:text-red-500'">
+                {{ confirmDeleteId === h.id ? 'Delete?' : '✕' }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  <!-- Actions -->
+  @if (answer?.sparql) {
+    <div class="flex items-center justify-end gap-3 px-6 py-3 border-t border-gray-100">
+      <button (click)="close()" class="text-sm text-gray-500 hover:text-gray-800">Cancel</button>
+      <button (click)="openInEditor()" [disabled]="running" class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50 text-sm">Open in SPARQL editor</button>
+      <button (click)="run()" [disabled]="running"
+              [class]="answer?.queryType === 'UPDATE' ? 'px-5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium disabled:opacity-40' : 'px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium disabled:opacity-40'">
+        {{ running ? 'Applying…' : (answer?.queryType === 'UPDATE' ? 'Apply changes' : 'Run query') }}
+      </button>
+    </div>
+  }
+</div>

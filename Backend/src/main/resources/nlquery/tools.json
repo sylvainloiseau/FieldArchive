@@ -1,0 +1,76 @@
+[
+  {
+    "name": "search_entities",
+    "description": "Find existing entities of the project by name (rico:name, rdfs:label, dcterms:title, foaf:name). Case- and accent-insensitive, tolerant of small spelling differences. Returns IRI, name, types, and whether each entity is internal (editable) or comes from an external data source (read-only). Use it before writing any query that refers to specific entities.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text", "type"],
+      "properties": {
+        "text": { "type": "string", "description": "The name, or part of it, as the user wrote it." },
+        "type": { "type": "string", "description": "Class IRI or CURIE to restrict the search (subclasses included), or an empty string for any type." }
+      }
+    }
+  },
+  {
+    "name": "describe_entity",
+    "description": "All the properties and values of one entity, with the source of each value (internal, or the external data source it comes from). Shows which properties this entity actually uses.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["iri"],
+      "properties": {
+        "iri": { "type": "string", "description": "Full IRI of the entity." }
+      }
+    }
+  },
+  {
+    "name": "run_select",
+    "description": "Run a read-only SPARQL SELECT query on the project and get the first rows (LIMIT 50 added when absent, 10-second limit). For lookups the other tools cannot express.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query"],
+      "properties": {
+        "query": { "type": "string", "description": "A SPARQL SELECT query, with its PREFIX declarations." }
+      }
+    }
+  },
+  {
+    "name": "search_ontology",
+    "description": "Search the RiC-O ontology (the only ontology described to you): labels in every language RiC-O provides, definitions and scope notes. Returns matching classes and properties with domain, range, inverse and definition.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string", "description": "Words describing the notion, e.g. \"gender\", \"birth date\", \"recorded by\"." }
+      }
+    }
+  },
+  {
+    "name": "find_usage",
+    "description": "How this project's data records something: for a property IRI/CURIE, or a word (matched against the property names used in the data and against RiC-O), the number of entities using it per type, the kind of value, and the recurring values with their IRIs. Use it to reuse the project's existing encodings and vocabulary entities.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text_or_property", "type"],
+      "properties": {
+        "text_or_property": { "type": "string", "description": "A property IRI or CURIE, or a word such as \"gender\"." },
+        "type": { "type": "string", "description": "Class IRI or CURIE of the subjects, or an empty string for every type." }
+      }
+    }
+  },
+  {
+    "name": "search_history",
+    "description": "More examples from this project's history of questions and the queries actually run for them, matching a text.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "text": { "type": "string", "description": "Words of the expression you want examples for." }
+      }
+    }
+  }
+]

@@ -1,4 +1,6 @@
-import {ChangeDetectionStrategy,ChangeDetectorRef, signal, Component, OnInit, inject } from '@angular/core';
+import {ChangeDetectionStrategy,ChangeDetectorRef, signal, Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { EntityDetailsDialogService } from '../../services/entity-details-dialog.service';
 import { CommonModule, KeyValue } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -9,7 +11,6 @@ import {MatListModule} from '@angular/material/list';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import {Entity, EntityType } from '../../models/ressource';
 
-import { EntityDetailsComponent } from '../entity-details/entity-details.component';
 import { ListeEntitesComponent } from '../liste-entites/liste-entites.component';
 
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
@@ -49,7 +50,7 @@ import {CdkAccordionModule} from '@angular/cdk/accordion';
     ])
   ]
 })
-export class GestionRessourcesComponent implements OnInit {
+export class GestionRessourcesComponent implements OnInit, OnDestroy {
   panelOpenState = signal(false);
 
   formattedEntities : any[] = [];
@@ -74,26 +75,23 @@ export class GestionRessourcesComponent implements OnInit {
   expandedIndex = 0;
 
   openEntityDetailsDialog() {
-
-    this.dialog.open(EntityDetailsComponent, {
-      width: '95vw',
-      maxWidth: '100vw',
-      maxHeight: '80vh',
-      height: '80vh',
-        data : {
-        "ontologyLabels" : this.ontologyLabels,
-        "selectedEntityId" : this.selectedEntity.iri
-      }
-    });
+    this.entityDialog.open(this.ontologyLabels, this.selectedEntity.iri);
   }
+
+  private entitiesChangedSub?: Subscription;
 
   constructor(
     public dialog: MatDialog,
     private ontologyService: GestionRessourcesService,
     private cdr: ChangeDetectorRef,
-    public  router:         Router
+    public  router:         Router,
+    private entityDialog: EntityDetailsDialogService
 
   ) {}
+
+  ngOnDestroy(): void {
+    this.entitiesChangedSub?.unsubscribe();
+  }
 
   getOntologySections(ontology: any) {
     return [ontology.mainTypes, ontology.usedTypes, ontology.mainTerminologies]
@@ -143,6 +141,11 @@ export class GestionRessourcesComponent implements OnInit {
   };
 
   ngOnInit() {
+
+    // An update run from a question (header field / question dialog) changed the data: reload the list.
+    this.entitiesChangedSub = this.ontologyService.entitiesChanged$.subscribe(() => {
+      if (this.selectedType !== null || this.formattedEntities.length > 0) this.onEntityCreated();
+    });
 
     // this.filteredEntities = [...this.allEntities];
     // this.filteredEntityTypes = [...this.entityTypes];

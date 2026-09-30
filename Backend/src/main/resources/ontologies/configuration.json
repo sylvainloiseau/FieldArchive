@@ -117,8 +117,10 @@
         "name": "Main Terminologies",
         "value": [
           "https://www.ica.org/standards/RiC/ontology#ActivityType",
+          "https://www.ica.org/standards/RiC/ontology#RepresentationType",
+          "https://www.ica.org/standards/RiC/ontology#CarrierType",
           "https://www.ica.org/standards/RiC/ontology#DocumentaryFormType",
-          "https://www.ica.org/standards/RiC/ontology#ContentFormType",
+          "https://www.ica.org/standards/RiC/ontology#ContentType",
           "https://www.ica.org/standards/RiC/ontology#Language",
           "https://www.ica.org/standards/RiC/ontology#PlaceType",
           "https://www.ica.org/standards/RiC/ontology#RoleType"
@@ -135,12 +137,12 @@
           "https://www.ica.org/standards/RiC/ontology#hasCreator"
         ],
         "Agent": [
-          "hasName",
-          "hasOrHadOccupation"
+          "https://www.ica.org/standards/RiC/ontology#name",
+          "https://www.ica.org/standards/RiC/ontology#hasOrHadOccupationOfType"
         ],
         "RecordResource": [
-          "hasCreator",
-          "isAssociatedWithDate"
+          "https://www.ica.org/standards/RiC/ontology#hasCreator",
+          "https://www.ica.org/standards/RiC/ontology#isAssociatedWithDate"
         ]
       },
       "removeProperty": [

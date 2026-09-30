@@ -502,6 +502,20 @@ public class OntologyService {
         }
     }
 
+    /**
+     * The entries of {@code configuration.json}, keyed by namespace as written in the file
+     * (name, mainTypes, mainTerminologies, mainProperties…), read-only.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Map<String, Object>> getConfiguredOntologies() {
+        if (ontologyConfig == null) return Map.of();
+        Map<String, Object> ontologies = (Map<String, Object>) ontologyConfig.get("ontologies");
+        if (ontologies == null) return Map.of();
+        Map<String, Map<String, Object>> out = new LinkedHashMap<>();
+        ontologies.forEach((ns, data) -> out.put(ns, Collections.unmodifiableMap((Map<String, Object>) data)));
+        return Collections.unmodifiableMap(out);
+    }
+
     public OntologyPropertyDto getPropertyByUri(String propertyUri) {
         if (propertyUri == null || propertyUri.isBlank()) return null;
 

@@ -17,7 +17,10 @@ import org.eclipse.rdf4j.query.QueryLanguage;
 import org.eclipse.rdf4j.query.TupleQuery;
 import org.eclipse.rdf4j.query.TupleQueryResult;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import fr.cnrs.lacito.fieldarchive.core.ProjectDataChangedEvent;
+import fr.cnrs.lacito.fieldarchive.utils.TextNormalizer;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -31,11 +34,27 @@ public class RdfEntityService {
     private final ProjectService projectService;
     private final DataSourceService dsService;
     private final OntologyService ontologyService;
+    private final InternalDataBookkeeping bookkeeping;
+    private final ApplicationEventPublisher events;
 
-    public RdfEntityService(ProjectService projectService, DataSourceService dsService, OntologyService ontologyService) {
+    /**
+     * Properties read, in this order, to name an entity. The single source of truth for
+     * {@link #bestLabel}, the label search and the natural-language agent's prompt.
+     */
+    public static final List<String> LABEL_PREDICATES = List.of(
+            RdfNamespaces.RICO + "name",
+            "http://www.w3.org/2000/01/rdf-schema#label",
+            "http://purl.org/dc/terms/title",
+            "http://xmlns.com/foaf/0.1/name"
+    );
+
+    public RdfEntityService(ProjectService projectService, DataSourceService dsService, OntologyService ontologyService,
+                            InternalDataBookkeeping bookkeeping, ApplicationEventPublisher events) {
         this.projectService = projectService;
         this.dsService = dsService;
         this.ontologyService = ontologyService;
+        this.bookkeeping = bookkeeping;
+        this.events = events;
     }
     private IRI internalCtx() {
         String projectName = projectService.readCurrentProject().name;
@@ -53,9 +72,16 @@ public class RdfEntityService {
     );
 
     private IRI iriFromKey(String entityIri, String key) {
-        String entityTypeName = entityIri.replace(RdfNamespaces.RICO,"");
+        String typeIri = expand(entityIri);
+        String entityTypeName = typeIri.substring(Math.max(typeIri.lastIndexOf('#'), typeIri.lastIndexOf('/')) + 1);
         ProjectDto currentProject = this.projectService.readCurrentProject();
         return vf.createIRI(currentProject.prefix + '/' + entityTypeName +'/' + key);
+    }
+
+    /** A new entity IRI, {@code <project prefix>/<typeLocalName>/<uuid>}, the scheme used for every created entity. */
+    public IRI mintIri(String typeIri) {
+        requireProjectOpen();
+        return iriFromKey(typeIri, UUID.randomUUID().toString());
     }
 
     private String keyFromIri(IRI iri) {
@@ -120,27 +146,11 @@ public class RdfEntityService {
 
     private String bestLabel(RepositoryConnection conn, IRI subject) {
 
-        // 0) rico:name (TOP PRIORITY)
-        IRI ricoName = vf.createIRI("https://www.ica.org/standards/RiC/ontology#name");
-        try (var st = conn.getStatements(subject, ricoName, null)) {
-            if (st.hasNext()) return st.next().getObject().stringValue();
-        }
-
-        // 1) rdfs:label
-        try (var st = conn.getStatements(subject, RDFS.LABEL, null)) {
-            if (st.hasNext()) return st.next().getObject().stringValue();
-        }
-
-        // 2) dcterms:title
-        IRI title = vf.createIRI("http://purl.org/dc/terms/title");
-        try (var st = conn.getStatements(subject, title, null)) {
-            if (st.hasNext()) return st.next().getObject().stringValue();
-        }
-
-        // 3) foaf:name
-        IRI name = vf.createIRI("http://xmlns.com/foaf/0.1/name");
-        try (var st = conn.getStatements(subject, name, null)) {
-            if (st.hasNext()) return st.next().getObject().stringValue();
+        // 0-3) rico:name (TOP PRIORITY), rdfs:label, dcterms:title, foaf:name
+        for (String labelPredicate : LABEL_PREDICATES) {
+            try (var st = conn.getStatements(subject, vf.createIRI(labelPredicate), null)) {
+                if (st.hasNext()) return st.next().getObject().stringValue();
+            }
         }
 
         // 4) fallback: ANY literal except dates
@@ -223,9 +233,10 @@ public class RdfEntityService {
                     addProperty(conn, subject, p);
                 }
             }
-            touchInternalDataSource(conn);
+            bookkeeping.touchInternalDataSource(conn);
             conn.commit();
         }
+        events.publishEvent(new ProjectDataChangedEvent(ProjectContext.getProjectName()));
 
         return getByIri(subject);
     }
@@ -595,10 +606,11 @@ public class RdfEntityService {
             Literal modifiedLiteral = vf.createLiteral(Instant.now().toString(), XSD.DATETIME);
             conn.add(subject, modifiedPredicate, modifiedLiteral, CTX_INTERNAL);
 
-            touchInternalDataSource(conn);
+            bookkeeping.touchInternalDataSource(conn);
 
             conn.commit();
         }
+        events.publishEvent(new ProjectDataChangedEvent(ProjectContext.getProjectName()));
 
         return getByIri(subject);
     }
@@ -642,21 +654,154 @@ public class RdfEntityService {
             conn.remove((Resource) null, null, subject, CTX_INTERNAL);
 
             // 4 Mettre à jour lastSync
-            touchInternalDataSource(conn);
+            bookkeeping.touchInternalDataSource(conn);
 
             conn.commit();
         }
+        events.publishEvent(new ProjectDataChangedEvent(ProjectContext.getProjectName()));
     }
 
+    // =========================
+    //  Helpers for the natural-language agent
+    // =========================
 
-    private void touchInternalDataSource(RepositoryConnection conn) {
-        IRI ctxMeta = vf.createIRI(RdfContexts.CTX_META);
-        String projectName = projectService.readCurrentProject().name;
-        IRI ds = vf.createIRI(RdfNamespaces.APP + "/datasource/" + projectName + "_internal");
+    /** Name of an entity, in the {@link #LABEL_PREDICATES} order; null if the entity does not exist. */
+    public String bestLabel(IRI subject) {
+        requireProjectOpen();
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+            if (!conn.hasStatement(subject, null, null, false)) return null;
+            return bestLabel(conn, subject);
+        }
+    }
 
-        String now = OffsetDateTime.now().toString();
-        conn.remove(ds, vf.createIRI("http://purl.org/dc/terms/modified"), null, ctxMeta);
-        conn.add(ds, vf.createIRI("http://purl.org/dc/terms/modified"), vf.createLiteral(now), ctxMeta);
+    public boolean exists(IRI subject) {
+        requireProjectOpen();
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+            return conn.hasStatement(subject, null, null, false);
+        }
+    }
+
+    public List<String> typesOf(IRI subject) {
+        requireProjectOpen();
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+            return readTypes(conn, subject);
+        }
+    }
+
+    /**
+     * Entities whose name (any of {@link #LABEL_PREDICATES}) matches {@code text}, best first.
+     * Case- and accent-insensitive, and tolerant of small spelling differences
+     * ("dupond" finds "Dupont"). Only data graphs are searched: not the RiC-O ontology graph,
+     * not the metadata graphs.
+     *
+     * @param typeIri optional; when set, only entities of that type or one of its subtypes
+     */
+    public List<EntityMatchDto> searchByLabel(String text, String typeIri, int limit) {
+        requireProjectOpen();
+        Set<String> queryWords = new LinkedHashSet<>(TextNormalizer.tokens(text));
+        if (queryWords.isEmpty()) return List.of();
+        String foldedQuery = String.join(" ", queryWords);
+
+        StringBuilder values = new StringBuilder();
+        for (String p : LABEL_PREDICATES) values.append('<').append(p).append("> ");
+        String typeFilter = "";
+        if (typeIri != null && !typeIri.isBlank()) {
+            StringBuilder types = new StringBuilder();
+            for (String t : ontologyService.expandWithSubtypes(expand(typeIri))) types.append('<').append(t).append("> ");
+            typeFilter = "?s a ?t . VALUES ?t { " + types + "}";
+        }
+        String sparql = "SELECT ?s ?label WHERE { VALUES ?p { " + values + "} "
+                + "GRAPH ?g { ?s ?p ?label } FILTER(isLiteral(?label) && isIRI(?s)) "
+                + "FILTER(?g != <" + RdfContexts.CTX_META + "> && ?g != <" + RdfContexts.CTX_ONTO_RICO + ">) "
+                + "FILTER(!STRSTARTS(STR(?g), \"" + RdfNamespaces.APP + "/projects#\")) "
+                + typeFilter + " } LIMIT 50000";
+
+        Map<IRI, Double> bestScore = new LinkedHashMap<>();
+        Map<IRI, String> bestLabelOf = new HashMap<>();
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+            TupleQuery q = conn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
+            q.setMaxExecutionTime(10);
+            try (TupleQueryResult res = q.evaluate()) {
+                while (res.hasNext()) {
+                    BindingSet bs = res.next();
+                    IRI s = (IRI) bs.getValue("s");
+                    String label = bs.getValue("label").stringValue();
+                    double score = labelScore(foldedQuery, queryWords, label);
+                    if (score < 0.75) continue;
+                    if (score > bestScore.getOrDefault(s, 0.0)) {
+                        bestScore.put(s, score);
+                        bestLabelOf.put(s, label);
+                    }
+                }
+            }
+
+            List<IRI> ranked = new ArrayList<>(bestScore.keySet());
+            ranked.sort((a, b) -> Double.compare(bestScore.get(b), bestScore.get(a)));
+            List<EntityMatchDto> out = new ArrayList<>();
+            IRI internal = internalCtx();
+            for (IRI s : ranked.subList(0, Math.min(limit, ranked.size()))) {
+                EntityMatchDto m = new EntityMatchDto();
+                m.iri = s.stringValue();
+                m.label = bestLabelOf.get(s);
+                m.types = readTypes(conn, s);
+                boolean isInternal = conn.hasStatement(s, null, null, false, internal);
+                m.source = isInternal ? "internal" : "external";
+                if (!isInternal) {
+                    try (var st = conn.getStatements(s, null, null)) {
+                        while (st.hasNext() && m.datasourceShortName == null) {
+                            Resource ctx = st.next().getContext();
+                            if (ctx instanceof IRI g && !g.stringValue().equals(RdfContexts.CTX_META)) {
+                                m.datasourceShortName = dsService.getShortNameByGraph(g);
+                            }
+                        }
+                    }
+                }
+                m.score = Math.round(bestScore.get(s) * 100) / 100.0;
+                out.add(m);
+            }
+            return out;
+        }
+    }
+
+    /** Label, types and source of one existing entity, read from the store; null if it does not exist. */
+    public EntityMatchDto matchOf(IRI subject) {
+        requireProjectOpen();
+        try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+            if (!conn.hasStatement(subject, null, null, false)) return null;
+            EntityMatchDto m = new EntityMatchDto();
+            m.iri = subject.stringValue();
+            m.label = bestLabel(conn, subject);
+            m.types = readTypes(conn, subject);
+            boolean isInternal = conn.hasStatement(subject, null, null, false, internalCtx());
+            m.source = isInternal ? "internal" : "external";
+            if (!isInternal) {
+                try (var st = conn.getStatements(subject, null, null)) {
+                    while (st.hasNext() && m.datasourceShortName == null) {
+                        Resource ctx = st.next().getContext();
+                        if (ctx instanceof IRI g && !g.stringValue().equals(RdfContexts.CTX_META)) {
+                            m.datasourceShortName = dsService.getShortNameByGraph(g);
+                        }
+                    }
+                }
+            }
+            m.score = 1.0;
+            return m;
+        }
+    }
+
+    /** 1 for the same words, 0.9 when every query word appears, else a discounted mean best-word similarity. */
+    private static double labelScore(String foldedQuery, Set<String> queryWords, String label) {
+        List<String> labelWords = TextNormalizer.tokens(label);
+        if (labelWords.isEmpty()) return 0;
+        if (String.join(" ", labelWords).equals(foldedQuery)) return 1.0;
+        if (labelWords.containsAll(queryWords)) return 0.9;
+        double sum = 0;
+        for (String q : queryWords) {
+            double best = 0;
+            for (String w : labelWords) best = Math.max(best, TextNormalizer.similarity(q, w));
+            sum += best;
+        }
+        return (sum / queryWords.size()) * 0.85;
     }
 
 }

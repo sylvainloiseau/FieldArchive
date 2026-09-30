@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["queryType", "sparql", "explanation", "newEntities", "targetEntityIri", "clarifyKind", "candidateIris", "encodingOptions"],
+  "properties": {
+    "queryType": {
+      "type": "string",
+      "enum": ["SELECT", "UPDATE", "CLARIFY"],
+      "description": "SELECT to read, UPDATE to change the data, CLARIFY to ask the user first."
+    },
+    "sparql": {
+      "type": "string",
+      "description": "The SPARQL query or update, with its PREFIX declarations. Empty string for CLARIFY."
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Short explanation for the user, in the language of the question. For CLARIFY, the question to ask."
+    },
+    "newEntities": {
+      "type": "array",
+      "description": "One entry per <urn:fieldarchive:new:N> placeholder used in the query.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["placeholder", "typeIri", "name"],
+        "properties": {
+          "placeholder": { "type": "string", "description": "e.g. urn:fieldarchive:new:1" },
+          "typeIri": { "type": "string", "description": "Full IRI of the new entity's class." },
+          "name": { "type": "string", "description": "The rico:name given to the new entity, or an empty string." }
+        }
+      }
+    },
+    "targetEntityIri": {
+      "type": "string",
+      "description": "The main entity created or edited (an existing IRI or a placeholder), or an empty string."
+    },
+    "clarifyKind": {
+      "type": "string",
+      "enum": ["ENTITY", "ENCODING", "NONE"],
+      "description": "For CLARIFY: ENTITY (which entity) or ENCODING (how to record the information). NONE otherwise."
+    },
+    "candidateIris": {
+      "type": "array",
+      "description": "For an ENTITY clarify: the IRIs of the candidate entities, found with search_entities. Empty otherwise.",
+      "items": { "type": "string" }
+    },
+    "encodingOptions": {
+      "type": "array",
+      "description": "For an ENCODING clarify: the possible ways of recording the information. Empty otherwise.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "description", "basis", "exampleTriple", "statement"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string", "description": "Short name of the option." },
+          "description": { "type": "string" },
+          "basis": { "type": "string", "enum": ["project data", "configuration", "RiC-O"] },
+          "exampleTriple": { "type": "string", "description": "The option shown on the entity, e.g. <Jean Dupond> rico:hasOrHadDemographicGroup <masculine>." },
+          "statement": { "type": "string", "description": "The decision in one sentence, to be followed if the user picks this option." }
+        }
+      }
+    }
+  }
+}
