@@ -301,7 +301,6 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
           this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
           this.buildTypesChips(data.types, this.ontologyLabels);
           this.cleanProperties(this.ontologyLabels, this.selectedEntity);
-          this.buildMainProperties(this.ontologyLabels);
           this.extractNameProperty(this.ontologyLabels);
           this.cdr.markForCheck();
         },
@@ -344,42 +343,36 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     this.editEntity();
   }
 
-  buildMainProperties(ontologyLabels: any[]): void {
-    const labelSet = new Set(this.allEntityTypesChips.map(t => t.label));
-
-    for (const value of Object.values(ontologyLabels)) {
-      const ontologyPrefix = value.name;
-
-      if (value.mainProperties) {
-        value.main_Properties = {}; // 👈 object now, same shape as mainProperty
-
-        for (const [keyMP, valueMP] of Object.entries(value.mainProperties)) {
-          const entityType = this.extractPropertyNameFromIRI(keyMP);
-          const fullKey = `${ontologyPrefix}:${entityType}`;
-
-          if (labelSet.has(fullKey)) {
-
-            console.log("LABEL SET : ", fullKey);
-
-            if (value.main_Properties[entityType]) {
-              // append to existing array for that type
-              value.main_Properties[entityType].push(
-                ...(Array.isArray(valueMP) ? valueMP : [valueMP])
-              );
-            } else {
-              // create the key, same as mainProperties[entityType]
-              value.main_Properties[entityType] = Array.isArray(valueMP)
-                ? [...valueMP]
-                : [valueMP];
-            }
-          }
-        }
-      }
-    }
-
-    console.log("WATATATATA :", ontologyLabels);
+  /**
+   * rico:name is special: it is always rendered in the dedicated "Name" field at the top
+   * of the form, whether or not configuration.json lists it among the main properties.
+   */
+  private isRicoName(key: string, namespaceUri: string): boolean {
+    return key === this.RICO_NAME_PREDICATE
+      || (key === 'name' && this.RICO_NAME_PREDICATE.startsWith(namespaceUri));
   }
 
+  /**
+   * Local names of the entity's types in one ontology, plus those of their superclasses:
+   * a rico:Person gets the main properties configured for rico:Agent.
+   */
+  private applicableTypeLocalNames(namespaceUri: string, ontologyLabels: any): Set<string> {
+    const typeIris = this.expandWithSuperClasses(this.allEntityTypesChips.map(t => t.iri), ontologyLabels);
+    const names = new Set<string>();
+    for (const iri of typeIris) {
+      if (iri.startsWith(namespaceUri)) names.add(this.extractPropertyNameFromIRI(iri));
+    }
+    return names;
+  }
+
+  /**
+   * Builds, for the entity being edited, `main_Properties` (the "Main Properties" block):
+   * for each configured type that the entity has — directly or through a superclass — the
+   * configured properties, each either the entity's own property (moved out of the "Other
+   * Properties" list) or an empty placeholder. The configuration itself (`mainProperties`)
+   * is only read, never modified, so nothing carries over from one entity to the next.
+   * rico:name is never placed here: it has its own field (see extractNameProperty).
+   */
   checkIfEntityPropertyIsInMainProperties(selectedEntity: any, ontologyLabels: any) {
 
     for (const [namespaceUri, ontologyData] of Object.entries<any>(ontologyLabels)) {
@@ -388,30 +381,49 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
       const propertyDefs: any[] = ontologyData?.properties?.value || [];
       const entities: any[] = ontologyData?.entities || [];
 
+      ontologyData.main_Properties = {};
+
       if (!mainPropertyMap || typeof mainPropertyMap !== 'object') {
         continue;
       }
+
+      const applicableTypes = this.applicableTypeLocalNames(namespaceUri, ontologyLabels);
+      // a property configured for both a type and its superclass is shown once
+      const placed = new Set<string>();
 
       for (const [typeName, propList] of Object.entries<any>(mainPropertyMap)) {
 
         if (!Array.isArray(propList)) {
           continue;
         }
+        const entityType = this.extractPropertyNameFromIRI(typeName);
+        if (!applicableTypes.has(entityType)) {
+          continue;
+        }
 
-        mainPropertyMap[typeName] = propList.map((propIdentifier: any) => {
+        const built: any[] = [];
+        for (const propIdentifier of propList) {
 
-          // Always reduce to a plain string key — a predicate URI or local
-          // name — whether the config gave us a string or a pre-built
-          // object ({ predicate, kind, schema, ... }). Never skip matching
-          // just because the entry happens to already be an object.
+          // Reduce to a plain string key — a predicate URI or local name — whether the
+          // config gave us a string or an object.
           const key = (typeof propIdentifier === 'object' && propIdentifier !== null)
             ? (propIdentifier.predicate || propIdentifier.uri)
             : propIdentifier;
+
+          if (!key || this.isRicoName(key, namespaceUri)) {
+            continue; // rico:name has its own field at the top of the form
+          }
 
           const propDef = propertyDefs.find((p: any) =>
             p.uri === key ||
             this.extractPropertyNameFromIRI(p.uri) === key
           ) || {};
+
+          const predicateUri = propDef.uri || key;
+          if (placed.has(predicateUri)) {
+            continue;
+          }
+          placed.add(predicateUri);
 
           let matchedEntity: any = null;
           let matchedIndex = -1;
@@ -442,46 +454,39 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
             rangeLocalName = propDef.ranges.map((r: any) => r.localName);
           }
 
-          if (matchedEntity) {
-            matchedEntity.schema = {
-              uri: key,
-              label: propDef.label,
-              cardinality: propDef.cardinality,
-              rangeLocalName,
-              rangeUri,
-              domainUri: propDef.domainUri,
-              domainLocalName: propDef.domainLocalName,
-              datatypeCategory: propDef.datatypeCategory,
-              datatypeUri: propDef.datatypeUri,
-              lang: propDef.lang,
-            };
-            return matchedEntity;
-          }
-
-          // No existing value yet — build a placeholder with a real
-          // predicate, so it's tracked from the start.
-          const predicateUri = propDef.uri || key;
-
-          const placeholder: any = {
-            predicate: predicateUri,
-            kind: propDef.kind === 'OBJECT_PROPERTY' ? 'iri' : 'literal',
-            values: [],
-            schema: {
-              uri: predicateUri,
-              label: propDef.label,
-              cardinality: propDef.cardinality,
-              rangeLocalName,
-              rangeUri,
-              domainUri: propDef.domainUri,
-              domainLocalName: propDef.domainLocalName,
-              datatypeCategory: propDef.datatypeCategory,
-              datatypeUri: propDef.datatypeUri,
-              lang: propDef.lang,
-            },
+          const schema = {
+            uri: predicateUri,
+            label: propDef.label,
+            cardinality: propDef.cardinality,
+            rangeLocalName,
+            rangeUri,
+            domainUri: propDef.domainUri,
+            domainLocalName: propDef.domainLocalName,
+            datatypeCategory: propDef.datatypeCategory,
+            datatypeUri: propDef.datatypeUri,
+            lang: propDef.lang,
           };
 
-          return placeholder;
-        });
+          if (matchedEntity) {
+            matchedEntity.schema = schema;
+            built.push(matchedEntity);
+          } else {
+            // No existing value yet — a placeholder with a real predicate, so it's tracked from the start.
+            built.push({
+              predicate: predicateUri,
+              kind: propDef.kind === 'OBJECT_PROPERTY' ? 'iri' : 'literal',
+              values: [],
+              schema,
+            });
+          }
+        }
+
+        if (built.length) {
+          ontologyData.main_Properties[entityType] = [
+            ...(ontologyData.main_Properties[entityType] || []),
+            ...built
+          ];
+        }
       }
     }
   }
@@ -588,6 +593,15 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
         }
       }
 
+      // Wherever the display lists put it, the entity's own rico:name is the one to show:
+      // never create a second, empty rico:name next to an existing one (on save, the
+      // empty one would overwrite the real name).
+      if (!nameProperty && this.RICO_NAME_PREDICATE.startsWith(namespaceUri)) {
+        nameProperty = (this.selectedEntity?.properties || []).find(
+          (p: any) => p?.predicate === this.RICO_NAME_PREDICATE
+        ) || null;
+      }
+
       // The entity carries no rico:name triple (creation always sets one, but
       // imported entities may lack it) — render an empty, editable field.
       if (!nameProperty && this.RICO_NAME_PREDICATE.startsWith(namespaceUri)) {
@@ -600,7 +614,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
           kind: 'literal',
           key: this.extractPropertyNameFromIRI(this.RICO_NAME_PREDICATE),
           values: [{
-            value: '',
+            value: null, // not saved until the user types a name (editEntity drops null values)
             datatype: propDef.datatypeUri ?? 'http://www.w3.org/2001/XMLSchema#string',
             lang: null,
             name: '',
@@ -690,11 +704,8 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
             this.buildEntityDetails(data.properties, this.ontologyLabels);
             this.buildTypesChips(data.types, this.ontologyLabels);
 
-            // IMPORTANT: enrich mainProperties first
+            // enrich the properties and build the per-entity "Main Properties" (main_Properties)
             this.cleanProperties(this.ontologyLabels, this.selectedEntity);
-
-            // THEN build the object used by the template
-            this.buildMainProperties(this.ontologyLabels);
 
             // FINALLY pull rico:name out into its own top-level section
             this.extractNameProperty(this.ontologyLabels);
@@ -734,7 +745,6 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
     this.buildTypesChips(this.selectedEntity.types, this.ontologyLabels);
     this.cleanProperties(this.ontologyLabels, this.selectedEntity);
-    this.buildMainProperties(this.ontologyLabels);
     this.extractNameProperty(this.ontologyLabels);
     this.cdr.markForCheck();
   }
@@ -796,19 +806,30 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
   }
 
   editEntity(): void {
-    const properties = (this.selectedEntity.properties || [])
-      .filter((p: any) => p && p.predicate && p.kind) // drop anything malformed/corrupted
-      .map((p: any) => ({
-        predicate: p.predicate,
-        kind: p.kind,
-        values: (p.values || [])
-          .filter((v: any) => v && v.value != null && v.source != 'external')
-          .map((v: any) => ({
-            value: v.value,
-            datatype: v.datatype ?? null,
-            lang: v.lang ?? null
-          }))
-      }))
+    // One entry per predicate: the backend replaces a predicate's values entry by entry,
+    // so two entries for the same predicate would let the last one erase the first.
+    const byPredicate = new Map<string, { predicate: string; kind: string; values: any[] }>();
+    for (const p of (this.selectedEntity.properties || [])) {
+      if (!p || !p.predicate || !p.kind) continue; // drop anything malformed/corrupted
+      const values = (p.values || [])
+        .filter((v: any) => v && v.value != null && v.source != 'external')
+        .map((v: any) => ({
+          value: v.value,
+          datatype: v.datatype ?? null,
+          lang: v.lang ?? null
+        }));
+      const existing = byPredicate.get(p.predicate);
+      if (existing) {
+        for (const v of values) {
+          if (!existing.values.some(e => e.value === v.value && e.lang === v.lang && e.datatype === v.datatype)) {
+            existing.values.push(v);
+          }
+        }
+      } else {
+        byPredicate.set(p.predicate, { predicate: p.predicate, kind: p.kind, values });
+      }
+    }
+    const properties = [...byPredicate.values()];
 
     const payload = {
       types: this.allEntityTypesChips
@@ -853,8 +874,11 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
   private getUsedPredicateUris(ontologyEntry: any): Set<string> {
     const used = new Set<string>();
 
-    // 1. Predicates already shown in "main properties" (per type)
-    const mainProperties = ontologyEntry?.mainProperties;
+    // 0. rico:name, shown in its own field at the top
+    if (ontologyEntry?.nameProperty?.predicate) used.add(ontologyEntry.nameProperty.predicate);
+
+    // 1. Predicates already shown in "main properties" for this entity (per type)
+    const mainProperties = ontologyEntry?.main_Properties;
     if (mainProperties && typeof mainProperties === 'object') {
       for (const propList of Object.values<any>(mainProperties)) {
         if (!Array.isArray(propList)) continue;
@@ -981,7 +1005,6 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     // (either inside mainProperties for its type, or in the ontology's "entities" / other-properties list)
     this.buildEntityDetails(this.selectedEntity.properties, this.ontologyLabels);
     this.cleanProperties(this.ontologyLabels, this.selectedEntity);
-    this.buildMainProperties(this.ontologyLabels);
     this.extractNameProperty(this.ontologyLabels);
 
     this.cdr.markForCheck();
