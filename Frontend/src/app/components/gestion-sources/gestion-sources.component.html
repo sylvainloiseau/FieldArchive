@@ -31,6 +31,25 @@
             <span>New Data Source</span>
           </button>
 
+          <button
+            (click)="router.navigate(['/data-matching'])"
+            [disabled]="dataSources.length < 2"
+            [matTooltip]="dataSources.length < 2 ? 'At least two data sources are needed' : 'Find the entities shared by several sources'"
+            class="flex items-center gap-2 px-4 py-2.5 bg-white text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-50 transition-all text-sm font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+            </svg>
+            <span>Data matching</span>
+          </button>
+
+          <button
+            (click)="router.navigate(['/data-matching/settings'])"
+            matTooltip="Which types and properties the data matching compares"
+            class="flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-sm font-medium shadow-sm">
+            <span>⚙</span>
+            <span>Matching settings</span>
+          </button>
+
           <!--
           <div *ngIf="!canCreateInternalSource()" class="px-4 py-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
             <div class="flex items-center gap-2">
@@ -351,7 +370,9 @@
 
                       <div class="flex w-full gap-1 items-center">
                         <button
+                          type="button"
                           (click)="onImportFile(); $event.stopPropagation()"
+                          [title]="isEditing && dataSourceForm.get('url')?.value ? 'Re-import the file at this path' : 'Select the RDF file'"
                           class="h-full cursor-pointer flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg"
                         >
                           Import
@@ -368,7 +389,9 @@
                       <p class="mt-1 text-xs text-gray-500">
                         Filled automatically in the desktop app; in a browser, type the absolute
                         path yourself. Optional — without it the file is still imported, but
-                        re-importing will ask you to select it again.
+                        re-importing will ask you to select it again. When editing a source,
+                        Import re-imports the file at this path (or asks for one if the field is
+                        empty) and replaces the source's data.
                       </p>
                   </div>
                 </ng-container>

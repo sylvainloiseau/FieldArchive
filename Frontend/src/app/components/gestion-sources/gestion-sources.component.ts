@@ -98,9 +98,28 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * The form's Import button. Editing an external source with a path in the field: re-import the
+   * file at that path, replacing the source's data. Otherwise: pick a file (uploaded on creation,
+   * re-imported right away when editing).
+   */
   onImportFile(): void {
+    const source = this.editedSource();
+    const path = (this.dataSourceForm.get('url')?.value || '').trim();
+    if (source && path) {
+      if (confirm(`Re-import "${source.name}" from ${path}? Its current data will be replaced.`)) {
+        this.syncSource(source, undefined, path);
+      }
+      return;
+    }
     this.rdfFileInput.nativeElement.value = ''; // reset so re-selecting the same file still fires 'change'
     this.rdfFileInput.nativeElement.click();
+  }
+
+  /** The external source open in the edit form, if any. */
+  private editedSource(): DataSource | null {
+    if (!this.isEditing || !this.currentEditId || !this.isExternal()) return null;
+    return this.dataSources.find(d => d.id === this.currentEditId) ?? null;
   }
 
   onRdfFileSelected(event: Event): void {
@@ -119,6 +138,15 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       this.dataSourceForm.patchValue({ url: path });
     }
     console.log('Selected file:', file.name, 'path:', path ?? '(unavailable)');
+
+    // Editing: the picked file replaces the source's data now (Save only updates the metadata).
+    const source = this.editedSource();
+    if (source) {
+      this.isFileLoading = false;
+      if (confirm(`Re-import "${source.name}" from ${file.name}? Its current data will be replaced.`)) {
+        this.syncSource(source, file, path);
+      }
+    }
   }
 
   /** Absolute path of a picked file, when running inside Electron. */

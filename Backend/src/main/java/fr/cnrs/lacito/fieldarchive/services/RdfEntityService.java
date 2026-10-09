@@ -472,12 +472,17 @@ public class RdfEntityService {
             // de-dupe (type, source) pairs in case the same type is asserted in multiple graphs
             Map<String, RdfTypeDto> typesByKey = new LinkedHashMap<>();
 
+            IRI ctxMatching = vf.createIRI(RdfContexts.CTX_MATCHING);
             try (var stmts = conn.getStatements(subject, null, null)) {
                 while (stmts.hasNext()) {
                     Statement st = stmts.next();
                     IRI pred = st.getPredicate();
                     Value obj = st.getObject();
                     Resource ctx = st.getContext();
+                    if (ctxMatching.equals(ctx)) {
+                        if (obj instanceof IRI other) dto.sameAs.add(sameAs(conn, other, shortNameCache));
+                        continue;
+                    }
 
                     boolean fromInternal = ctx != null && ctx.equals(CTX_INTERNAL);
                     String source = fromInternal ? "internal" : "external";
@@ -540,6 +545,24 @@ public class RdfEntityService {
             dto.properties.addAll(byPredicate.values());
             return dto;
         }
+    }
+
+    /** One {@code owl:sameAs} target: its name and the data sources holding it. */
+    private SameAsDto sameAs(RepositoryConnection conn, IRI other, Map<Resource, String> shortNameCache) {
+        SameAsDto s = new SameAsDto();
+        s.iri = other.stringValue();
+        s.label = bestLabel(conn, other);
+        Set<Resource> graphs = new LinkedHashSet<>();
+        try (var st = conn.getStatements(other, null, null)) {
+            while (st.hasNext()) graphs.add(st.next().getContext());
+        }
+        for (Resource g : graphs) {
+            if (!(g instanceof IRI gi) || gi.stringValue().equals(RdfContexts.CTX_MATCHING)
+                    || gi.stringValue().equals(RdfContexts.CTX_META)) continue;
+            String name = shortNameCache.computeIfAbsent(g, c -> dsService.getShortNameByGraph((IRI) c));
+            if (name != null && !s.datasourceShortNames.contains(name)) s.datasourceShortNames.add(name);
+        }
+        return s;
     }    //  UPDATE
     // =========================
     // =========================

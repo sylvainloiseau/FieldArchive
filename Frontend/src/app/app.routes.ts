@@ -4,6 +4,8 @@ import { GestionSourcesComponent } from './components/gestion-sources/gestion-so
 import { GestionRessourcesComponent } from './components/gestion-ressources/gestion-ressources.component';
 import { SparqlPageComponent } from './components/sparql-page/sparql-page.component';
 import {FileViewerComponent} from './components/file-viewer/file-viewer.component';
+import { DataMatchingComponent } from './components/data-matching/data-matching.component';
+import { MatchingSettingsComponent } from './components/matching-settings/matching-settings.component';
 
 export const routes: Route[] = [
   {
@@ -26,6 +28,15 @@ export const routes: Route[] = [
   {
     path: 'sparql',
     component: SparqlPageComponent,
+  },
+  {
+    path: 'data-matching',
+    component: DataMatchingComponent,
+  },
+  {
+    path: 'data-matching/settings',
+    component: MatchingSettingsComponent,
+    canDeactivate: [(component: MatchingSettingsComponent) => component.canLeave()],
   },
   {
     path: 'files',

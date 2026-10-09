@@ -1,0 +1,28 @@
+entity,property,value,typevalue
+http://tropy.local/item1,rdf:type,https://www.ica.org/standards/RiC/ontology#Person,iri
+http://tropy.local/item1,https://www.ica.org/standards/RiC/ontology#name,Paul,string
+http://tropy.local/item1,https://www.ica.org/standards/RiC/ontology#date,1975,date
+http://tropy.local/item2,rdf:type,https://www.ica.org/standards/RiC/ontology#Person,iri
+http://tropy.local/item2,https://www.ica.org/standards/RiC/ontology#name,Marie Lefebvre,string
+http://tropy.local/item2,https://www.ica.org/standards/RiC/ontology#date,1948,date
+http://tropy.local/item3,rdf:type,https://www.ica.org/standards/RiC/ontology#Place,iri
+http://tropy.local/item3,https://www.ica.org/standards/RiC/ontology#name,"Paris, France",string
+http://tropy.local/item3,https://fr.cnrs.lacito.fr/fieldArchive/matchedWith,http://gramps.local/P001,iri
+http://tropy.local/item3,https://fr.cnrs.lacito.fr/fieldArchive/matchStatus,confirmed,string
+http://tropy.local/item4,rdf:type,https://www.ica.org/standards/RiC/ontology#Place,iri
+http://tropy.local/item4,https://www.ica.org/standards/RiC/ontology#name,Lyon,string
+http://tropy.local/item4,https://www.ica.org/standards/RiC/ontology#name,Lyon France,string
+http://tropy.local/item5,rdf:type,https://www.ica.org/standards/RiC/ontology#CorporateBody,iri
+http://tropy.local/item5,http://xmlns.com/foaf/0.1/name,Musee d'Orsay,string
+http://tropy.local/item6,rdf:type,https://www.ica.org/standards/RiC/ontology#Person,iri
+http://tropy.local/item6,https://www.ica.org/standards/RiC/ontology#name,Jean Dupont,string
+http://tropy.local/item6,https://www.ica.org/standards/RiC/ontology#date,1990,date
+http://tropy.local/item7,rdf:type,https://www.ica.org/standards/RiC/ontology#Record,iri
+http://tropy.local/item7,https://www.ica.org/standards/RiC/ontology#title,Photographie de l'atelier,string
+http://tropy.local/item7,https://www.ica.org/standards/RiC/ontology#date,1975,date
+http://tropy.local/item7,https://fr.cnrs.lacito.fr/fieldArchive/matchedWith,http://gramps.local/PL001,iri
+http://tropy.local/item7,https://fr.cnrs.lacito.fr/fieldArchive/matchStatus,rejected,string
+http://tropy.local/item8,http://xmlns.com/foaf/0.1/birthday,1948,date
+http://tropy.local/item8,rdf:type,http://xmlns.com/foaf/0.1/Person,iri
+http://tropy.local/item9,rdf:type,https://www.ica.org/standards/RiC/ontology#Person,iri
+http://tropy.local/item9,rdf:num,3,number

@@ -16,4 +16,9 @@ public final class RdfContexts {
      */
     public static final String CTX_META = RdfNamespaces.APP + "/context/metadata";
     public static final String CTX_ONTO_RICO = RdfNamespaces.APP + "/context/ontology/rico";
+    /**
+     * The {@code owl:sameAs} links between IRIs of different data sources that denote the same
+     * entity, regenerated from the data matching decisions ({@code data_matching.json}).
+     */
+    public static final String CTX_MATCHING = RdfNamespaces.APP + "/context/matching";
 }

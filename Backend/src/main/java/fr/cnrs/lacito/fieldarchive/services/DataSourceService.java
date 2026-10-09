@@ -488,11 +488,12 @@ public class DataSourceService {
      * Replaces the content of an external source's named graph.
      *
      * <p>Two ways in: either the caller uploads the bytes ({@code uploadedFile}), which works
-     * whatever machine the file sits on, or the source has an {@code app:sourceLocation}
-     * recorded and the backend re-reads that path from its own filesystem.</p>
+     * whatever machine the file sits on, or the backend reads a path from its own filesystem:
+     * {@code newSourceLocation} when given, else the recorded {@code app:sourceLocation}.</p>
      *
-     * @param uploadedFile      optional freshly uploaded RDF file; wins over the recorded path
-     * @param newSourceLocation optional path to remember, so the next sync is one click
+     * @param uploadedFile      optional freshly uploaded RDF file; wins over any path
+     * @param newSourceLocation optional path: the location of the uploaded file, or without a
+     *                          file the path to read; recorded once the import succeeds
      */
     public void synchronizeExternalDataSource(String shortName,
                                               MultipartFile uploadedFile,
@@ -545,10 +546,12 @@ public class DataSourceService {
                 return;
             }
 
-            // 4b Otherwise re-read the location recorded at creation / edition time
-            String location = normalizeFileLocation(
-                    getLiteral(conn, ds, pSourceLocation(), ctxMeta)
-            );
+            // 4b Otherwise read a file on this machine: the location given with the request
+            //    (recorded once the import succeeds), else the one recorded at creation / edition
+            String givenLocation = normalizeFileLocation(newSourceLocation);
+            String location = givenLocation != null
+                    ? givenLocation
+                    : normalizeFileLocation(getLiteral(conn, ds, pSourceLocation(), ctxMeta));
             if (location == null) {
                 throw new BadRequestException(
                         "No file location recorded for this source. " +
@@ -564,7 +567,7 @@ public class DataSourceService {
             }
 
             try (InputStream in = Files.newInputStream(path)) {
-                replaceGraphContent(conn, ds, ctxGraph, ctxMeta, in, null,
+                replaceGraphContent(conn, ds, ctxGraph, ctxMeta, in, givenLocation,
                         path.toAbsolutePath().toString());
             } catch (IOException e) {
                 throw new BadRequestException(

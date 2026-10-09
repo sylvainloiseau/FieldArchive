@@ -15,12 +15,15 @@ import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.springframework.stereotype.Service;
 
+import fr.cnrs.lacito.fieldarchive.services.matching.MatchStore;
+import fr.cnrs.lacito.fieldarchive.services.matching.config.MatchingConfigurationService;
 import fr.cnrs.lacito.fieldarchive.services.nlquery.NlQueryHistoryService;
 import fr.cnrs.lacito.fieldarchive.utils.ProjectsDirectory;
 
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -98,7 +101,8 @@ public class FileExportService {
             writer.startRDF();
 
             try (RepositoryResult<Statement> statements =
-                         conn.getStatements(null, null, null, false, ctxInternal, ctxMeta,ctxProjectMeta)) {
+                         conn.getStatements(null, null, null, false, ctxInternal, ctxMeta, ctxProjectMeta,
+                                 vf.createIRI(RdfContexts.CTX_MATCHING))) {
                 for (Statement st : statements) {
                     writer.handleStatement(st); // keep context — this is a quad export
                 }
@@ -115,6 +119,15 @@ public class FileExportService {
                 zip.putNextEntry(new ZipEntry(projectName + "/" + NlQueryHistoryService.FILE_NAME));
                 zip.write(Files.readAllBytes(history));
                 zip.closeEntry();
+            }
+            // Data matching decisions and configuration, also next to the store
+            for (String name : List.of(MatchStore.FILE_NAME, MatchingConfigurationService.FILE_NAME)) {
+                Path file = projectsDirectory.getPublicPath().resolve(projectName).resolve(name);
+                if (Files.exists(file)) {
+                    zip.putNextEntry(new ZipEntry(projectName + "/" + name));
+                    zip.write(Files.readAllBytes(file));
+                    zip.closeEntry();
+                }
             }
             zip.finish();
         } catch (Exception e) {

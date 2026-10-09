@@ -1,0 +1,1101 @@
+{
+  "formatVersion": 1,
+  "prefixes": {
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "rico": "https://www.ica.org/standards/RiC/ontology#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "dcterms": "http://purl.org/dc/terms/",
+    "geo": "http://www.w3.org/2003/01/geo/wgs84_pos#"
+  },
+  "defaults": {
+    "threshold": 0.75,
+    "minimumComparedWeight": 2.0,
+    "maxProposalsPerEntity": 5,
+    "compareUntypedEntities": false,
+    "includeSubclasses": true,
+    "blockingMinimumPairs": 250000
+  },
+  "equivalentGroups": [
+    {
+      "id": "person",
+      "groupLabel": "Person",
+      "equivalentTypes": [
+        "foaf:Person",
+        "rico:Person"
+      ],
+      "requiredConcepts": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "predicates": [
+            "foaf:name",
+            "rico:name",
+            "rico:hasOrHadName",
+            "rico:hasOrHadAgentName",
+            "rdfs:label"
+          ],
+          "comparator": "name",
+          "weight": 3,
+          "blocking": true,
+          "options": {}
+        },
+        "firstName": {
+          "predicates": [
+            "foaf:firstName",
+            "foaf:givenName",
+            "foaf:givenname"
+          ],
+          "comparator": "name",
+          "weight": 1.5,
+          "blocking": false,
+          "options": {}
+        },
+        "familyName": {
+          "predicates": [
+            "foaf:familyName",
+            "foaf:family_name",
+            "foaf:surname",
+            "foaf:lastName"
+          ],
+          "comparator": "name",
+          "weight": 1.5,
+          "blocking": true,
+          "options": {}
+        },
+        "title": {
+          "predicates": [
+            "foaf:title",
+            "rico:title",
+            "rico:hasOrHadTitle"
+          ],
+          "comparator": "string",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "nickname": {
+          "predicates": [
+            "foaf:nick"
+          ],
+          "comparator": "name",
+          "weight": 1.5,
+          "blocking": false,
+          "options": {}
+        },
+        "gender": {
+          "predicates": [
+            "foaf:gender"
+          ],
+          "comparator": "exact",
+          "weight": 0.5,
+          "blocking": false,
+          "options": {}
+        },
+        "birthDate": {
+          "predicates": [
+            "foaf:birthday",
+            "rico:birthDate",
+            "rico:hasBirthDate"
+          ],
+          "comparator": "date",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "deathDate": {
+          "predicates": [
+            "rico:deathDate",
+            "rico:hasDeathDate"
+          ],
+          "comparator": "date",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "birthPlace": {
+          "predicates": [
+            "rico:hasBirthPlace"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "deathPlace": {
+          "predicates": [
+            "rico:hasDeathPlace"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "location": {
+          "predicates": [
+            "foaf:based_near",
+            "rico:hasOrHadLocation",
+            "rico:agentHasOrHadLocation",
+            "rico:location"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "knows": {
+          "predicates": [
+            "foaf:knows",
+            "rico:knows",
+            "rico:knowsOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 0.5,
+          "blocking": false,
+          "options": {}
+        },
+        "mailbox": {
+          "predicates": [
+            "foaf:mbox",
+            "foaf:mbox_sha1sum"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "phone": {
+          "predicates": [
+            "foaf:phone"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "homepage": {
+          "predicates": [
+            "foaf:homepage",
+            "foaf:weblog"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "publications": {
+          "predicates": [
+            "foaf:publications",
+            "rico:isAuthorOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "workplaceHomepage": {
+          "predicates": [
+            "foaf:workplaceHomepage",
+            "rico:hasOrHadEmployer"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 0.5,
+          "blocking": false,
+          "options": {}
+        },
+        "occupation": {
+          "predicates": [
+            "rico:hasOrHadOccupationOfType"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "position": {
+          "predicates": [
+            "rico:hasOrHadPosition"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "spouse": {
+          "predicates": [
+            "rico:hasOrHadSpouse"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "sibling": {
+          "predicates": [
+            "rico:hasSibling"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "children": {
+          "predicates": [
+            "rico:hasChild"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "ancestors": {
+          "predicates": [
+            "rico:hasAncestor"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "descendants": {
+          "predicates": [
+            "rico:hasDescendant"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "teacher": {
+          "predicates": [
+            "rico:hasOrHadTeacher"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "student": {
+          "predicates": [
+            "rico:hasOrHadStudent"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "depiction": {
+          "predicates": [
+            "foaf:img",
+            "foaf:depiction"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "myersBriggsType": {
+          "predicates": [
+            "foaf:myersBriggs"
+          ],
+          "comparator": "exact",
+          "weight": 0.5,
+          "blocking": false,
+          "options": {}
+        },
+        "identifier": {
+          "predicates": [
+            "rico:identifier",
+            "rico:hasOrHadIdentifier"
+          ],
+          "comparator": "exact",
+          "weight": 4,
+          "blocking": false,
+          "options": {}
+        },
+        "generalDescription": {
+          "predicates": [
+            "rico:generalDescription"
+          ],
+          "comparator": "text",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "history": {
+          "predicates": [
+            "rico:history"
+          ],
+          "comparator": "text",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        }
+      },
+      "note": "knows mixes foaf:knows and rico:knowsOf, and workplaceHomepage maps a homepage to an employer: both have a low weight."
+    },
+    {
+      "id": "agent",
+      "groupLabel": "Agent",
+      "equivalentTypes": [
+        "foaf:Agent",
+        "rico:Agent"
+      ],
+      "requiredConcepts": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "predicates": [
+            "foaf:name",
+            "rico:name",
+            "rico:hasOrHadAgentName",
+            "rdfs:label"
+          ],
+          "comparator": "name",
+          "weight": 3,
+          "blocking": true,
+          "options": {}
+        },
+        "mailbox": {
+          "predicates": [
+            "foaf:mbox",
+            "foaf:mbox_sha1sum"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "homepage": {
+          "predicates": [
+            "foaf:homepage",
+            "foaf:weblog",
+            "foaf:openid"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "madeOrCreated": {
+          "predicates": [
+            "foaf:made",
+            "rico:isCreatorOf",
+            "rico:isOrganicProvenanceOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "makerOf": {
+          "predicates": [
+            "foaf:maker",
+            "rico:hasCreator",
+            "rico:hasOrganicProvenance"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "onlineAccount": {
+          "predicates": [
+            "foaf:account",
+            "foaf:holdsAccount"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "age": {
+          "predicates": [
+            "foaf:age"
+          ],
+          "comparator": "exact",
+          "weight": 0.5,
+          "blocking": false,
+          "options": {}
+        },
+        "status": {
+          "predicates": [
+            "foaf:status",
+            "rico:relationState"
+          ],
+          "comparator": "exact",
+          "weight": 0.5,
+          "blocking": false,
+          "options": {}
+        },
+        "interest": {
+          "predicates": [
+            "foaf:interest",
+            "foaf:topic_interest"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "birthday": {
+          "predicates": [
+            "foaf:birthday"
+          ],
+          "comparator": "date",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "location": {
+          "predicates": [
+            "rico:agentHasOrHadLocation",
+            "rico:hasOrHadLocation"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "hierarchicalRelation": {
+          "predicates": [
+            "rico:hasOrHadSubordinate",
+            "rico:isOrWasSubordinateTo"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "workRelation": {
+          "predicates": [
+            "rico:hasOrHadWorkRelationWith"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "authorityOver": {
+          "predicates": [
+            "rico:hasOrHadAuthorityOver",
+            "rico:isOrWasUnderAuthorityOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "ownership": {
+          "predicates": [
+            "rico:hasOrHadOwner",
+            "rico:isOrWasOwnerOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "legalStatus": {
+          "predicates": [
+            "rico:hasOrHadLegalStatus"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "language": {
+          "predicates": [
+            "rico:hasOrHadLanguage"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        }
+      },
+      "note": "birthday only applies to persons; it is kept from the original FOAF mapping."
+    },
+    {
+      "id": "organization",
+      "groupLabel": "Organization / Group / CorporateBody",
+      "equivalentTypes": [
+        "foaf:Organization",
+        "foaf:Group",
+        "rico:Group",
+        "rico:CorporateBody"
+      ],
+      "requiredConcepts": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "predicates": [
+            "foaf:name",
+            "rico:name",
+            "rico:hasOrHadAgentName",
+            "rdfs:label"
+          ],
+          "comparator": "name",
+          "weight": 3,
+          "blocking": true,
+          "options": {}
+        },
+        "member": {
+          "predicates": [
+            "foaf:member",
+            "rico:hasOrHadMember",
+            "rico:isOrWasMemberOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "membershipClass": {
+          "predicates": [
+            "foaf:membershipClass"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "logo": {
+          "predicates": [
+            "foaf:logo"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "subdivision": {
+          "predicates": [
+            "rico:hasOrHadSubdivision",
+            "rico:isOrWasSubdivisionOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "leader": {
+          "predicates": [
+            "rico:hasOrHadLeader",
+            "rico:isOrWasLeaderOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "corporateBodyType": {
+          "predicates": [
+            "rico:hasOrHadCorporateBodyType"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "employer": {
+          "predicates": [
+            "rico:hasOrHadEmployer",
+            "rico:isOrWasEmployerOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "mandateType": {
+          "predicates": [
+            "rico:hasOrHadMandateType"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "jurisdiction": {
+          "predicates": [
+            "rico:hasOrHadJurisdiction"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        }
+      }
+    },
+    {
+      "id": "document",
+      "groupLabel": "Document / RecordResource",
+      "equivalentTypes": [
+        "foaf:Document",
+        "rico:RecordResource",
+        "rico:Record",
+        "rico:RecordPart",
+        "rico:RecordSet"
+      ],
+      "requiredConcepts": [
+        "title"
+      ],
+      "properties": {
+        "title": {
+          "predicates": [
+            "foaf:title",
+            "rico:title",
+            "rico:hasOrHadTitle",
+            "rico:name",
+            "dcterms:title",
+            "rdfs:label"
+          ],
+          "comparator": "string",
+          "weight": 3,
+          "blocking": true,
+          "options": {}
+        },
+        "makerOrAuthor": {
+          "predicates": [
+            "foaf:maker",
+            "rico:hasCreator",
+            "rico:hasAuthor"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "topic": {
+          "predicates": [
+            "foaf:topic",
+            "rico:hasOrHadSubject"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "primaryTopic": {
+          "predicates": [
+            "foaf:primaryTopic",
+            "rico:hasOrHadMainSubject"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "isPrimaryTopicOf": {
+          "predicates": [
+            "foaf:isPrimaryTopicOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "sha1": {
+          "predicates": [
+            "foaf:sha1"
+          ],
+          "comparator": "exact",
+          "weight": 4,
+          "blocking": false,
+          "options": {}
+        },
+        "identifier": {
+          "predicates": [
+            "rico:identifier",
+            "rico:hasOrHadIdentifier"
+          ],
+          "comparator": "exact",
+          "weight": 4,
+          "blocking": false,
+          "options": {}
+        },
+        "language": {
+          "predicates": [
+            "rico:hasOrHadLanguage"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "scopeAndContent": {
+          "predicates": [
+            "rico:scopeAndContent"
+          ],
+          "comparator": "text",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "generalDescription": {
+          "predicates": [
+            "rico:generalDescription"
+          ],
+          "comparator": "text",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "extent": {
+          "predicates": [
+            "rico:recordResourceExtent",
+            "rico:hasExtent"
+          ],
+          "comparator": "auto",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "creationDate": {
+          "predicates": [
+            "rico:hasCreationDate",
+            "rico:date"
+          ],
+          "comparator": "date",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "conditionsOfAccess": {
+          "predicates": [
+            "rico:conditionsOfAccess"
+          ],
+          "comparator": "text",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "conditionsOfUse": {
+          "predicates": [
+            "rico:conditionsOfUse"
+          ],
+          "comparator": "text",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "hasPart": {
+          "predicates": [
+            "rico:hasOrHadPart"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "isPartOf": {
+          "predicates": [
+            "rico:isOrWasPartOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "hasInstantiation": {
+          "predicates": [
+            "rico:hasOrHadInstantiation"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        }
+      }
+    },
+    {
+      "id": "image",
+      "groupLabel": "Image / Instantiation",
+      "equivalentTypes": [
+        "foaf:Image",
+        "rico:Instantiation"
+      ],
+      "requiredConcepts": [],
+      "properties": {
+        "depicts": {
+          "predicates": [
+            "foaf:depicts"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "thumbnail": {
+          "predicates": [
+            "foaf:thumbnail"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "representationType": {
+          "predicates": [
+            "rico:hasRepresentationType"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "carrierType": {
+          "predicates": [
+            "rico:hasCarrierType"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "instantiationExtent": {
+          "predicates": [
+            "rico:instantiationExtent"
+          ],
+          "comparator": "auto",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "productionTechnique": {
+          "predicates": [
+            "rico:productionTechnique"
+          ],
+          "comparator": "auto",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "isOrWasInstantiationOf": {
+          "predicates": [
+            "rico:isOrWasInstantiationOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        }
+      },
+      "note": "foaf:Image is a subclass of foaf:Document; rico:Instantiation is the closest RiC-O analogue. No natural name: proposals rely on the minimum evidence only."
+    },
+    {
+      "id": "activity",
+      "groupLabel": "Project / Activity",
+      "equivalentTypes": [
+        "foaf:Project",
+        "rico:Activity"
+      ],
+      "requiredConcepts": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "predicates": [
+            "foaf:name",
+            "rico:name",
+            "rdfs:label"
+          ],
+          "comparator": "name",
+          "weight": 3,
+          "blocking": true,
+          "options": {}
+        },
+        "fundedBy": {
+          "predicates": [
+            "foaf:fundedBy"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "homepage": {
+          "predicates": [
+            "foaf:homepage"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        },
+        "hasSubevent": {
+          "predicates": [
+            "rico:hasOrHadSubevent"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "isSubeventOf": {
+          "predicates": [
+            "rico:isOrWasSubeventOf"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "performedBy": {
+          "predicates": [
+            "rico:isOrWasPerformedBy"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "activityType": {
+          "predicates": [
+            "rico:hasActivityType"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "documents": {
+          "predicates": [
+            "rico:documents"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        }
+      }
+    },
+    {
+      "id": "online-account",
+      "groupLabel": "Online Account",
+      "equivalentTypes": [
+        "foaf:OnlineAccount",
+        "foaf:OnlineChatAccount",
+        "foaf:OnlineEcommerceAccount",
+        "foaf:OnlineGamingAccount"
+      ],
+      "requiredConcepts": [
+        "accountName"
+      ],
+      "properties": {
+        "accountName": {
+          "predicates": [
+            "foaf:accountName"
+          ],
+          "comparator": "name",
+          "weight": 3,
+          "blocking": true,
+          "options": {}
+        },
+        "accountServiceHomepage": {
+          "predicates": [
+            "foaf:accountServiceHomepage"
+          ],
+          "comparator": "exact",
+          "weight": 2,
+          "blocking": false,
+          "options": {}
+        }
+      },
+      "note": "No direct RiC-O equivalent class exists."
+    },
+    {
+      "id": "place",
+      "groupLabel": "Place",
+      "equivalentTypes": [
+        "geo:SpatialThing",
+        "rico:Place"
+      ],
+      "requiredConcepts": [
+        "placeName"
+      ],
+      "properties": {
+        "placeName": {
+          "predicates": [
+            "rico:name",
+            "rico:hasOrHadPlaceName",
+            "foaf:name",
+            "rdfs:label"
+          ],
+          "comparator": "name",
+          "weight": 3,
+          "blocking": true,
+          "options": {}
+        },
+        "basedNear": {
+          "predicates": [
+            "foaf:based_near"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "location": {
+          "predicates": [
+            "rico:location",
+            "rico:geographicalCoordinates"
+          ],
+          "comparator": "string",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "placeType": {
+          "predicates": [
+            "rico:hasOrHadPlaceType"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "coordinates": {
+          "predicates": [
+            "rico:hasOrHadCoordinates"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "contains": {
+          "predicates": [
+            "rico:containsOrContained"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "isContainedBy": {
+          "predicates": [
+            "rico:isOrWasContainedBy"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        },
+        "adjacentTo": {
+          "predicates": [
+            "rico:isOrWasAdjacentTo"
+          ],
+          "comparator": "linkedEntity",
+          "weight": 1,
+          "blocking": false,
+          "options": {}
+        }
+      }
+    }
+  ]
+}

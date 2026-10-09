@@ -20,3 +20,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 /* Routed page hosts default to display:inline; make them fill the <main> under the shared header */
 app-root main > router-outlet + * { display: block; height: 100%; }
+
+/* Tailwind's preflight gives every element a border style, which draws a line through the
+   label notch of outlined Material form fields */
+.mdc-notched-outline__notch { border-right-style: none !important; }

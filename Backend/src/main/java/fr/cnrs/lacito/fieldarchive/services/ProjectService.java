@@ -15,6 +15,8 @@ import org.eclipse.rdf4j.repository.Repository;
 import org.eclipse.rdf4j.repository.RepositoryConnection;
 import org.eclipse.rdf4j.repository.sail.SailRepository;
 import org.eclipse.rdf4j.sail.nativerdf.NativeStore;
+import fr.cnrs.lacito.fieldarchive.core.ProjectOpenedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -42,13 +44,17 @@ public class ProjectService {
     private static final IRI PROP_PREFIX = org.eclipse.rdf4j.model.impl.SimpleValueFactory.getInstance()
             .createIRI(RdfNamespaces.APP, "prefix");
 
+    private final ApplicationEventPublisher events;
+
     public ProjectService(BuiltinOntologyService builtinOntologyService,
                           @Lazy DataSourceService dsService,
-                          ProjectsDirectory projectsDirectory
+                          ProjectsDirectory projectsDirectory,
+                          ApplicationEventPublisher events
     ) {
         this.builtinOntologyService = builtinOntologyService;
         this.dsService = dsService;
         this.projectsDirectory = projectsDirectory;
+        this.events = events;
     }
 
     private IRI projectIri(String projectName, ValueFactory vf) {
@@ -105,6 +111,7 @@ public class ProjectService {
 
             CreateInternalDataSourceRequest dataSourceCreationRequest = new CreateInternalDataSourceRequest(name+"_internal",name+" internal DataSource ","");
             this.dsService.createInternalDataSource(dataSourceCreationRequest);
+            events.publishEvent(new ProjectOpenedEvent(name));
 
             // 5) Retour DTO
             return readCurrentProject();
@@ -139,6 +146,7 @@ public class ProjectService {
 
             // 4) Charger automatiquement RiC-O dans le projet
             builtinOntologyService.ensureRicoLoaded();
+            events.publishEvent(new ProjectOpenedEvent(name));
 
             // 5) Retour DTO
             return readCurrentProject();

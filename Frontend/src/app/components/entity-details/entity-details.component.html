@@ -28,6 +28,21 @@
   </div>
 
 
+  <!-- Same entity in other data sources (data matching, read-only) -->
+  <div *ngIf="selectedEntity?.sameAs?.length" class="px-4 py-2 flex flex-wrap items-center gap-2 bg-emerald-50/50 border-b border-emerald-100 text-sm">
+    <span class="text-emerald-800 font-medium">Same as</span>
+    <button
+      *ngFor="let s of selectedEntity.sameAs"
+      type="button"
+      (click)="changeSelectedEntity(s.iri)"
+      [title]="s.iri"
+      class="px-2 py-0.5 rounded-full bg-white border border-emerald-200 hover:bg-emerald-100 transition-colors"
+    >
+      {{ s.label || s.iri }}
+      <span *ngFor="let ds of s.datasourceShortNames" class="ml-1 text-xs text-emerald-700">{{ ds }}</span>
+    </button>
+  </div>
+
   <!-- Type chips -->
   <div class="px-4 pt-3 pb-2 flex items-center gap-2 bg-blue-50/40 border-b border-blue-100">
 

@@ -166,6 +166,9 @@ public class NlPromptBuilder {
             if (ds.graphIri == null || ds.graphIri.equals(internal)) continue;
             sb.append("- external data source \"").append(ds.shortName).append("\" (read-only): <").append(ds.graphIri).append(">\n");
         }
+        sb.append("- data matching (read-only): <").append(RdfContexts.CTX_MATCHING)
+                .append("> holds owl:sameAs links between IRIs of different sources that denote the same entity;"
+                        + " use it to merge information across sources, never write to it\n");
         sb.append("- never touch: <").append(RdfContexts.CTX_META).append(">, <")
                 .append(projectService.getMetadataContext(projectName, SimpleValueFactory.getInstance()).stringValue())
                 .append("> (application metadata) and <").append(RdfContexts.CTX_ONTO_RICO).append("> (the RiC-O ontology itself)\n");

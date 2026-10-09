@@ -12,4 +12,6 @@ public class RdfEntityDto {
     public String source;             // "internal" | "external"
     public boolean editable;          // true if it is an InternalDataSource
     public List<RdfPropertyDto> properties = new ArrayList<>();
+    /** Same entity in other data sources, from the data matching (read-only). */
+    public List<SameAsDto> sameAs = new ArrayList<>();
 }

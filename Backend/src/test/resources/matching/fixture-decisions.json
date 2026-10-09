@@ -1,0 +1,20 @@
+{
+  "formatVersion": 1,
+  "runs": {},
+  "links": [
+    {
+      "id": "fixture-confirmed",
+      "a": { "dataSource": "gramps", "iri": "http://gramps.local/P001", "label": "Paul Foo", "types": ["http://xmlns.com/foaf/0.1/Person"] },
+      "b": { "dataSource": "tropy", "iri": "http://tropy.local/item3", "label": "Paris, France", "types": ["https://www.ica.org/standards/RiC/ontology#Place"] },
+      "status": "ACCEPTED", "origin": "ALGORITHM", "decidedAt": "2026-01-01T00:00:00Z",
+      "note": "matchStatus 'confirmed' in external_datasource.csv"
+    },
+    {
+      "id": "fixture-rejected",
+      "a": { "dataSource": "gramps", "iri": "http://gramps.local/PL001", "label": "Paris", "types": ["https://www.ica.org/standards/RiC/ontology#Place"] },
+      "b": { "dataSource": "tropy", "iri": "http://tropy.local/item7", "label": null, "types": ["https://www.ica.org/standards/RiC/ontology#Record"] },
+      "status": "REJECTED", "origin": "ALGORITHM", "decidedAt": "2026-01-01T00:00:00Z",
+      "note": "matchStatus 'rejected' in external_datasource.csv"
+    }
+  ]
+}

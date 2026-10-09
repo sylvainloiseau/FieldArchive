@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -17,5 +18,18 @@ public class ApiExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<?> notFound(NotFoundException ex) {
         return ResponseEntity.status(404).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<?> conflict(ConflictException ex) {
+        return ResponseEntity.status(409).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidConfigurationException.class)
+    public ResponseEntity<?> invalidConfiguration(InvalidConfigurationException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("validation", ex.getReport());
+        return ResponseEntity.badRequest().body(body);
     }
 }

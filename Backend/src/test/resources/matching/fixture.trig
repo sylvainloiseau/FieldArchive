@@ -1,0 +1,65 @@
+# Generated from 'Data Matching/{external,internal}_datasource.csv' (+ the hand-written source 'archive').
+<urn:datasource:tropy> {
+  <http://tropy.local/item1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Person> .
+  <http://tropy.local/item1> <https://www.ica.org/standards/RiC/ontology#name> "Paul" .
+  <http://tropy.local/item1> <https://www.ica.org/standards/RiC/ontology#date> "1975"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+  <http://tropy.local/item2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Person> .
+  <http://tropy.local/item2> <https://www.ica.org/standards/RiC/ontology#name> "Marie Lefebvre" .
+  <http://tropy.local/item2> <https://www.ica.org/standards/RiC/ontology#date> "1948"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+  <http://tropy.local/item3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Place> .
+  <http://tropy.local/item3> <https://www.ica.org/standards/RiC/ontology#name> "Paris, France" .
+  <http://tropy.local/item4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Place> .
+  <http://tropy.local/item4> <https://www.ica.org/standards/RiC/ontology#name> "Lyon" .
+  <http://tropy.local/item4> <https://www.ica.org/standards/RiC/ontology#name> "Lyon France" .
+  <http://tropy.local/item5> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#CorporateBody> .
+  <http://tropy.local/item5> <http://xmlns.com/foaf/0.1/name> "Musee d'Orsay" .
+  <http://tropy.local/item6> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Person> .
+  <http://tropy.local/item6> <https://www.ica.org/standards/RiC/ontology#name> "Jean Dupont" .
+  <http://tropy.local/item6> <https://www.ica.org/standards/RiC/ontology#date> "1990"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+  <http://tropy.local/item7> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Record> .
+  <http://tropy.local/item7> <https://www.ica.org/standards/RiC/ontology#title> "Photographie de l'atelier" .
+  <http://tropy.local/item7> <https://www.ica.org/standards/RiC/ontology#date> "1975"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+  <http://tropy.local/item8> <http://xmlns.com/foaf/0.1/birthday> "1948"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+  <http://tropy.local/item8> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+  <http://tropy.local/item9> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Person> .
+  <http://tropy.local/item9> <http://www.w3.org/1999/02/22-rdf-syntax-ns#num> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+}
+<urn:datasource:gramps> {
+  <http://gramps.local/P001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+  <http://gramps.local/P001> <http://xmlns.com/foaf/0.1/givenName> "Paul" .
+  <http://gramps.local/P001> <http://xmlns.com/foaf/0.1/familyName> "Foo" .
+  <http://gramps.local/P001> <http://xmlns.com/foaf/0.1/name> "Paul Foo" .
+  <http://gramps.local/P001> <http://xmlns.com/foaf/0.1/birthday> "1975-03-12"^^<http://www.w3.org/2001/XMLSchema#date> .
+  <http://tropy.local/item1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Person> .
+  <http://tropy.local/item1> <https://www.ica.org/standards/RiC/ontology#name> "Paul" .
+  <http://gramps.local/P002> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+  <http://gramps.local/P002> <http://xmlns.com/foaf/0.1/givenName> "Marie" .
+  <http://gramps.local/P002> <http://xmlns.com/foaf/0.1/familyName> "Lefevre" .
+  <http://gramps.local/P002> <http://xmlns.com/foaf/0.1/name> "Marie Lefevre" .
+  <http://gramps.local/P002> <http://xmlns.com/foaf/0.1/birthday> "1948-11-02"^^<http://www.w3.org/2001/XMLSchema#date> .
+  <http://gramps.local/PL001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Place> .
+  <http://gramps.local/PL001> <https://www.ica.org/standards/RiC/ontology#name> "Paris" .
+  <http://gramps.local/PL002> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Place> .
+  <http://gramps.local/PL002> <https://www.ica.org/standards/RiC/ontology#name> "Lyon" .
+  <http://gramps.local/CB001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#CorporateBody> .
+  <http://gramps.local/CB001> <https://www.ica.org/standards/RiC/ontology#name> "Musée d'Orsay" .
+  <http://gramps.local/CB001> <https://www.ica.org/standards/RiC/ontology#foundingDate> "1986-12-01"^^<http://www.w3.org/2001/XMLSchema#date> .
+  <http://gramps.local/R001> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Record> .
+  <http://gramps.local/R001> <https://www.ica.org/standards/RiC/ontology#title> "Correspondance personnelle de Paul Foo" .
+  <http://gramps.local/R001> <https://www.ica.org/standards/RiC/ontology#date> "1975"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+  <http://gramps.local/R001> <https://www.ica.org/standards/RiC/ontology#identifier> "GRAMPS-R001" .
+  <http://gramps.local/P003> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Person> .
+  <http://gramps.local/P003> <http://www.w3.org/1999/02/22-rdf-syntax-ns#num> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
+}
+<urn:datasource:archive> {
+  <http://archive.local/A1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://xmlns.com/foaf/0.1/Person> .
+  <http://archive.local/A1> <http://xmlns.com/foaf/0.1/name> "Marie Lefèvre" .
+  <http://archive.local/A1> <http://xmlns.com/foaf/0.1/birthday> "1948"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+  <http://archive.local/A2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://www.ica.org/standards/RiC/ontology#Place> .
+  <http://archive.local/A2> <https://www.ica.org/standards/RiC/ontology#name> "Lyon" .
+}
+<http://cnrs.lacito/app#/context/metadata> {
+  <http://cnrs.lacito/app#/datasource/tropy> <http://cnrs.lacito/app#sourceType> "external" ; <http://cnrs.lacito/app#shortName> "tropy" ; <http://cnrs.lacito/app#graph> <urn:datasource:tropy> .
+  <http://cnrs.lacito/app#/datasource/gramps> <http://cnrs.lacito/app#sourceType> "internal" ; <http://cnrs.lacito/app#shortName> "gramps" ; <http://cnrs.lacito/app#graph> <urn:datasource:gramps> .
+  <http://cnrs.lacito/app#/datasource/archive> <http://cnrs.lacito/app#sourceType> "external" ; <http://cnrs.lacito/app#shortName> "archive" ; <http://cnrs.lacito/app#graph> <urn:datasource:archive> .
+}

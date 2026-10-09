@@ -38,6 +38,27 @@ On the data source management page, you can create a new External data source, g
 
 In the application, all triples coming from the various sources are shown together. For instance, all triples describing the same entity are shown on the entity editing page. However, the origin (the data source it comes from) of each triple is indicated with a badge.
 
+### Data matching
+
+The same person, place or document is often described in several data sources under different IRIs: a speaker recorded in Gramps and photographed in Tropy, for instance. The **Data matching** page (button on the data sources page) finds these entities, lets you confirm or reject each proposal, and remembers your decisions.
+
+- **Source pairs** (left): every pair of data sources, with the number of proposals to review (▲), confirmed links (✓), inferred links (≡) and rejections (✗). ⟳ means the proposals are out of date: a source was re-synced, the settings changed, or links were undone since the last run.
+- **Run matching** compares the entities of the two sources and proposes the pairs whose score is high enough. Each proposal can be expanded to see *why*: for each compared property, the two values and their similarity.
+- **Accept** (✓, key `a`) or **reject** (✗, key `r`) a proposal; **undo** (↺, key `u`) a decision. Use `j`/`k` or the arrows to move through the list, the space bar to show the details, `c` to compare the two entities side by side, `m` to link an entity by hand. *Accept all ≥ 95 %* accepts the most certain proposals at once.
+- **Manual link** links two entities the algorithm did not propose.
+- A rejected pair is never proposed again. An entity linked to an entity of the other source is not proposed again for that pair of sources.
+- **Inferred links**: if A (source 1) is the same as B (source 2), and B is the same as C (source 3), then A and C are linked automatically. To break an inferred link, undo one of the links it comes from. The application refuses links that would contradict your decisions: two different entities of the same source can never be the same entity, and two entities you rejected can never end up linked through other sources.
+- Confirmed and inferred links appear as **Same as** on the entity editing page, and as `owl:sameAs` triples in a dedicated graph that SPARQL queries (and the natural-language agents) can use: `<http://cnrs.lacito/app#/context/matching>`.
+- Your decisions are stored in the project folder (`data_matching.json`) and included in the project backup.
+
+**Matching settings** (button on the data sources page, or ⚙ on the matching page) decide what is compared:
+
+- *Type groups* gather equivalent classes from different vocabularies (e.g. `foaf:Person` and `rico:Person`). Only entities of the same group are compared; subclasses are included.
+- In each group, *concepts* list the properties expressing the same information (e.g. `foaf:name`, `rico:name`), how to compare them (text, name, date, exact value…), and their weight in the score. A *required* concept must be comparable for a pair to be proposed; the *minimum evidence* prevents a match on a single minor property.
+- The *Coverage* column shows, per source, how many entities have a value for each concept; the list of *predicates used by these types* suggests properties not compared yet.
+- **Preview** runs the settings being edited on a pair of sources without saving anything, and shows how the proposals would change and how many of your past decisions the settings would reproduce.
+- The settings are saved in the project folder (`matching-configuration.json`); *Reset to default* comes back to the bundled settings. They can also be edited as JSON, exported and imported.
+
 ### Resources page
 
 The Resources page allows you to visualize, filter, edit and navigate through the RDF entities of the active project.
@@ -61,3 +82,40 @@ Moreover, properties can have multiple values (if the ontology does not restrict
 ### SPARQL page
 
 The backend exposes a SPARQL endpoint which lets you query and modify the data in the triplestore via SELECT and UPDATE queries. The frontend allows you to enter any SPARQL query and see the results.
+
+When an UPDATE creates or modifies entities in the project's own data, the application sets their creation and modification dates itself, as it does for edits made in the entity editor.
+
+## Asking questions in natural language
+
+The field in the middle of the header ("Ask about this project…", shortcut Ctrl+K / ⌘K) lets you ask a question or give an instruction in plain French or English: *list all persons*, *which recordings were made in 2019?*, *rename Marie Dupond to Marie Durand*, *add the gender "masculine" to Jean Dupond*…
+
+Press Enter: a window opens with the question and a first proposal, written as a SPARQL query, with a short explanation. **Nothing is run until you click** *Run query* (for a question) or *Apply changes* (for a modification).
+
+- A question opens the SPARQL page with the query and its results.
+- A modification is applied, then the entity it created or changed is opened in the entity editor.
+- *Open in SPARQL editor* lets you check or correct the query before running it. A corrected query is remembered as a correction (see below).
+
+Only the project's own data (the internal data source) can be modified this way; external sources stay read-only.
+
+### Choosing an agent
+
+The drop-down at the top of the window chooses who translates your question:
+
+| Agent | Cost | What it needs | Notes |
+|---|---|---|---|
+| **Claude (Anthropic)** | paid, a few cents per question | an Anthropic API key (console.anthropic.com) | best results |
+| **ChatGPT (OpenAI)** | paid | an OpenAI API key (platform.openai.com) | a ChatGPT Plus/Pro subscription is **not** an API key |
+| **Local model (Ollama)** | free | [Ollama](https://ollama.com) installed, and a model downloaded with `ollama pull gpt-oss:20b` (about 16 GB of memory) | nothing leaves your computer; slower (tens of seconds to minutes), less reliable |
+| **Built-in (no AI)** | free | nothing | understands only a fixed set of phrasings (click *What can I ask?*) |
+
+API keys can be typed in the window (*Set API key*); they are checked, then saved in `settings/llm-keys.json` in the application's data directory, never in a project or a backup. Environment variables `ANTHROPIC_API_KEY` and `OPENAI_API_KEY`, when set, take precedence.
+
+**What is sent to Claude or ChatGPT**: your question, a description of the RiC-O ontology, statistics on how your project's data is encoded (counts and recurring short values, never names or notes), one sample entity per main type, past questions, and the records the agent looks up to answer (entity names, properties, notes). With the local model or the built-in agent, nothing leaves your computer.
+
+### When the agent asks you back
+
+If a name matches several entities (or none), the agent asks *which one?* and lists the candidates. If the project has no established way of recording what you ask (for example a gender), it proposes the possible encodings — the one used in your data, the one in the configuration, the one defined by RiC-O — and asks you to choose. Your choice is remembered for the project, so the question is asked only once.
+
+### The history of questions
+
+Every question whose query was actually run is recorded in `natural_language_query_history.json` in the project directory (it is included in backups). The agents use the most similar past questions as examples, so they reuse the encodings your project has settled on; a query you corrected in the SPARQL editor counts as a correction and takes precedence. The history is shared by all agents: the built-in agent can even reuse a question first answered by Claude or ChatGPT, with new names. Open *History of this project's questions* in the window to reuse a question or delete an example that taught the agent something wrong.

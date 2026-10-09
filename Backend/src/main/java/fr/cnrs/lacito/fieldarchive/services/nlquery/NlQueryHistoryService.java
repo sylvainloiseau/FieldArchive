@@ -1,8 +1,5 @@
 package fr.cnrs.lacito.fieldarchive.services.nlquery;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import fr.cnrs.lacito.fieldarchive.core.ProjectContext;
 import fr.cnrs.lacito.fieldarchive.core.RdfNamespaces;
 import fr.cnrs.lacito.fieldarchive.dtos.NlClarification;
@@ -11,15 +8,14 @@ import fr.cnrs.lacito.fieldarchive.dtos.NlHistoryEntry;
 import fr.cnrs.lacito.fieldarchive.exception.BadRequestException;
 import fr.cnrs.lacito.fieldarchive.exception.NotFoundException;
 import fr.cnrs.lacito.fieldarchive.services.RdfEntityService;
+import fr.cnrs.lacito.fieldarchive.utils.ProjectJsonFile;
 import fr.cnrs.lacito.fieldarchive.utils.ProjectsDirectory;
 import fr.cnrs.lacito.fieldarchive.utils.TextNormalizer;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -41,15 +37,12 @@ public class NlQueryHistoryService {
             RdfNamespaces.RICO, "http://www.w3.org/", "http://purl.org/", "http://xmlns.com/",
             "https://w3id.org/", "http://id.loc.gov/", "urn:datasource:", PLACEHOLDER_PREFIX, RdfNamespaces.APP);
 
-    private final ProjectsDirectory projectsDirectory;
     private final RdfEntityService rdfEntityService;
-    private final ObjectMapper mapper = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    private final ProjectJsonFile<HistoryFile> file;
 
     public NlQueryHistoryService(ProjectsDirectory projectsDirectory, RdfEntityService rdfEntityService) {
-        this.projectsDirectory = projectsDirectory;
         this.rdfEntityService = rdfEntityService;
+        this.file = new ProjectJsonFile<>(projectsDirectory, FILE_NAME, HistoryFile.class, HistoryFile::new);
     }
 
     /** The on-disk shape of the file. */
@@ -63,58 +56,32 @@ public class NlQueryHistoryService {
     // =========================
 
     public Path fileOf(String projectName) {
-        return projectsDirectory.getPublicPath().resolve(projectName).resolve(FILE_NAME);
+        return file.fileOf(projectName);
     }
 
-    private Path currentFile() {
+    private String currentProject() {
         if (!ProjectContext.isOpen()) throw new BadRequestException("Aucun projet ouvert.");
-        return fileOf(ProjectContext.getProjectName());
+        return ProjectContext.getProjectName();
     }
 
-    private synchronized HistoryFile read(Path file) {
-        if (!Files.exists(file)) return new HistoryFile();
-        try {
-            HistoryFile h = mapper.readValue(file.toFile(), HistoryFile.class);
-            if (h.entries == null) h.entries = new ArrayList<>();
-            return h;
-        } catch (IOException e) {
-            // A broken file must never block the dialog: set it aside and start a new history.
-            Path aside = file.resolveSibling(FILE_NAME + ".corrupt-" + Instant.now().toEpochMilli());
-            try {
-                Files.move(file, aside);
-            } catch (IOException ignored) {
-                // nothing more we can do; the next write replaces the file
-            }
-            System.err.println("WARNING: unreadable " + file + " moved to " + aside + ": " + e.getMessage());
-            return new HistoryFile();
-        }
+    private HistoryFile read(String projectName) {
+        HistoryFile h = file.read(projectName);
+        if (h.entries == null) h.entries = new ArrayList<>();
+        return h;
     }
 
-    private synchronized void write(Path file, HistoryFile h) {
-        try {
-            Path tmp = file.resolveSibling(FILE_NAME + ".tmp");
-            mapper.writeValue(tmp.toFile(), h);
-            Files.move(tmp, file, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new IllegalStateException("Cannot write " + file + ": " + e.getMessage(), e);
-        }
+    private void write(String projectName, HistoryFile h) {
+        file.write(projectName, h);
     }
 
     /** Raw bytes of a project's history file, or null when there is none (for backups). */
     public byte[] rawContent(String projectName) {
-        Path f = fileOf(projectName);
-        try {
-            return Files.exists(f) ? Files.readAllBytes(f) : null;
-        } catch (IOException e) {
-            return null;
-        }
+        return file.rawContent(projectName);
     }
 
     /** Restores a project's history file from a backup. */
     public void restore(String projectName, byte[] content) throws IOException {
-        Path f = fileOf(projectName);
-        Files.createDirectories(f.getParent());
-        Files.write(f, content);
+        file.restore(projectName, content);
     }
 
     // =========================
@@ -122,13 +89,13 @@ public class NlQueryHistoryService {
     // =========================
 
     public List<NlHistoryEntry> list() {
-        List<NlHistoryEntry> entries = new ArrayList<>(read(currentFile()).entries);
+        List<NlHistoryEntry> entries = new ArrayList<>(read(currentProject()).entries);
         entries.sort(Comparator.comparing((NlHistoryEntry e) -> e.timestamp == null ? "" : e.timestamp).reversed());
         return entries;
     }
 
     public synchronized void delete(String id) {
-        Path f = currentFile();
+        String f = currentProject();
         HistoryFile h = read(f);
         if (!h.entries.removeIf(e -> Objects.equals(e.id, id))) {
             throw new NotFoundException("History entry not found: " + id);
@@ -149,7 +116,7 @@ public class NlQueryHistoryService {
                                     List<NlHistoryEntry.EntityRef> entitiesBefore) {
         try {
             if (nl == null || nl.question == null || nl.question.isBlank()) return;
-            Path f = currentFile();
+            String f = currentProject();
             HistoryFile h = read(f);
 
             String normalizedQuestion = String.join(" ", TextNormalizer.tokens(nl.question));
@@ -230,7 +197,7 @@ public class NlQueryHistoryService {
     /** The {@code n} entries most relevant to a question; with fewer than 3 hits, filled up with the most recent. */
     public List<NlHistoryEntry> selectExamples(String question, int n) {
         if (n <= 0 || !ProjectContext.isOpen()) return List.of();
-        List<NlHistoryEntry> all = read(currentFile()).entries;
+        List<NlHistoryEntry> all = read(currentProject()).entries;
         List<NlHistoryEntry> ranked = rank(question, all);
         List<NlHistoryEntry> out = new ArrayList<>(ranked.subList(0, Math.min(n, ranked.size())));
         if (out.size() < 3) {
@@ -246,7 +213,7 @@ public class NlQueryHistoryService {
 
     public List<NlHistoryEntry> search(String text, int n) {
         if (!ProjectContext.isOpen()) return List.of();
-        List<NlHistoryEntry> ranked = rank(text, read(currentFile()).entries);
+        List<NlHistoryEntry> ranked = rank(text, read(currentProject()).entries);
         return ranked.subList(0, Math.min(n, ranked.size()));
     }
 

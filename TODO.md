@@ -16,24 +16,45 @@
   date picker
   validation
 
+# Varia
 
-# Create a shared header.
+- ajouter le nombre de triplets importés dans les data sources
+- pourquoi le bouton "importer" ouvre un file chooser mêem si l'url est là et valide
+- ajouter un import de lameta à partir du répertoire : reprendre le code python
 
-Could you please check that there is a true header, shared by all the application pages.
+# files and folders view
 
-When no project is open, only the "project" button is displayed on the right of the bar.
+# relation object
 
-When a project is open, the buttons "DataSource", "Entities", "Sparql" are displayed, separated by some space from the project button.
+The RIC-O ontology offer a type of entity that are equivalent to a relation between two entities.
 
-If a project is closed, the buttons are disable again.
+For instance, instead of using the objectproperty "xxx" between 1 and 1, we can use an intermediate
+entity between 1 and 2, linked with the 
 
-The name of the open project should be displayed on the left, as it is now, in a consistent way. When the projet is closed, the project name is removed from the header.
+# data reconciliation algorithm
 
-The gestion-ressources.component.html as a view toggle based on the value of the activeView variable. It has it's own toolbar. Could you please make a separate component for the sparql query/result area, which is currently in <app-sparql> in gestion-ressources component
+The application is build on the concept of "data source": a given archive/project is made of one or several data source: at least one "internal data source" (a modifiable RDF graph) and zero or several "external data source" (a read-only RDF graph, whose content is synced with an external application, where the data are actually edited).
 
-# Create a AI powered text-to-sparql assistant
+A classic issue in this situation is that, in different several data sources, the same real-world entity can be refered to with a different ID. This is a classical record-linkage, deduplication, or data matching issue.
 
-You will make a plan for the creation of a component that open a modal dialog with a textarea for the user to enter a natural language query, and a button to submit it. Then an IA agent will convert the natural language query to SPARQL and will offer with a button to execute it against the triplestore. The query can be an update or a select query. The modal dialog should be displayed thanks to a button in the header bar, together other buttons available when a project is open (entities, data source, sparql...). If the query is a select query, the sparql page is opened, with the query field filled in with the generated query and the result displayed in the dedicated area below. If the query is a create query, the entity detail modal window for the entity created or edited will be opened, if it is possible. 
+I would like you to make a detailled plan for a maching algorithm that will help to identify and memorize different IRIs refering to the same real-world entity accross data source.
+
+The matching algorithm is described in Python in a notebook in the file at "Data Matching/Data_Matching.ipynb". You will audit this algorithm and make plan to translate it into java into the backend, making explicit the logic and the different steps with clear variable and method names. 
+
+The algorithm include reading a json file with parameter for classes.
+
+The main step of the algorith is to :
+  - consider all pairs of data source
+    - for each pair of data source, consider each pair of IRI where each IRI belongs to a different data source,
+      - excluding all pairs with an IRI that is already matched
+      - excluding the IRI pairs that have been explicitely rejected
+      - compute a similarity score (cf. the algorithm)
+      - store the result in a json file in the project folder
+
+You will then design a new page "data matching", that can be accessed through a button on the datasource page. It will connect to the backend algorithm with new REST contact point. It will contains a graphical interface allowing the user to select each pairs of data source and to validate or reject the matching-proposal from the algorithm, and allowing him or her to define manually a matching. Status (accepted, rejected, manually set) will also be stored in the same json file in the project folder.
+
+Please ask any question regarding this plan, do not hesitate to suggest improvements in the algorithm and the GUI, try to elaborate a very clean and future-proof design for both the algorithm and the GUI.
+
 
 # A new map page
 
@@ -73,4 +94,5 @@ Sample data: which dataset or project has Coordinates entities to test with? I c
 Coordinate format: are latitude/longitude plain decimal numbers (12.6392), or do they include degrees/minutes (12°38′N) or decimal commas? The ontology allows any of these, so I’d need a parsing rule.
 
 # End point
+
 Data access: a dedicated backend endpoint doing one SPARQL query, rather than raw SPARQL from Angular.

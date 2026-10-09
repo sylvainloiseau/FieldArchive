@@ -17,12 +17,17 @@ import org.eclipse.rdf4j.rio.helpers.BasicParserSettings;
 import org.springframework.stereotype.Service;
 
 import fr.cnrs.lacito.fieldarchive.core.ProjectDataChangedEvent;
+import fr.cnrs.lacito.fieldarchive.core.ProjectOpenedEvent;
+import fr.cnrs.lacito.fieldarchive.services.matching.MatchStore;
+import fr.cnrs.lacito.fieldarchive.services.matching.config.MatchingConfigurationService;
 import fr.cnrs.lacito.fieldarchive.services.nlquery.NlQueryHistoryService;
 import fr.cnrs.lacito.fieldarchive.utils.ProjectsDirectory;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.io.ByteArrayInputStream;
@@ -104,6 +109,7 @@ public class FileImportService {
     public ImportResult importBackup(InputStream zipStream) {
         byte[] trigContent = null;
         byte[] historyContent = null;
+        Map<String, byte[]> matchingFiles = new LinkedHashMap<>();
         String projectName = null;
 
         try (ZipInputStream zip = new ZipInputStream(zipStream)) {
@@ -126,6 +132,12 @@ public class FileImportService {
                     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
                     zip.transferTo(buffer);
                     historyContent = buffer.toByteArray();
+                } else if (entry.getName().endsWith("/" + MatchStore.FILE_NAME)
+                        || entry.getName().endsWith("/" + MatchingConfigurationService.FILE_NAME)) {
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    zip.transferTo(buffer);
+                    String name = entry.getName().substring(entry.getName().lastIndexOf('/') + 1);
+                    matchingFiles.put(name, buffer.toByteArray());
                 }
             }
         } catch (ImportException e) {
@@ -174,7 +186,16 @@ public class FileImportService {
                 System.err.println("WARNING: could not restore the natural-language query history: " + e.getMessage());
             }
         }
+        // 5) Data matching decisions and configuration
+        for (Map.Entry<String, byte[]> f : matchingFiles.entrySet()) {
+            try {
+                Files.write(projectsDirectory.getPublicPath().resolve(projectName).resolve(f.getKey()), f.getValue());
+            } catch (Exception e) {
+                System.err.println("WARNING: could not restore " + f.getKey() + ": " + e.getMessage());
+            }
+        }
         events.publishEvent(new ProjectDataChangedEvent(projectName));
+        events.publishEvent(new ProjectOpenedEvent(projectName));
 
         return ImportResult.success(projectName, repo.getConnection().size());
     }

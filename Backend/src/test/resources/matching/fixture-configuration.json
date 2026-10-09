@@ -1,0 +1,48 @@
+{
+  "formatVersion": 1,
+  "prefixes": {
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "rico": "https://www.ica.org/standards/RiC/ontology#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  },
+  "defaults": { "threshold": 0.75, "minimumComparedWeight": 2.0, "maxProposalsPerEntity": 5 },
+  "equivalentGroups": [
+    {
+      "id": "person", "groupLabel": "Person",
+      "equivalentTypes": ["foaf:Person", "rico:Person"],
+      "requiredConcepts": ["name"],
+      "properties": {
+        "name": { "predicates": ["foaf:name", "rico:name"], "comparator": "name", "weight": 3, "blocking": true },
+        "birthDate": { "predicates": ["foaf:birthday", "rico:date"], "comparator": "date", "weight": 2 },
+        "num": { "predicates": ["rdf:num"], "comparator": "number", "weight": 1 }
+      }
+    },
+    {
+      "id": "place", "groupLabel": "Place",
+      "equivalentTypes": ["rico:Place"],
+      "requiredConcepts": ["name"],
+      "properties": {
+        "name": { "predicates": ["rico:name"], "comparator": "name", "weight": 3 }
+      }
+    },
+    {
+      "id": "organization", "groupLabel": "Organization",
+      "equivalentTypes": ["foaf:Organization", "rico:CorporateBody"],
+      "requiredConcepts": ["name"],
+      "properties": {
+        "name": { "predicates": ["foaf:name", "rico:name"], "comparator": "name", "weight": 3 },
+        "date": { "predicates": ["rico:date", "rico:foundingDate"], "comparator": "date", "weight": 1 }
+      }
+    },
+    {
+      "id": "record", "groupLabel": "Record",
+      "equivalentTypes": ["rico:Record"],
+      "requiredConcepts": ["title"],
+      "properties": {
+        "title": { "predicates": ["rico:title"], "comparator": "string", "weight": 3 },
+        "date": { "predicates": ["rico:date"], "comparator": "date", "weight": 1 },
+        "identifier": { "predicates": ["rico:identifier"], "comparator": "exact", "weight": 4 }
+      }
+    }
+  ]
+}

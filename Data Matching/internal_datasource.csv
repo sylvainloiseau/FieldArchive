@@ -1,0 +1,26 @@
+entity,property,value,typevalue
+http://gramps.local/P001,rdf:type,http://xmlns.com/foaf/0.1/Person,iri
+http://gramps.local/P001,http://xmlns.com/foaf/0.1/givenName,Paul,string
+http://gramps.local/P001,http://xmlns.com/foaf/0.1/familyName,Foo,string
+http://gramps.local/P001,http://xmlns.com/foaf/0.1/name,Paul Foo,string
+http://gramps.local/P001,http://xmlns.com/foaf/0.1/birthday,1975-03-12,date
+http://tropy.local/item1,rdf:type,https://www.ica.org/standards/RiC/ontology#Person,iri
+http://tropy.local/item1,https://www.ica.org/standards/RiC/ontology#name,Paul,string
+http://gramps.local/P002,rdf:type,http://xmlns.com/foaf/0.1/Person,iri
+http://gramps.local/P002,http://xmlns.com/foaf/0.1/givenName,Marie,string
+http://gramps.local/P002,http://xmlns.com/foaf/0.1/familyName,Lefevre,string
+http://gramps.local/P002,http://xmlns.com/foaf/0.1/name,Marie Lefevre,string
+http://gramps.local/P002,http://xmlns.com/foaf/0.1/birthday,1948-11-02,date
+http://gramps.local/PL001,rdf:type,https://www.ica.org/standards/RiC/ontology#Place,iri
+http://gramps.local/PL001,https://www.ica.org/standards/RiC/ontology#name,Paris,string
+http://gramps.local/PL002,rdf:type,https://www.ica.org/standards/RiC/ontology#Place,iri
+http://gramps.local/PL002,https://www.ica.org/standards/RiC/ontology#name,Lyon,string
+http://gramps.local/CB001,rdf:type,https://www.ica.org/standards/RiC/ontology#CorporateBody,iri
+http://gramps.local/CB001,https://www.ica.org/standards/RiC/ontology#name,Musée d'Orsay,string
+http://gramps.local/CB001,https://www.ica.org/standards/RiC/ontology#foundingDate,1986-12-01,date
+http://gramps.local/R001,rdf:type,https://www.ica.org/standards/RiC/ontology#Record,iri
+http://gramps.local/R001,https://www.ica.org/standards/RiC/ontology#title,Correspondance personnelle de Paul Foo,string
+http://gramps.local/R001,https://www.ica.org/standards/RiC/ontology#date,1975,date
+http://gramps.local/R001,https://www.ica.org/standards/RiC/ontology#identifier,GRAMPS-R001,string
+http://gramps.local/P003,rdf:type,https://www.ica.org/standards/RiC/ontology#Person,iri
+http://gramps.local/P003,rdf:num,3,number

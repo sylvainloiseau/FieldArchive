@@ -1,7 +1,7 @@
 // src/app/services/data-source-http.service.ts
 
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { DataSource, CreateInternalDataSourceRequest, CreateExternalDataSourceRequest } from '../models/data-source.model';
@@ -152,7 +152,10 @@ export class DataSourceHttpService {
   syncExternalSource(shortName: string, file?: File, sourceLocation?: string): Observable<void> {
     console.log(`📡 POST /datasources/${shortName}/sync`, file?.name ?? '(no file)');
 
+    // With a file: its bytes (and its path, to remember). Without: the path for the backend to
+    // read, or nothing to re-read the recorded one.
     let body: FormData | {} = {};
+    let params = new HttpParams();
     if (file) {
       const formData = new FormData();
       formData.append('file', file, file.name);
@@ -160,9 +163,11 @@ export class DataSourceHttpService {
         formData.append('sourceLocation', sourceLocation);
       }
       body = formData;
+    } else if (sourceLocation) {
+      params = params.set('sourceLocation', sourceLocation);
     }
 
-    return this.http.post<void>(`${this.apiUrl}/${shortName}/sync`, body).pipe(
+    return this.http.post<void>(`${this.apiUrl}/${shortName}/sync`, body, { params }).pipe(
       tap(() => {
         console.log('✅ Source synchronized');
         this.refreshDataSources();
