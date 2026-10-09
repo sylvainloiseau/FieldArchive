@@ -17,4 +17,6 @@ public class DataSourceDto {
 
     public String createdAt;
     public String lastSync;
+    /** Number of triples in the source's named graph. */
+    public long tripleCount;
 }

@@ -16,10 +16,6 @@
   date picker
   validation
 
-# Varia
-
-- ajouter le nombre de triplets importés dans les data sources
-- pourquoi le bouton "importer" ouvre un file chooser mêem si l'url est là et valide
 - ajouter un import de lameta à partir du répertoire : reprendre le code python
 
 # files and folders view
@@ -30,31 +26,6 @@ The RIC-O ontology offer a type of entity that are equivalent to a relation betw
 
 For instance, instead of using the objectproperty "xxx" between 1 and 1, we can use an intermediate
 entity between 1 and 2, linked with the 
-
-# data reconciliation algorithm
-
-The application is build on the concept of "data source": a given archive/project is made of one or several data source: at least one "internal data source" (a modifiable RDF graph) and zero or several "external data source" (a read-only RDF graph, whose content is synced with an external application, where the data are actually edited).
-
-A classic issue in this situation is that, in different several data sources, the same real-world entity can be refered to with a different ID. This is a classical record-linkage, deduplication, or data matching issue.
-
-I would like you to make a detailled plan for a maching algorithm that will help to identify and memorize different IRIs refering to the same real-world entity accross data source.
-
-The matching algorithm is described in Python in a notebook in the file at "Data Matching/Data_Matching.ipynb". You will audit this algorithm and make plan to translate it into java into the backend, making explicit the logic and the different steps with clear variable and method names. 
-
-The algorithm include reading a json file with parameter for classes.
-
-The main step of the algorith is to :
-  - consider all pairs of data source
-    - for each pair of data source, consider each pair of IRI where each IRI belongs to a different data source,
-      - excluding all pairs with an IRI that is already matched
-      - excluding the IRI pairs that have been explicitely rejected
-      - compute a similarity score (cf. the algorithm)
-      - store the result in a json file in the project folder
-
-You will then design a new page "data matching", that can be accessed through a button on the datasource page. It will connect to the backend algorithm with new REST contact point. It will contains a graphical interface allowing the user to select each pairs of data source and to validate or reject the matching-proposal from the algorithm, and allowing him or her to define manually a matching. Status (accepted, rejected, manually set) will also be stored in the same json file in the project folder.
-
-Please ask any question regarding this plan, do not hesitate to suggest improvements in the algorithm and the GUI, try to elaborate a very clean and future-proof design for both the algorithm and the GUI.
-
 
 # A new map page
 
@@ -96,3 +67,32 @@ Coordinate format: are latitude/longitude plain decimal numbers (12.6392), or do
 # End point
 
 Data access: a dedicated backend endpoint doing one SPARQL query, rather than raw SPARQL from Angular.
+
+# Done
+
+- In the table showing the various data source (in the Datasources page), please add a column displaying the number of RDF triples in the corresponding graph.
+- pourquoi le bouton "importer" ouvre un file chooser mêem si l'url est là et valide
+
+## data reconciliation algorithm
+
+The application is build on the concept of "data source": a given archive/project is made of one or several data source: at least one "internal data source" (a modifiable RDF graph) and zero or several "external data source" (a read-only RDF graph, whose content is synced with an external application, where the data are actually edited).
+
+A classic issue in this situation is that, in different several data sources, the same real-world entity can be refered to with a different ID. This is a classical record-linkage, deduplication, or data matching issue.
+
+I would like you to make a detailled plan for a maching algorithm that will help to identify and memorize different IRIs refering to the same real-world entity accross data source.
+
+The matching algorithm is described in Python in a notebook in the file at "Data Matching/Data_Matching.ipynb". You will audit this algorithm and make plan to translate it into java into the backend, making explicit the logic and the different steps with clear variable and method names. 
+
+The algorithm include reading a json file with parameter for classes.
+
+The main step of the algorith is to :
+  - consider all pairs of data source
+    - for each pair of data source, consider each pair of IRI where each IRI belongs to a different data source,
+      - excluding all pairs with an IRI that is already matched
+      - excluding the IRI pairs that have been explicitely rejected
+      - compute a similarity score (cf. the algorithm)
+      - store the result in a json file in the project folder
+
+You will then design a new page "data matching", that can be accessed through a button on the datasource page. It will connect to the backend algorithm with new REST contact point. It will contains a graphical interface allowing the user to select each pairs of data source and to validate or reject the matching-proposal from the algorithm, and allowing him or her to define manually a matching. Status (accepted, rejected, manually set) will also be stored in the same json file in the project folder.
+
+Please ask any question regarding this plan, do not hesitate to suggest improvements in the algorithm and the GUI, try to elaborate a very clean and future-proof design for both the algorithm and the GUI.

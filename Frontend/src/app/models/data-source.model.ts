@@ -14,6 +14,7 @@ export interface DataSource {
   graphIRI?: string; // Named graph identifier (e.g., urn:datasource:shortName)
   editable?: boolean; // NEW: Is this data source editable?
   recordCount?: number; // NEW: Number of records in this source
+  tripleCount?: number; // Number of RDF triples in the source's named graph
 }
 
 export interface CreateInternalDataSourceRequest {

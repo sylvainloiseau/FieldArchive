@@ -214,7 +214,8 @@ export class DataSourceHttpService {
         source.previousSyncs.map((d: string) => new Date(d)) : [],
       createdDate: source.createdAt || source.created || source.createdDate ? 
         new Date(source.createdAt || source.created || source.createdDate) : undefined,
-      recordCount: source.recordCount
+      recordCount: source.recordCount,
+      tripleCount: source.tripleCount
     };
     
     console.log('✅ Mapped to frontend:', mapped);

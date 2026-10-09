@@ -298,6 +298,7 @@ public class DataSourceService {
 
         // graph IRI
         dto.graphIri = getIri(conn, ds, pGraph(), ctxMeta);
+        dto.tripleCount = dto.graphIri != null ? conn.size(vf.createIRI(dto.graphIri)) : 0;
 
         // external-only (null for internal, c’est NORMAL)
         dto.sourceTool = getLiteral(conn, ds, pSourceTool(), ctxMeta);
