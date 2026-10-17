@@ -1,16 +1,46 @@
-
-:host ::ng-deep {
-  .snackbar-success .mdc-snackbar__surface {
-    background-color: #16a34a !important; // green-600
-    color: white !important;
-  }
-
-  .snackbar-error .mdc-snackbar__surface {
-    background-color: #dc2626 !important; // red-600
-    color: white !important;
-  }
+:host {
+  display: block;
+  height: 100%;
 }
 
-button {
-  cursor : pointer ;
+/* The ontology tabs, styled like the text tab strips of the data matching pages */
+:host ::ng-deep .entity-tabs {
+  display: flex;
+  flex-direction: column;
+
+  .mat-mdc-tab-header {
+    background: white;
+    border-bottom: 1px solid rgb(229 231 235);
+  }
+
+  .mat-mdc-tab {
+    min-width: 0;
+    height: 40px;
+    padding: 0 12px;
+    font-size: 0.875rem;
+    letter-spacing: normal;
+  }
+
+  .mat-mdc-tab .mdc-tab__text-label {
+    color: rgb(75 85 99);
+  }
+
+  .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+    color: rgb(29 78 216);
+    font-weight: 500;
+  }
+
+  .mdc-tab-indicator__content--underline {
+    border-color: rgb(37 99 235);
+    border-top-width: 2px;
+  }
+
+  .mat-mdc-tab-body-wrapper {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .mat-mdc-tab-body-content {
+    overflow-y: auto;
+  }
 }

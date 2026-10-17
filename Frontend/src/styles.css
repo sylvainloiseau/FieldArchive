@@ -24,3 +24,20 @@ app-root main > router-outlet + * { display: block; height: 100%; }
 /* Tailwind's preflight gives every element a border style, which draws a line through the
    label notch of outlined Material form fields */
 .mdc-notched-outline__notch { border-right-style: none !important; }
+
+/* Shared by the data matching pages and the entity editor ------------------------------- */
+
+/* Small icon action buttons in rows (✓ ✗ ↺ ✎ ⧉ …) */
+.act { width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; font-size: 0.95rem; line-height: 1;
+       display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.act:hover:not([disabled]) { background: rgb(243 244 246); }
+.act[disabled] { opacity: 0.3; cursor: not-allowed; }
+
+/* Section titles inside panels and dialogs */
+.section-label { font-size: 0.75rem; line-height: 1rem; text-transform: uppercase; letter-spacing: 0.025em;
+                 color: rgb(107 114 128); }
+
+/* color="warn" on buttons: the Material 3 theme ignores it, these rules make destructive buttons red */
+.mat-mdc-unelevated-button.mat-warn:not(:disabled) { background-color: rgb(220 38 38); color: white; }
+.mat-mdc-outlined-button.mat-warn:not(:disabled) { color: rgb(220 38 38); border-color: rgb(254 202 202); }
+.mat-mdc-button.mat-warn:not(:disabled) { color: rgb(220 38 38); }

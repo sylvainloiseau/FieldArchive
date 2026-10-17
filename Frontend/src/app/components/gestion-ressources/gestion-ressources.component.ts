@@ -1,13 +1,11 @@
-import {ChangeDetectionStrategy,ChangeDetectorRef, signal, Component, OnInit, OnDestroy, inject } from '@angular/core';
+import {ChangeDetectionStrategy,ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EntityDetailsDialogService } from '../../services/entity-details-dialog.service';
 import { CommonModule, KeyValue } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 
-import {MatExpansionModule} from '@angular/material/expansion';
-import {MatDividerModule} from '@angular/material/divider';
-import {MatListModule} from '@angular/material/list';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import {Entity, EntityType } from '../../models/ressource';
 
@@ -20,7 +18,6 @@ import { error } from 'console';
 import { Router } from '@angular/router';
 
 import { MatDialogRef } from '@angular/material/dialog';
-import {CdkAccordionModule} from '@angular/cdk/accordion';
 
 
 @Component({
@@ -29,11 +26,8 @@ import {CdkAccordionModule} from '@angular/cdk/accordion';
   imports: [CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    MatExpansionModule,
-    MatDividerModule,
-    MatListModule,
     MatDialogModule,
-    CdkAccordionModule,
+    MatTooltipModule,
     ListeEntitesComponent],
   templateUrl: './gestion-ressources.component.html',
   styleUrl: './gestion-ressources.component.scss',
@@ -51,7 +45,11 @@ import {CdkAccordionModule} from '@angular/cdk/accordion';
   ]
 })
 export class GestionRessourcesComponent implements OnInit, OnDestroy {
-  panelOpenState = signal(false);
+  /** Expanded ontologies (namespace) and sections (namespace|section name) of the type navigator. */
+  private expanded = new Set<string>();
+  private collapsed = new Set<string>();
+  untypedSelected = false;
+  loaded = false;
 
   formattedEntities : any[] = [];
 
@@ -92,6 +90,20 @@ export class GestionRessourcesComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.entitiesChangedSub?.unsubscribe();
   }
+
+  /** Ontologies start collapsed except RiC-O; their sections start expanded. */
+  isOpen(key: string): boolean {
+    if (key.includes('|')) return !this.collapsed.has(key);
+    return this.expanded.has(key) || (key.startsWith(this.RICO_KEY) && !this.collapsed.has(key));
+  }
+
+  toggle(key: string): void {
+    const open = this.isOpen(key);
+    if (open) { this.expanded.delete(key); this.collapsed.add(key); }
+    else { this.collapsed.delete(key); this.expanded.add(key); }
+  }
+
+  private readonly RICO_KEY = 'https://www.ica.org/standards/RiC/ontology';
 
   getOntologySections(ontology: any) {
     return [ontology.mainTypes, ontology.usedTypes, ontology.mainTerminologies]
@@ -157,6 +169,7 @@ export class GestionRessourcesComponent implements OnInit, OnDestroy {
       next: (data) => {
         console.log("Ontology Config and Data ", data);
         this.ontologyLabels = data;
+        this.loaded = true;
         this.cdr.markForCheck();
       }
     });
@@ -191,6 +204,8 @@ export class GestionRessourcesComponent implements OnInit, OnDestroy {
 
   getAllEntitiesWithoutType() {
     this.isLoadingEntities = true;
+    this.selectedType = null;
+    this.untypedSelected = true;
 
     this.ontologyService.getAllEntitiesByType('').subscribe({
       next: (data : any) => {
@@ -210,6 +225,7 @@ export class GestionRessourcesComponent implements OnInit, OnDestroy {
   getAllEntitiesByPath(ontology_name : string ,entity_type: string) : void {
     this.isLoadingEntities = true;
     this.selectedType = entity_type;
+    this.untypedSelected = false;
     console.log("Searching for Entity Type :", entity_type);
     this.selectedOntology = ontology_name;
     const typeUrl = this.ontologyService.getTypeUrlByName(ontology_name ?? '');

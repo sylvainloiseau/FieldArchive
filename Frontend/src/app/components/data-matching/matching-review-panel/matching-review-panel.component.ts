@@ -86,9 +86,9 @@ export type ReviewTab = 'toReview' | 'ACCEPTED' | 'MANUAL' | 'INFERRED' | 'REJEC
       </div>
 
       <!-- list -->
-      <div #list class="flex-1 overflow-y-auto border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
+      <div #list class="flex-1 overflow-y-auto border rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 border-gray-200"
            tabindex="0" (keydown)="onKey($event)">
-        <div class="grid grid-cols-[1fr_1fr_9rem_9rem] gap-2 px-3 py-2 text-xs font-medium text-gray-500 border-b sticky top-0 bg-white z-10">
+        <div class="grid grid-cols-[1fr_1fr_9rem_9rem] gap-2 px-3 py-2 text-xs font-medium text-gray-500 border-b sticky top-0 bg-white z-10 border-gray-200">
           <div>{{ pair.dataSourceA }}</div><div>{{ pair.dataSourceB }}</div><div>Score</div><div class="text-right">Actions</div>
         </div>
         <div *ngFor="let l of links; let i = index" [attr.data-row]="i"
@@ -144,9 +144,9 @@ export type ReviewTab = 'toReview' | 'ACCEPTED' | 'MANUAL' | 'INFERRED' | 'REJEC
               <p class="text-xs text-gray-600 mb-1">Inferred from:</p>
               <div class="text-sm flex flex-wrap items-center gap-1">
                 <ng-container *ngFor="let s of l.inferenceSteps; let first = first">
-                  <span *ngIf="first" class="px-1.5 py-0.5 rounded bg-white border">{{ name(s.from) }} <span class="text-xs text-gray-500">{{ s.from.dataSource }}</span></span>
+                  <span *ngIf="first" class="px-1.5 py-0.5 rounded bg-white border border-gray-200">{{ name(s.from) }} <span class="text-xs text-gray-500">{{ s.from.dataSource }}</span></span>
                   <span class="text-xs text-gray-500">{{ s.kind === 'identical' ? '= same IRI' : '≡ ' + (s.status || '').toLowerCase() }}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-white border">{{ name(s.to) }} <span class="text-xs text-gray-500">{{ s.to.dataSource }}</span></span>
+                  <span class="px-1.5 py-0.5 rounded bg-white border border-gray-200">{{ name(s.to) }} <span class="text-xs text-gray-500">{{ s.to.dataSource }}</span></span>
                 </ng-container>
               </div>
               <p class="text-xs text-gray-500 mt-1">To break it, undo one of these links.</p>
@@ -155,7 +155,7 @@ export type ReviewTab = 'toReview' | 'ACCEPTED' | 'MANUAL' | 'INFERRED' | 'REJEC
               <app-matching-evidence [evidence]="l.evidence" [labelA]="pair.dataSourceA" [labelB]="pair.dataSourceB"></app-matching-evidence>
             </ng-template>
             <div class="flex items-center gap-2 mt-2">
-              <input class="flex-1 text-sm px-2 py-1 border rounded" placeholder="Note" [(ngModel)]="noteDrafts[l.id]"
+              <input class="flex-1 text-sm px-2 py-1 border rounded border-gray-200" placeholder="Note" [(ngModel)]="noteDrafts[l.id]"
                      (keydown)="$event.stopPropagation()" (keydown.enter)="saveNote(l)">
               <button mat-stroked-button (click)="saveNote(l)" [disabled]="(noteDrafts[l.id] || '') === (l.note || '')">Save note</button>
               <button mat-stroked-button *ngIf="l.status === 'PROPOSED'" (click)="manual(l)">None of these: link manually…</button>
@@ -176,7 +176,7 @@ export type ReviewTab = 'toReview' | 'ACCEPTED' | 'MANUAL' | 'INFERRED' | 'REJEC
         <span class="flex-1"></span>
         <ng-container *ngIf="tab === 'toReview'">
           <span class="text-sm text-gray-600">Accept all ≥</span>
-          <input type="number" min="50" max="100" step="1" class="w-16 px-2 py-1 border rounded text-sm" [(ngModel)]="bulkThreshold">
+          <input type="number" min="50" max="100" step="1" class="w-16 px-2 py-1 border rounded text-sm border-gray-200" [(ngModel)]="bulkThreshold">
           <span class="text-sm text-gray-600">%</span>
           <button mat-stroked-button color="primary" [disabled]="!bulkCandidates.length" (click)="acceptAllAbove()">
             Accept {{ bulkCandidates.length }}
@@ -184,12 +184,7 @@ export type ReviewTab = 'toReview' | 'ACCEPTED' | 'MANUAL' | 'INFERRED' | 'REJEC
         </ng-container>
       </div>
     </div>
-  `,
-  styles: [`
-    .act { width: 1.75rem; height: 1.75rem; border-radius: 0.375rem; font-size: 0.95rem; }
-    .act:hover:not([disabled]) { background: rgb(243 244 246); }
-    .act[disabled] { opacity: 0.3; cursor: not-allowed; }
-  `]
+  `
 })
 export class MatchingReviewPanelComponent implements OnInit, OnChanges, OnDestroy {
   @Input({ required: true }) pair!: PairOverview;

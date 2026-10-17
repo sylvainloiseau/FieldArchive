@@ -1,17 +1,15 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges, Inject, inject, ChangeDetectorRef, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Inject, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule, KeyValue } from '@angular/common';
-import { Entity } from '../../models/ressource';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import {MatTabsModule} from '@angular/material/tabs';
 
 import {GestionRessourcesService} from '../../services/gestion-ressources.service';
 import { MatDialogModule, MatDialogRef, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 import { Stack } from '../../shared/utils/stack';
-import { ConfirmDeleteDialogComponent, ConfirmDeleteDialogData } from '../confirm-delete-dialog/confirm-delete-dialog.component';
-import { ConfirmDeletePropertyData, ConfirmDeletePropertyComponent } from '../confirm-delete-property/confirm-delete-property.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../shared/ui/confirm-dialog.component';
+import { SourceBadgeComponent } from '../../shared/ui/source-badge.component';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import {ONTOLOGY_LABELS} from '../../models/ontology-labels';
 
 import { FileViewerComponent } from '../file-viewer/file-viewer.component';
 import { CreateEntityComponent } from '../create-entity/create-entity.component';
@@ -19,7 +17,16 @@ import {RicoPropertiesComponent} from '../rico-properties/rico-properties.compon
 import { RangeSelectionDialogComponent } from '../range-selection-dialog/range-selection-dialog.component';
 
 import {MatChipsModule} from '@angular/material/chips';
-import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+
+/** The entities offered by the drop-down of an IRI property, loaded once per set of ranges. */
+interface RangeOptions {
+  loading: boolean;
+  groups: { typeIri: string; typeLabel: string; entities: any[] }[];
+  all: any[];
+}
 
 @Component({
   selector: 'app-entity-details',
@@ -28,11 +35,13 @@ import {MatIconModule} from '@angular/material/icon';
     CommonModule,
     FormsModule,
     MatTabsModule,
-    ReactiveFormsModule,
     MatDialogModule,
     MatSnackBarModule,
     MatChipsModule,
-    MatIconModule
+    MatButtonModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
+    SourceBadgeComponent
   ],
   templateUrl: './entity-details.component.html',
   styleUrl: './entity-details.component.scss'
@@ -43,20 +52,10 @@ export class EntityDetailsComponent implements OnInit {
 
   selectedEntityId: string = "";
   ontologyLabels: Record<string, any>[] = [];
-  @Output() close = new EventEmitter<void>();
 
   stack = new Stack<any>();
 
   selectedEntity : any = null ;
-  entityPropertiesDict : any[] = [];
-  newAssociation: {
-  mode: 'existing' | 'new' | null;  // which sub-mode
-  predicate: string;                 // for 'existing': full predicate URI
-  ontologyUrl: string;               // for 'new': selected ontology base URL
-  customPredicate: string;           // for 'new': user-typed predicate name
-  kind: 'literal' | 'iri';
-  value: string;
-  } | null = null;
 
   allEntityTypesChips : any[] = [];
 
@@ -65,10 +64,8 @@ export class EntityDetailsComponent implements OnInit {
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
 
-  public listOfAllRanges : any[] = [];
-  public groupedRanges: { typeIri: string; typeLabel: string; entities: any[] }[] = [];
-
-  private lastLoadedRangeUri: string = '';
+  /** Options of the IRI properties' drop-downs, keyed by their sorted range IRIs (see rangeKey). */
+  private rangeOptions = new Map<string, RangeOptions>();
 
   ontologyEntries: { key: string; value: any }[] = [];
   selectedOntologyTab : {key : string , value : any} = {key : "" , value : null} ;
@@ -82,19 +79,63 @@ export class EntityDetailsComponent implements OnInit {
     this.selectedEntityId = data.selectedEntityId;
   }
 
-  // Save the edited value of a literal property
-  saveLiteralEdit(propValue: any): void {
+  // Save the edited value of a literal property; a blank value is removed rather than saved
+  saveLiteralEdit(propValue: any, property?: any): void {
     propValue.editing = false;
+    if (property && this.isBlank(propValue.value)) {
+      property.values = property.values.filter((v: any) => v !== propValue);
+    }
     this.editEntity();
   }
 
   // Toggle the editing state of a literal property
-  toggleLiteralEdit(propValue: any): void {
+  toggleLiteralEdit(propValue: any, property?: any): void {
     if (propValue.editing) {
-      this.saveLiteralEdit(propValue);
+      this.saveLiteralEdit(propValue, property);
     } else {
       propValue.editing = true;
     }
+  }
+
+  private isBlank(value: any): boolean {
+    return value == null || String(value).trim() === '';
+  }
+
+  /**
+   * The entity's name, for the title and the messages: its rico:name, else another of its
+   * label properties, else its IRI.
+   */
+  get displayName(): string {
+    for (const entry of Object.values<any>(this.ontologyLabels ?? {})) {
+      const name = (entry?.nameProperty?.values ?? []).find((v: any) => !this.isBlank(v?.value));
+      if (name) return name.value;
+    }
+    const labelPredicates = [
+      'http://www.w3.org/2000/01/rdf-schema#label',
+      'http://purl.org/dc/terms/title',
+      'http://xmlns.com/foaf/0.1/name'
+    ];
+    for (const predicate of labelPredicates) {
+      const p = (this.selectedEntity?.properties ?? []).find((x: any) => x?.predicate === predicate);
+      const v = (p?.values ?? []).find((x: any) => !this.isBlank(x?.value));
+      if (v) return v.value;
+    }
+    return this.selectedEntity?.iri ?? '';
+  }
+
+  /** Number of the entity's properties with a value in one ontology tab (shown in the tab label). */
+  propertyCount(ontologyEntry: any): number {
+    const hasValue = (p: any) => (p?.values ?? []).some((v: any) => !this.isBlank(v?.value));
+    let n = (ontologyEntry?.entities ?? []).filter(hasValue).length;
+    for (const list of Object.values<any>(ontologyEntry?.main_Properties ?? {})) {
+      if (Array.isArray(list)) n += list.filter(hasValue).length;
+    }
+    if (hasValue(ontologyEntry?.nameProperty)) n++;
+    return n;
+  }
+
+  private notify(message: string): void {
+    this.snackBar.open(message, 'Close', { duration: 4000 });
   }
 
   MainPropertiesisNotEmpty(obj: any): boolean {
@@ -112,10 +153,10 @@ export class EntityDetailsComponent implements OnInit {
   copyToClipboard(text: string | undefined) {
     if (text && navigator.clipboard) {
       navigator.clipboard.writeText(text).then(() => {
-        console.log('Copied to clipboard:', text);
-        // TODO: Show toast notification
+        this.notify('IRI copied.');
       }).catch(err => {
         console.error('Failed to copy:', err);
+        this.notify('Could not copy the IRI: ' + err);
       });
     }
   }
@@ -165,14 +206,24 @@ export class EntityDetailsComponent implements OnInit {
     const selectedIri = (event.target as HTMLSelectElement).value;
     if (!selectedIri) return;
 
-    const selectedRange = this.listOfAllRanges.find(t => t.iri === selectedIri);
+    const selectedRange = this.rangeOptionsOf(property)?.all.find(t => t.iri === selectedIri);
+    (event.target as HTMLSelectElement).value = '';
     if (!selectedRange) return;
 
+    this.addIriValue(property, selectedRange.iri, selectedRange.label);
+    this.editEntity();
+  }
+
+  /** Adds a link to an entity as a new internal value of an IRI property. */
+  private addIriValue(property: any, iri: string, name: string): void {
     const newValue = {
-      value: selectedRange.iri,
-      name: selectedRange.label,
+      kind: 'iri',
+      value: iri,
+      name,
       datatype: null,
-      lang: null
+      lang: null,
+      source: 'internal',
+      datasourceShortName: 'internal'
     };
 
     // 🔍 Cherche si la propriété existe déjà dans selectedEntity
@@ -197,45 +248,42 @@ export class EntityDetailsComponent implements OnInit {
         values: [newValue]
       });
     }
-
-    this.editEntity();
-
-    (event.target as HTMLSelectElement).value = '';
   }
 
   onRangeDeleted(range: any, property: any): void {
 
-    const rangeValue = range?.value ;
-    console.log("Selected IRI for deletion:", rangeValue);
-    console.log("Property object:", property);
-    console.log("Property values:", property.values);
+    const rangeValue: string = range?.value ?? '';
 
-    if ( (rangeValue.trim() === '' || range.editing) && property.kind === 'literal') {
-      property.values = property.values.filter((v: any) => v.value !== rangeValue);
+    // a value that was never saved (empty, or being typed) is just dropped
+    if (rangeValue.trim() === '' || (range.editing && property.kind === 'literal')) {
+      property.values = property.values.filter((v: any) => v !== range);
       return
     }
 
-    const dialogRef = this.dialog.open(ConfirmDeletePropertyComponent, {
+    const propertyLabel = property.key ?? property.schema?.label ?? this.extractPropertyNameFromIRI(property.predicate);
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '460px',
       data: {
-        propertyLabel: property.key,
-        entityIri: this.selectedEntity.iri,
-        value : rangeValue
-      } as ConfirmDeletePropertyData,
-      panelClass: 'rounded-xl',
+        title: 'Delete this value?',
+        message: 'The value is removed from the internal data source.',
+        details: [
+          { label: 'Entity', value: this.displayName },
+          { label: 'Property', value: propertyLabel },
+          { label: 'Value', value: range?.name || rangeValue }
+        ],
+        confirmLabel: 'Delete',
+        warn: true
+      } as ConfirmDialogData
     });
 
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
       if (confirmed) {
-        if (!rangeValue) return;
-
-        property.values = property.values.filter((v: any) => v.value !== rangeValue);
+        property.values = property.values.filter((v: any) => v !== range);
 
         console.log("Values after deletion for this rangeIri:", rangeValue, property.values);
 
         this.editEntity();
 
-        // this.entityPropertiesDict = this.entityPropertiesDict.filter((p : any) => p.predicate !== property.predicate && p.value !== property.value);
-        // this.cdr.markForCheck();
 
       }
     });
@@ -243,14 +291,11 @@ export class EntityDetailsComponent implements OnInit {
 
   }
 
+  /** "Create" next to an IRI property's drop-down: creates an entity of its range and links it. */
   openCreateEntityDialogForRange(property: any): void {
-  const rangeUris: string[] = Array.isArray(property.rangeUri)
-    ? property.rangeUri
-    : [property.rangeUri];
-
-  const rangeLocalNames: string[] = Array.isArray(property.rangeLocalName)
-    ? property.rangeLocalName
-    : [property.rangeLocalName];
+  const rangeUris: string[] = this.rangeUrisOf(property);
+  const localNames = property.schema?.rangeLocalName ?? property.rangeLocalName;
+  const rangeLocalNames: string[] = Array.isArray(localNames) ? localNames : [localNames];
 
   if (!rangeUris.length || !rangeUris[0]) return;
 
@@ -268,23 +313,32 @@ export class EntityDetailsComponent implements OnInit {
 
     selectionDialogRef.afterClosed().subscribe((selectedRange: any) => {
       if (selectedRange?.uri) {
-        this.openCreateEntityDialogWithType(selectedRange.uri);
+        this.openCreateEntityDialogWithType(selectedRange.uri, property);
       }
     });
     return;
   }
 
   // Single possible type -> go straight to entity creation
-  this.openCreateEntityDialogWithType(rangeUris[0]);
+  this.openCreateEntityDialogWithType(rangeUris[0], property);
 }
 
-private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
+private openCreateEntityDialogWithType(rangeTypeIRI: string, property: any): void {
   this.dialog.open(CreateEntityComponent, {
     width: '600px',
     data: {
       fullType: rangeTypeIRI,
       ontologiesData: this.ontologyLabels
     }
+  }).afterClosed().subscribe((created: any) => {
+    // the dialog closes with the created entity (RdfEntityDto) on success
+    if (!created?.iri) return;
+    const nameProp = (created.properties ?? []).find((p: any) => p.predicate === this.RICO_NAME_PREDICATE);
+    const name = nameProp?.values?.[0]?.value ?? created.iri;
+    this.rangeOptions.clear();
+    this.addIriValue(property, created.iri, name);
+    this.editEntity();
+    this.preloadRangeOptions();
   });
 }
 
@@ -302,6 +356,8 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
           this.buildTypesChips(data.types, this.ontologyLabels);
           this.cleanProperties(this.ontologyLabels, this.selectedEntity);
           this.extractNameProperty(this.ontologyLabels);
+          this.rangeOptions.clear();
+          this.preloadRangeOptions();
           this.cdr.markForCheck();
         },
         error: (err) => console.error("ERROR:", err)
@@ -321,20 +377,23 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
     this.allEntityTypesChips = []; // Clear existing chips
 
+    // One chip per type, also for types outside the configured ontologies: editEntity() sends
+    // the internal chips back as the complete list of the entity's internal types.
     for (let type of entityTypes) {
       const typeIri = type.iri; // was: type (plain string) before
 
-      for (const [key, value] of Object.entries(ontologies)) {
-        if (typeIri.startsWith(key)) {
-          this.allEntityTypesChips.push(
-            {
-              "label": value.name + ":" + this.extractPropertyNameFromIRI(typeIri),
-              "iri": typeIri,
-              "source": type.source
-            }
-          );
+      const ontology = Object.entries(ontologies).find(([key]) => typeIri.startsWith(key));
+      this.allEntityTypesChips.push(
+        {
+          "label": ontology
+            ? ontology[1].name + ":" + this.extractPropertyNameFromIRI(typeIri)
+            : this.extractPropertyNameFromIRI(typeIri),
+          "iri": typeIri,
+          "source": type.source,
+          "datasourceShortName": type.datasourceShortName,
+          "ontology": ontology ? ontology[0] : null
         }
-      }
+      );
     }
   }
 
@@ -710,6 +769,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
             // FINALLY pull rico:name out into its own top-level section
             this.extractNameProperty(this.ontologyLabels);
 
+            this.preloadRangeOptions();
             this.cdr.detectChanges();
           },
           error: (err) => console.error("ERROR:", err)
@@ -723,13 +783,6 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     this.onTabChange(0); // Select the first tab (Rico) by default
   }
 
-
-  // Remove association
-  removeAssociation(person: string) {
-    if (this.selectedEntity && this.selectedEntity.associatedWith) {
-      this.selectedEntity.associatedWith = this.selectedEntity.associatedWith.filter((p : any) => p !== person);
-    }
-  }
 
 
   backToPreviousEntity() {
@@ -746,27 +799,31 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     this.buildTypesChips(this.selectedEntity.types, this.ontologyLabels);
     this.cleanProperties(this.ontologyLabels, this.selectedEntity);
     this.extractNameProperty(this.ontologyLabels);
+    this.rangeOptions.clear();
+    this.preloadRangeOptions();
     this.cdr.markForCheck();
   }
 
   closeDetail() {
     this.dialogRef.close();
-    // this.close.emit();
-  }
-
-  seeProperty(property: any) {
-    console.log("See property  :", property);
   }
 
   deleteEntity() {
     if (!this.selectedEntity) return;
 
-    const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
+    const name = this.displayName;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '460px',
       data: {
-        entityLabel: this.selectedEntity.titre,
-        entityIri: this.selectedEntity.iri,
-      } as ConfirmDeleteDialogData,
-      panelClass: 'rounded-xl',
+        title: 'Delete this entity?',
+        message: 'Its statements in the internal data source are deleted. This cannot be undone.',
+        details: [
+          { label: 'Name', value: name },
+          { label: 'IRI', value: this.selectedEntity.iri, mono: true }
+        ],
+        confirmLabel: 'Delete',
+        warn: true
+      } as ConfirmDialogData
     });
 
     dialogRef.afterClosed().subscribe((confirmed: boolean) => {
@@ -774,31 +831,12 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
         this.gestionRessourceService.deleteEntity(this.selectedEntity.iri).subscribe({
           next: () => {
-            this.snackBar.open(
-              `Entity was successfully deleted.`,
-              'Close',
-              {
-                duration: 5000,
-                horizontalPosition: 'center',
-                verticalPosition: 'top',
-                panelClass: ['snackbar-success']
-              }
-            );
-            console.log('Entity deleted:', this.selectedEntity.iri);
+            this.notify(`${name} deleted.`);
             this.closeDetail();
           },
           error: (err : any) => {
             console.error('Delete failed:', err)
-             this.snackBar.open(
-              `Failed to delete "${this.selectedEntity.iri}".`,
-              'Close',
-              {
-                duration: 5000,
-                horizontalPosition: 'right',
-                verticalPosition: 'bottom',
-                panelClass: ['snackbar-error']
-              }
-            );
+            this.notify(`Could not delete ${name}.`);
           }
         });
       }
@@ -813,6 +851,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
       if (!p || !p.predicate || !p.kind) continue; // drop anything malformed/corrupted
       const values = (p.values || [])
         .filter((v: any) => v && v.value != null && v.source != 'external')
+        .filter((v: any) => p.kind !== 'literal' || String(v.value).trim() !== '') // no empty literals
         .map((v: any) => ({
           value: v.value,
           datatype: v.datatype ?? null,
@@ -842,19 +881,11 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
     this.gestionRessourceService.editEntity(this.selectedEntity.iri, payload).subscribe({
       next: () => {
-        this.snackBar.open(
-          `"${this.selectedEntity.iri}" was successfully updated.`,
-          'Close',
-          { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: ['snackbar-success'] }
-        );
+        this.notify(`${this.displayName} updated.`);
       },
       error: (err) => {
         console.error('Edit failed:', err);
-        this.snackBar.open(
-          `Failed to update "${this.selectedEntity.iri}".`,
-          'Close',
-          { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top', panelClass: ['snackbar-error'] }
-        );
+        this.notify(`Could not update ${this.displayName}.`);
       }
     });
   }
@@ -867,7 +898,7 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
       return;
     }
     this.selectedOntologyTab = entry ;
-    console.log(entry.key, entry.value); // entry.value.name, entry.value.properties, etc.
+    this.preloadRangeOptions();
   }
 
 
@@ -900,8 +931,14 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     return used;
   }
 
+  /** The properties offered by "Add property" depend on the entity's type in that ontology. */
+  hasTypeInOntology(namespace: string): boolean {
+    return !!namespace && this.allEntityTypesChips.some(t => t.iri?.startsWith(namespace));
+  }
+
   addAssociation(): void {
-    const baseTypes = this.selectedEntity.types.map((t: any) => t.iri);
+    if (!this.hasTypeInOntology(this.selectedOntologyTab?.key)) return;
+    const baseTypes = this.allEntityTypesChips.map((t: any) => t.iri);
     const typeSet = this.expandWithSuperClasses(baseTypes, this.ontologyLabels);
 
     console.log("BASE TYPES : ", baseTypes);
@@ -919,10 +956,10 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
 
     const dialogRef = this.dialog.open(RicoPropertiesComponent, {
       width: '600px',
-      height: '350px',
+      maxHeight: '85vh',
       data: {
         predicates: matches,
-        predefinedRanges: this.selectedOntologyTab.value.mainTypes.value,
+        predefinedRanges: this.selectedOntologyTab.value.mainTypes?.value ?? [],
         removeProperty : this.selectedOntologyTab.value.removeProperty,
         hierarchy: this.selectedOntologyTab.value.hierarchy
 
@@ -978,7 +1015,6 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
       let rangeUri = '';
       let rangeLocalName = '';
       if(predicateDef.ranges && predicateDef.ranges.length === 1){
-        console.log("HERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRE");
         rangeUri = predicateDef.ranges[0].uri;
         rangeLocalName = predicateDef.ranges[0].localName;
       }
@@ -1010,44 +1046,53 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     this.cdr.markForCheck();
   }
 
-  getEntitiesByTypes(rangeUris: string[]): void {
-    this.listOfAllRanges = [];
-    this.groupedRanges = [];
+  /** The range IRIs of an IRI property (main properties keep them in `schema`). */
+  rangeUrisOf(property: any): string[] {
+    const r = property?.schema?.rangeUri ?? property?.rangeUri;
+    return (Array.isArray(r) ? r : [r]).filter((u: any) => !!u);
+  }
 
-    if (!rangeUris || rangeUris.length === 0) {
-      return;
-    }
+  private rangeKey(property: any): string {
+    return [...new Set(this.rangeUrisOf(property))].sort().join(' ');
+  }
 
-    const uniqueRangeUris = [...new Set(rangeUris)];
+  /** The options of a property's drop-down, or undefined while never requested. */
+  rangeOptionsOf(property: any): RangeOptions | undefined {
+    return this.rangeOptions.get(this.rangeKey(property));
+  }
 
-    this.gestionRessourceService.getAllEntitiesByType(uniqueRangeUris, true).subscribe({
+  /** Loads a property's drop-down options once per set of ranges. */
+  loadRangeOptions(property: any): void {
+    const key = this.rangeKey(property);
+    if (!key || this.rangeOptions.has(key)) return;
+    const options: RangeOptions = { loading: true, groups: [], all: [] };
+    this.rangeOptions.set(key, options);
+    this.gestionRessourceService.getAllEntitiesByType(key.split(' '), true).subscribe({
       next: (res) => {
-        this.listOfAllRanges = res;
-        this.groupedRanges = this.buildGroupedRanges(res);
+        options.all = res;
+        options.groups = this.buildGroupedRanges(res);
+        options.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error("Error fetching possible ranges: ", err);
+        options.loading = false;
+        this.rangeOptions.delete(key); // retried on the next focus
       }
     });
   }
 
-
-  getEntitiesByType(rangeUri: string): void {
-    if (this.lastLoadedRangeUri === rangeUri && this.listOfAllRanges?.length) {
-      return; // already loaded, don't refetch/reassign
+  /** Loads in advance the drop-down options of the IRI properties of the current tab. */
+  private preloadRangeOptions(): void {
+    const entry = this.selectedOntologyTab?.value;
+    if (!entry || !this.selectedEntity) return;
+    const properties: any[] = [...(entry.entities ?? [])];
+    for (const list of Object.values<any>(entry.main_Properties ?? {})) {
+      if (Array.isArray(list)) properties.push(...list);
     }
-    this.listOfAllRanges = [];
-    this.groupedRanges = [];
-    this.lastLoadedRangeUri = rangeUri;
-    this.gestionRessourceService.getAllEntitiesByType(rangeUri, true).subscribe({
-      next: (res) => {
-        this.listOfAllRanges = res;
-        this.groupedRanges = this.buildGroupedRanges(res);
-      },
-      error: (err) => {
-        console.error("Error fetching possible ranges: ", err);
-      }
-    });
+    for (const p of properties) {
+      if (p?.kind === 'iri') this.loadRangeOptions(p);
+    }
   }
 
   /**
@@ -1078,49 +1123,6 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     return Array.from(groups.values()).sort((a, b) => a.typeLabel.localeCompare(b.typeLabel));
   }
 
-  confirmAddAssociation() {
-    if (!this.newAssociation || !this.newAssociation.value) return;
-
-    let fullPredicate: string;
-    let propertyName: string;
-    let ontologyUrl: string;
-
-    if (this.newAssociation.mode === 'existing') {
-      if (!this.newAssociation.predicate) return;
-      fullPredicate = this.newAssociation.predicate;
-
-      if (fullPredicate.includes('#')) {
-        ontologyUrl = fullPredicate.substring(0, fullPredicate.lastIndexOf('#') + 1);
-        propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('#') + 1);
-      } else {
-        ontologyUrl = fullPredicate.substring(0, fullPredicate.lastIndexOf('/') + 1);
-        propertyName = fullPredicate.substring(fullPredicate.lastIndexOf('/') + 1);
-      }
-    } else {
-      if (!this.newAssociation.ontologyUrl || !this.newAssociation.customPredicate) return;
-      ontologyUrl = this.newAssociation.ontologyUrl; // already ends with # or /
-      fullPredicate = ontologyUrl + this.newAssociation.customPredicate;
-      propertyName = this.newAssociation.customPredicate;
-    }
-
-    const ontologyName = this.gestionRessourceService.getTypeNameByUrl(ontologyUrl);
-
-    this.entityPropertiesDict.push({
-      key: propertyName,
-      value: this.newAssociation.value,
-      kind: this.newAssociation.kind,
-      predicate: fullPredicate,
-      ontology: ontologyName   // matches detailTab
-    });
-
-    this.newAssociation = null;
-    this.cdr.markForCheck();
-  }
-
-  cancelAddAssociation() {
-    this.newAssociation = null;
-  }
-
   isFilePath(path: string): boolean {
 
     if (!path) return false;
@@ -1138,24 +1140,22 @@ private openCreateEntityDialogWithType(rangeTypeIRI: string): void {
     );
   }
 
-  openFileViewer(property: any, filePath: string) {
+  /** Previews the file a literal value points to; for an internal value, the chosen file replaces it. */
+  openFileViewer(propValue: any, filePath: string) {
     if (!filePath ) return ;
-
-    console.log("Opening file viewer for property: ", property);
+    const editable = propValue.source === 'internal';
 
     const dialogRef = this.dialog.open(FileViewerComponent, {
       width: '1000px',
-      data: filePath
+      maxWidth: '95vw',
+      data: { path: filePath, readOnly: !editable }
     });
 
     dialogRef.afterClosed().subscribe((newFilePath) => {
-      if (newFilePath) {
-        console.log('Received from File Viewer dialog:', newFilePath);
-        property.value = newFilePath; // Update the property value with the new file path
+      if (editable && newFilePath && newFilePath !== propValue.value) {
+        propValue.value = newFilePath;
+        this.editEntity();
         this.cdr.markForCheck();
-
-      } else {
-        console.log('File ViewerDialog closed without selection');
       }
     });
   }

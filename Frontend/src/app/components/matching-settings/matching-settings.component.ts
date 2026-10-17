@@ -18,7 +18,7 @@ import {
 } from '../../models/matching.model';
 import { MatchingGroupEditorComponent } from './matching-group-editor/matching-group-editor.component';
 import { MatchingPreviewPanelComponent } from './matching-preview-panel/matching-preview-panel.component';
-import { SimpleConfirmDialogComponent } from './simple-confirm-dialog/simple-confirm-dialog.component';
+import { ConfirmDialogComponent } from '../../shared/ui/confirm-dialog.component';
 
 /**
  * Edits the project's data matching configuration (matching-configuration.json): defaults,
@@ -47,7 +47,7 @@ import { SimpleConfirmDialogComponent } from './simple-confirm-dialog/simple-con
         <button mat-stroked-button (click)="fileInput.click()">Import…</button>
         <button mat-stroked-button (click)="export()">Export</button>
         <input #fileInput type="file" accept=".json,application/json" class="hidden" (change)="importFile($event)">
-        <div class="ml-2 inline-flex rounded-lg border overflow-hidden text-sm">
+        <div class="ml-2 inline-flex rounded-lg border overflow-hidden text-sm border-gray-200">
           <button class="px-3 py-1" [ngClass]="view === 'form' ? 'bg-blue-600 text-white' : 'bg-white'" (click)="setView('form')">Form</button>
           <button class="px-3 py-1" [ngClass]="view === 'json' ? 'bg-blue-600 text-white' : 'bg-white'" (click)="setView('json')">JSON</button>
         </div>
@@ -58,7 +58,7 @@ import { SimpleConfirmDialogComponent } from './simple-confirm-dialog/simple-con
       <ng-container *ngIf="config">
         <!-- JSON view -->
         <div *ngIf="view === 'json'" class="flex-1 flex flex-col px-6 pb-4 overflow-hidden">
-          <textarea class="flex-1 w-full font-mono text-xs p-3 border rounded-lg bg-white" spellcheck="false"
+          <textarea class="flex-1 w-full font-mono text-xs p-3 border rounded-lg bg-white border-gray-200" spellcheck="false"
                     [(ngModel)]="jsonText"></textarea>
           <div class="flex items-center gap-2 mt-2">
             <button mat-flat-button color="primary" (click)="applyJson()">Apply to form</button>
@@ -70,33 +70,33 @@ import { SimpleConfirmDialogComponent } from './simple-confirm-dialog/simple-con
         <!-- form view -->
         <div *ngIf="view === 'form'" class="flex flex-1 overflow-hidden gap-4 px-6 pb-2">
           <aside class="w-72 flex flex-col gap-4 overflow-y-auto">
-            <div class="bg-white rounded-xl border p-3 space-y-2 text-sm">
+            <div class="bg-white rounded-xl border p-3 space-y-2 text-sm border-gray-200">
               <div class="text-xs uppercase tracking-wide text-gray-500">Global defaults</div>
               <label class="flex items-center justify-between gap-2"
                      matTooltip="A pair is proposed when its score reaches this value (0–1).">
                 Threshold
-                <input type="number" min="0" max="1" step="0.05" class="w-20 px-1 border rounded" [(ngModel)]="config.defaults.threshold" (ngModelChange)="touch()">
+                <input type="number" min="0" max="1" step="0.05" class="w-20 px-1 border rounded border-gray-200" [(ngModel)]="config.defaults.threshold" (ngModelChange)="touch()">
               </label>
               <label class="flex items-center justify-between gap-2"
                      matTooltip="The total weight of the properties that must be comparable before a pair can be proposed. Prevents a match on a single minor property.">
                 Min. evidence
-                <input type="number" min="0" step="0.5" class="w-20 px-1 border rounded" [(ngModel)]="config.defaults.minimumComparedWeight" (ngModelChange)="touch()">
+                <input type="number" min="0" step="0.5" class="w-20 px-1 border rounded border-gray-200" [(ngModel)]="config.defaults.minimumComparedWeight" (ngModelChange)="touch()">
               </label>
               <label class="flex items-center justify-between gap-2" matTooltip="Each entity keeps only its best proposals.">
                 Proposals / entity
-                <input type="number" min="1" max="50" step="1" class="w-20 px-1 border rounded" [(ngModel)]="config.defaults.maxProposalsPerEntity" (ngModelChange)="touch()">
+                <input type="number" min="1" max="50" step="1" class="w-20 px-1 border rounded border-gray-200" [(ngModel)]="config.defaults.maxProposalsPerEntity" (ngModelChange)="touch()">
               </label>
               <label class="flex items-center justify-between gap-2"
                      matTooltip="Above this number of possible pairs in a group, only entities sharing a blocking key are compared.">
                 Blocking above
-                <input type="number" min="0" step="10000" class="w-24 px-1 border rounded" [(ngModel)]="config.defaults.blockingMinimumPairs" (ngModelChange)="touch()">
+                <input type="number" min="0" step="10000" class="w-24 px-1 border rounded border-gray-200" [(ngModel)]="config.defaults.blockingMinimumPairs" (ngModelChange)="touch()">
               </label>
               <mat-checkbox [(ngModel)]="config.defaults.compareUntypedEntities" (ngModelChange)="touch()">Compare untyped entities</mat-checkbox>
               <mat-checkbox [(ngModel)]="config.defaults.includeSubclasses" (ngModelChange)="touch()">Include subclasses</mat-checkbox>
               <p *ngFor="let i of issuesAt('defaults')" class="text-xs text-red-700">✕ {{ i.path }}: {{ i.message }}</p>
             </div>
 
-            <div class="bg-white rounded-xl border p-3 text-sm">
+            <div class="bg-white rounded-xl border p-3 text-sm border-gray-200">
               <div class="flex items-center mb-2">
                 <div class="text-xs uppercase tracking-wide text-gray-500">Type groups</div>
                 <span class="flex-1"></span>
@@ -125,7 +125,7 @@ import { SimpleConfirmDialogComponent } from './simple-confirm-dialog/simple-con
             </div>
           </aside>
 
-          <section class="flex-1 overflow-y-auto bg-white rounded-xl border p-4">
+          <section class="flex-1 overflow-y-auto bg-white rounded-xl border p-4 border-gray-200">
             <ng-container *ngIf="selectedGroup as g; else noGroup">
               <div class="flex items-center mb-3">
                 <h2 class="text-lg font-semibold flex-1">{{ g.groupLabel || 'New group' }}</h2>
@@ -142,7 +142,7 @@ import { SimpleConfirmDialogComponent } from './simple-confirm-dialog/simple-con
           </section>
         </div>
 
-        <div class="mx-6 mb-4 p-3 bg-white rounded-xl border">
+        <div class="mx-6 mb-4 p-3 bg-white rounded-xl border border-gray-200">
           <app-matching-preview-panel [configuration]="config" [dataSources]="dataSources"></app-matching-preview-panel>
         </div>
       </ng-container>
@@ -440,7 +440,7 @@ export class MatchingSettingsComponent implements OnInit, OnDestroy {
   }
 
   private confirm(title: string, message: string, confirmLabel: string): Observable<boolean> {
-    return this.dialog.open(SimpleConfirmDialogComponent, { width: '460px', data: { title, message, confirmLabel } })
+    return this.dialog.open(ConfirmDialogComponent, { width: '460px', data: { title, message, confirmLabel } })
       .afterClosed().pipe(map(ok => !!ok));
   }
 }

@@ -398,43 +398,20 @@ public class RdfEntityService {
     }
 
 
-    public String getNameOfEntityByIri(IRI subject) {
-            requireProjectOpen();
-            if (subject == null) {
-                throw new BadRequestException("IRI manquant.");
-            }
-            try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
-                boolean exists;
-                try (var st = conn.getStatements(subject, null, null)) {
-                    exists = st.hasNext();
-                }
-                if (!exists) throw new NotFoundException("Entité introuvable: " + subject.stringValue());
-                IRI CTX_INTERNAL = internalCtx();
-                // properties (on renvoie tout ce qu’on trouve)
-                // Lire toutes les propriétés
-                try (var stmts = conn.getStatements(subject, null, null, CTX_INTERNAL)) {
-                    while (stmts.hasNext()) {
-                        Statement st = stmts.next();
-                        IRI pred = st.getPredicate();
-                        Value obj = st.getObject();
-
-                        // Ignore rdf:type (déjà traité)
-                        String predicateString = pred.stringValue();
-                        if (!predicateString.equals("https://www.ica.org/standards/RiC/ontology#name") ) continue;
-
-
-                        if (obj.isLiteral()) {
-                            Literal lit = (Literal) obj;
-                            return lit.getLabel();
-
-                        }
-
-
-                    }
+    /**
+     * Name of a linked entity, for display: the first literal of {@link #LABEL_PREDICATES}, in
+     * any graph (the entity may come from an external source); "" when it has none, or when the
+     * IRI has no statement at all (a dangling link must not prevent opening the entity).
+     */
+    private String linkedEntityName(RepositoryConnection conn, IRI subject) {
+        for (String labelPredicate : LABEL_PREDICATES) {
+            try (var st = conn.getStatements(subject, vf.createIRI(labelPredicate), null)) {
+                while (st.hasNext()) {
+                    if (st.next().getObject() instanceof Literal lit && !lit.getLabel().isBlank()) return lit.getLabel();
                 }
             }
-            return "";
-
+        }
+        return "";
     }
 
     public RdfEntityDto getByKey(String key) {
@@ -525,7 +502,7 @@ public class RdfEntityService {
                     if (obj.isIRI()) {
                         if (p.kind == null) p.kind = "iri";
                         v.value = obj.stringValue();
-                        v.name = this.getNameOfEntityByIri((IRI) obj);
+                        v.name = linkedEntityName(conn, (IRI) obj);
                     } else if (obj.isLiteral()) {
                         Literal lit = (Literal) obj;
                         if (p.kind == null) p.kind = "literal";

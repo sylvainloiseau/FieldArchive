@@ -59,7 +59,7 @@ import { MatchingClustersDialogComponent } from './matching-clusters-dialog/matc
             ▲ to review · ✓ confirmed · ≡ inferred · ✗ rejected · ⚠ orphaned · ⟳ to rerun
           </p>
         </aside>
-        <section class="flex-1 overflow-hidden bg-white rounded-xl border p-4">
+        <section class="flex-1 overflow-hidden bg-white rounded-xl border p-4 border-gray-200">
           <app-matching-review-panel *ngIf="selected; else pick" [pair]="selected" [typeGroups]="typeGroups"
                                      [initialTab]="initialTab" (changed)="refresh()" (tabChange)="onTab($event)">
           </app-matching-review-panel>

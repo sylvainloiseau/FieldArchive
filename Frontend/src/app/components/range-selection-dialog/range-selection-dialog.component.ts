@@ -1,56 +1,35 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 
+/** Asks which type to create when a property accepts several. Closes with the chosen range. */
 @Component({
   selector: 'app-range-selection-dialog',
   standalone: true,
   imports: [
     CommonModule,
-    MatDialogModule
+    MatDialogModule,
+    MatButtonModule
   ],
   template: `
-    <div class="p-5">
-      
-      <h2 class="text-lg font-semibold text-gray-900 mb-1">
-        Choose a type
-      </h2>
-
-      <p class="text-sm text-gray-500 mb-4">
-        Select the type you want to create.
-      </p>
-
-      <div class="space-y-2">
+    <h2 mat-dialog-title>Choose a type</h2>
+    <mat-dialog-content class="text-sm">
+      <p class="text-gray-600 mb-2">This property accepts several types. Which one do you want to create?</p>
+      <div class="border rounded-lg divide-y border-gray-200 divide-gray-200">
         <button
           *ngFor="let range of data.ranges"
           type="button"
           (click)="selectRange(range)"
-          class="w-full text-left px-4 py-3 rounded-lg
-                 border border-gray-200
-                 hover:bg-blue-50 hover:border-blue-400
-                 transition-all duration-150">
-
-          <div class="font-medium text-gray-800">
-            {{ range.localName }}
-          </div>
-
-          <div class="text-xs text-gray-400 mt-1 break-all">
-            {{ range.uri }}
-          </div>
-
+          class="w-full text-left px-3 py-2 hover:bg-blue-50">
+          <div class="font-medium text-gray-900">{{ range.localName }}</div>
+          <div class="text-xs text-gray-400 break-all">{{ range.uri }}</div>
         </button>
       </div>
-
-      <div class="flex justify-end mt-5">
-        <button
-          type="button"
-          mat-dialog-close
-          class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">
-          Cancel
-        </button>
-      </div>
-
-    </div>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-button mat-dialog-close>Cancel</button>
+    </mat-dialog-actions>
   `
 })
 export class RangeSelectionDialogComponent {

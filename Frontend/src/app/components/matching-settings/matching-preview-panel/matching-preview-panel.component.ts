@@ -19,7 +19,7 @@ import { MatchingConfiguration, MatchingPreview, PreviewSample, nodeName } from 
   template: `
     <div class="flex flex-wrap items-center gap-3">
       <span class="text-sm font-medium">Preview on</span>
-      <select class="border rounded px-2 py-1 text-sm" [(ngModel)]="pairKey">
+      <select class="border rounded px-2 py-1 text-sm border-gray-200" [(ngModel)]="pairKey">
         <option *ngFor="let p of pairs" [value]="p.key">{{ p.a }} ⇄ {{ p.b }}</option>
       </select>
       <button mat-stroked-button color="primary" [disabled]="!pairKey || running" (click)="run()">▶ Preview</button>

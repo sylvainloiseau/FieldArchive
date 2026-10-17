@@ -52,7 +52,7 @@ interface SideState {
         <mat-checkbox [(ngModel)]="unmatchedOnly" (change)="searchBoth()">Only entities without a counterpart in the other source</mat-checkbox>
       </div>
       <div class="grid grid-cols-2 gap-4">
-        <div *ngFor="let side of sides; let i = index" class="border rounded-lg p-2 flex flex-col">
+        <div *ngFor="let side of sides; let i = index" class="border rounded-lg p-2 flex flex-col border-gray-200">
           <div class="font-semibold mb-1">{{ side.dataSource }}</div>
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Search by name or IRI</mat-label>
@@ -75,7 +75,7 @@ interface SideState {
         </div>
       </div>
 
-      <div *ngIf="comparison as c" class="mt-3 p-3 rounded-lg bg-gray-50 border">
+      <div *ngIf="comparison as c" class="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
         <div class="mb-2">
           <span class="font-semibold">{{ c.score != null ? (c.score * 100 | number:'1.0-0') + ' %' : 'Not comparable' }}</span>
           <span class="text-gray-500 ml-2">{{ c.typeGroupLabel || 'no shared type group' }}</span>

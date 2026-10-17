@@ -1,150 +1,118 @@
-<div class="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+<h2 mat-dialog-title>{{ data?.types ? 'Edit the types' : 'New entity' }}</h2>
 
-  <form [formGroup]="entityForm" class="space-y-6">
+<mat-dialog-content class="text-sm">
+  <form [formGroup]="entityForm" class="space-y-4">
 
-    <!-- Entity Type -->
-    <div class="w-full flex flex-col gap-2">
-
-        <div class="flex items-center justify-between mb-3">
-            
-            <label class="flex items-center gap-3 text-xs font-medium text-gray-700">
-                <span>Select one or more type (one maximum for each ontology)<span *ngIf="!data.types && !data.fullType">, then give the entity a name</span></span>
-            </label>
-        </div>
-
-        <mat-chip-grid #chipGrid *ngIf="!this.data?.type">
-            <mat-chip-row *ngFor="let selectedType of listSelectedTypes">
-                {{selectedType.label}}
-                <button 
-                    matChipRemove [attr.aria-label]="'remove '"
-                    (click)="removeChip(selectedType.label)">
-                    <mat-icon>cancel</mat-icon>
-                </button>
-            </mat-chip-row>
-            
-        </mat-chip-grid>
-
-        <div class="flex flex-col gap-3">
-
-            <div>
-            @if(dialogData.ontologiesData && !dialogData.type && !dialogData.fullType){
-                <mat-button-toggle-group name="fontStyle" aria-label="Font Style">
-
-                    <mat-button-toggle
-                    *ngFor="let ontology of dialogData.ontologiesData | keyvalue:ontologyOrderComparator" 
-                    (click)="setSelectedOntology(ontology.value)"
-                    [value]="ontology.key" 
-                    >
-                        {{ getName(ontology) }}
-                    </mat-button-toggle>
-
-                    <mat-button-toggle 
-                        (click)="setSelectedOntology(null)"
-                    >
-                        Other ontologies
-                    </mat-button-toggle>
-
-                </mat-button-toggle-group>
-            }
-            </div>
-
-
-            <div *ngIf="selectedOntology" class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <label class="block text-xs font-medium text-gray-700 mb-2">Select a type</label>
-                <select formControlName="entityType"
-                    class="cursor-pointer w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-
-                    <option value="" disabled>
-                        Select a type…
-                    </option>
-
-                    <optgroup *ngIf="selectedOntology.mainTypes" label="Main Types">
-                        <option *ngFor="let t of selectedOntology.mainTypes.value" [value]="t">
-                            {{ extractEntityTypeFromIRI(t) }}
-                        </option>
-                    </optgroup>
-
-                    <optgroup *ngIf="selectedOntology.usedTypes" label="Used Types">
-                        <option *ngFor="let t of selectedOntology.usedTypes.value" [value]="t">
-                            {{ extractEntityTypeFromIRI(t) }}
-                        </option>
-                    </optgroup>
-
-                    <optgroup *ngIf="selectedOntology.mainTerminologies" label="Main Terminologies">
-                        <option *ngFor="let t of selectedOntology.mainTerminologies.value" [value]="t">
-                            {{ extractEntityTypeFromIRI(t) }}
-                        </option>
-                    </optgroup>
-
-                    <optgroup *ngIf="selectedOntology.definedTypes" label="Other">
-                        <option *ngFor="let t of selectedOntology.definedTypes.value" [value]="t.iri">
-                            {{ t.label }}
-                        </option>
-                    </optgroup>
-
-                </select>
-                <p class="mt-1.5 text-xs text-gray-400">Types are fetched from the RDF graph base.</p>
-            </div>
-
-            <!-- Custom type panel -->
-            <div *ngIf="typeMode === 'custom'" class="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-4">
-                <span>In Developement ...</span>
-            </div>
-
-            <div *ngIf="entityForm.get('entityType')?.invalid && entityForm.get('entityType')?.touched"
-            class="mt-1 text-xs text-red-600">
-            Entity type is required.
-            </div>
-
-        </div>
-        
-
-
+    <!-- Types already chosen (editor: all the entity's types) -->
+    <div *ngIf="!this.data?.type && !data?.fullType">
+      <div class="section-label mb-1">
+        Types <span class="normal-case tracking-normal">(at most one per ontology)</span>
+      </div>
+      <mat-chip-set>
+        <mat-chip
+          *ngFor="let selectedType of listSelectedTypes"
+          [matTooltip]="selectedType.iri"
+          [ngClass]="selectedType.source === 'external' ? 'opacity-70' : ''"
+        >
+          {{ selectedType.label }}
+          <app-source-badge *ngIf="selectedType.source === 'external'" class="ml-1" source="external" [name]="selectedType.datasourceShortName"></app-source-badge>
+          <button
+            *ngIf="selectedType.source !== 'external'"
+            matChipRemove [attr.aria-label]="'remove ' + selectedType.label"
+            (click)="removeChip(selectedType.label)">×</button>
+        </mat-chip>
+      </mat-chip-set>
+      <p *ngIf="!listSelectedTypes.length" class="text-xs text-gray-500 italic">No type yet.</p>
     </div>
 
-    @if (dialogData.type || inputData || dialogData.fullType) {
-    <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-        <label class="block text-xs font-medium text-gray-700 mb-2">Selected type</label>
-
-        <p>
-            {{ availableTypes }}
-        </p>
-    </div>
+    <!-- Choice of an ontology, then of a type -->
+    @if(dialogData.ontologiesData && !dialogData.type && !dialogData.fullType){
+      <div>
+        <div class="section-label mb-1">Ontology</div>
+        <div class="flex flex-wrap gap-1">
+          <button
+            *ngFor="let ontology of dialogData.ontologiesData | keyvalue:ontologyOrderComparator"
+            type="button"
+            (click)="setSelectedOntology(ontology.value)"
+            class="px-3 py-1 rounded-full border"
+            [ngClass]="selectedOntology === ontology.value ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-200 hover:bg-gray-50'"
+          >{{ getName(ontology) }}</button>
+          <button
+            type="button"
+            (click)="setSelectedOntology(null)"
+            class="px-3 py-1 rounded-full border"
+            [ngClass]="typeMode === 'custom' ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-200 hover:bg-gray-50'"
+          >Other ontologies</button>
+        </div>
+      </div>
     }
 
-    <div *ngIf="!data.types" class="flex flex-col gap-2">
-      <div class="mt-3 p-3 border border-blue-200 bg-blue-50 rounded-lg flex flex-col gap-3!">
-        <div class="flex-1">
-            <label class="block text-xs font-medium text-gray-600 mb-1">Entity Name</label>
-            <input
-                formControlName="propertyValue"                
-                type="text"
-                [placeholder]="'Enter a value'"
-                class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"/>
-            </div>
+    <div *ngIf="selectedOntology">
+      <div class="section-label mb-1">Type</div>
+      <select formControlName="entityType" class="w-full text-sm px-2 py-1.5 border rounded bg-white cursor-pointer border-gray-200">
+        <option value="" disabled>Select a type…</option>
+
+        <optgroup *ngIf="selectedOntology.mainTypes" label="Main Types">
+          <option *ngFor="let t of selectedOntology.mainTypes.value" [value]="t">
+            {{ extractEntityTypeFromIRI(t) }}
+          </option>
+        </optgroup>
+
+        <optgroup *ngIf="selectedOntology.usedTypes" label="Used Types">
+          <option *ngFor="let t of selectedOntology.usedTypes.value" [value]="t">
+            {{ extractEntityTypeFromIRI(t) }}
+          </option>
+        </optgroup>
+
+        <optgroup *ngIf="selectedOntology.mainTerminologies" label="Main Terminologies">
+          <option *ngFor="let t of selectedOntology.mainTerminologies.value" [value]="t">
+            {{ extractEntityTypeFromIRI(t) }}
+          </option>
+        </optgroup>
+
+        <optgroup *ngIf="selectedOntology.definedTypes" label="Other">
+          <option *ngFor="let t of selectedOntology.definedTypes.value" [value]="t.iri">
+            {{ t.label }}
+          </option>
+        </optgroup>
+      </select>
+      <p *ngIf="entityForm.get('entityType')?.disabled" class="mt-1 text-xs text-gray-500">
+        This ontology already has a type; remove it to choose another one.
+      </p>
+    </div>
+
+    <!-- Custom type: not available yet -->
+    <p *ngIf="typeMode === 'custom'" class="text-xs text-gray-500 italic">
+      Types of other ontologies are not available yet.
+    </p>
+
+    <div *ngIf="entityForm.get('entityType')?.invalid && entityForm.get('entityType')?.touched"
+         class="text-xs text-red-700">✕ A type is required.</div>
+
+    <!-- The type given by the caller (entities list, or "Create" next to a property) -->
+    @if (dialogData.type || inputData || dialogData.fullType) {
+      <div>
+        <div class="section-label mb-1">Type</div>
+        <div class="flex flex-wrap gap-1">
+          <span *ngFor="let t of availableTypes" class="px-2 py-0.5 rounded bg-blue-50 text-blue-700" [matTooltip]="t">
+            {{ extractEntityTypeFromIRI(t) }}
+          </span>
+        </div>
       </div>
-    </div>
+    }
 
-    <!-- Actions -->
-    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
-      <button type="button" (click)="cancelNewEntity()"
-        class="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
-        Cancel
-      </button>
-
-      <button *ngIf="!data.types && !data.fullType" (click)="saveNewEntity()" type="submit" [disabled]="entityForm.invalid"
-            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-            Create
-      </button>
-        <button *ngIf="data.types" (click)="closeWithData()" type="submit"
-            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-            Save
-      </button>
-        <button *ngIf="data.fullType" (click)="saveNewEntity()" type="submit"
-            class="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-            Create
-      </button>
-    </div>
+    <!-- Name of the new entity -->
+    <mat-form-field *ngIf="!data.types" appearance="outline" subscriptSizing="dynamic" class="w-full">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="propertyValue" placeholder="Enter a value">
+    </mat-form-field>
 
   </form>
-</div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancelNewEntity()">Cancel</button>
+  <button *ngIf="!data.types" mat-flat-button color="primary" type="button"
+          [disabled]="!canCreate" (click)="saveNewEntity()">Create</button>
+  <button *ngIf="data.types" mat-flat-button color="primary" type="button" (click)="closeWithData()">Save</button>
+</mat-dialog-actions>

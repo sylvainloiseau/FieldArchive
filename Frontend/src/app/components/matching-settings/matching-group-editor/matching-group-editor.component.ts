@@ -99,7 +99,7 @@ const COMPARATOR_OPTIONS: Record<ComparatorName, { name: string; label: string; 
             <ng-container *ngFor="let key of conceptKeys(); trackBy: trackKey">
               <tr class="border-t border-gray-100 align-top" *ngIf="group.properties[key] as c">
                 <td class="py-1 pr-2">
-                  <input class="w-full px-1 py-0.5 border rounded" [ngModel]="key" (change)="rename(key, $any($event.target).value)">
+                  <input class="w-full px-1 py-0.5 border rounded border-gray-200" [ngModel]="key" (change)="rename(key, $any($event.target).value)">
                 </td>
                 <td class="py-1 pr-2">
                   <app-iri-chip-input [values]="c.predicates" [options]="predicateOptions" [prefixes]="prefixes"
@@ -107,7 +107,7 @@ const COMPARATOR_OPTIONS: Record<ComparatorName, { name: string; label: string; 
                   <p *ngIf="comparatorWarning(c) as w" class="text-xs text-amber-700 mt-0.5">{{ w }}</p>
                 </td>
                 <td class="py-1 pr-2">
-                  <select class="w-full px-1 py-1 border rounded" [(ngModel)]="c.comparator" (ngModelChange)="onComparator(c)"
+                  <select class="w-full px-1 py-1 border rounded border-gray-200" [(ngModel)]="c.comparator" (ngModelChange)="onComparator(c)"
                           [title]="help(c.comparator)">
                     <option *ngFor="let k of comparators" [value]="k">{{ k }}</option>
                   </select>
@@ -116,7 +116,7 @@ const COMPARATOR_OPTIONS: Record<ComparatorName, { name: string; label: string; 
                 <td class="py-1 pr-2">
                   <div class="flex items-center gap-1">
                     <input type="range" min="0.5" max="10" step="0.5" class="w-20" [(ngModel)]="c.weight" (ngModelChange)="touch()">
-                    <input type="number" min="0.5" max="100" step="0.5" class="w-14 px-1 border rounded" [(ngModel)]="c.weight" (ngModelChange)="touch()">
+                    <input type="number" min="0.5" max="100" step="0.5" class="w-14 px-1 border rounded border-gray-200" [(ngModel)]="c.weight" (ngModelChange)="touch()">
                   </div>
                 </td>
                 <td class="py-1 text-center">
@@ -144,7 +144,7 @@ const COMPARATOR_OPTIONS: Record<ComparatorName, { name: string; label: string; 
                       {{ o.label }}
                       <input *ngIf="o.kind === 'boolean'" type="checkbox" [checked]="optionValue(c, o) === true"
                              (change)="setOption(c, o.name, $any($event.target).checked)">
-                      <input *ngIf="o.kind !== 'boolean'" type="number" class="w-20 px-1 border rounded"
+                      <input *ngIf="o.kind !== 'boolean'" type="number" class="w-20 px-1 border rounded border-gray-200"
                              [min]="0" [max]="o.kind === 'unit' ? 1 : null" step="0.05"
                              [ngModel]="optionValue(c, o)" (ngModelChange)="setOption(c, o.name, num($event))">
                     </label>
@@ -160,7 +160,7 @@ const COMPARATOR_OPTIONS: Record<ComparatorName, { name: string; label: string; 
         <button type="button" class="text-sm text-blue-700" (click)="showSuggestions = !showSuggestions">
           {{ showSuggestions ? '▾' : '▸' }} Predicates used by these types and not compared ({{ suggestions.length }})
         </button>
-        <div *ngIf="showSuggestions" class="mt-1 border rounded-lg divide-y">
+        <div *ngIf="showSuggestions" class="mt-1 border rounded-lg divide-y border-gray-200 divide-gray-200">
           <div *ngFor="let p of suggestions" class="flex items-center gap-2 px-2 py-1 text-sm">
             <div class="flex-1 min-w-0">
               <span class="font-medium">{{ p.curie }}</span>
@@ -169,7 +169,7 @@ const COMPARATOR_OPTIONS: Record<ComparatorName, { name: string; label: string; 
             </div>
             <span class="text-xs text-gray-500">{{ p.suggestedComparator }}</span>
             <button mat-button (click)="addSuggestion(p)">Add as concept</button>
-            <select class="text-xs border rounded px-1 py-0.5" (change)="addToConcept(p, $any($event.target).value); $any($event.target).value = ''">
+            <select class="text-xs border rounded px-1 py-0.5 border-gray-200" (change)="addToConcept(p, $any($event.target).value); $any($event.target).value = ''">
               <option value="">Add to…</option>
               <option *ngFor="let k of conceptKeys()" [value]="k">{{ k }}</option>
             </select>

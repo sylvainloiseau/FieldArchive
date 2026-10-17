@@ -1,42 +1,46 @@
-<div class="p-3 flex flex-col gap-1">
+<!-- As a dialog (from the entity editor) -->
+<ng-container *ngIf="isDialogRoot; else page">
+  <h2 mat-dialog-title>File</h2>
+  <mat-dialog-content class="text-sm">
+    <ng-container *ngTemplateOutlet="body"></ng-container>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button *ngIf="canSelectFile && !readOnly" mat-stroked-button type="button" (click)="openFile('')">Select file…</button>
+    <span class="flex-1"></span>
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button *ngIf="!readOnly" mat-flat-button color="primary" type="button" [disabled]="!filePath" (click)="closeAndReturn()">Use this file</button>
+  </mat-dialog-actions>
+</ng-container>
 
-  <button
-    (click)="openFile('')"
-    class="cursor-pointer px-4 py-2 bg-blue-600 text-white rounded"
-  >
-    Select File
-  </button>
+<!-- As a page (/files) -->
+<ng-template #page>
+  <div class="p-6">
+    <div class="bg-white rounded-xl border p-4 space-y-3 text-sm border-gray-200">
+      <div class="flex items-center gap-3">
+        <h1 class="text-xl font-semibold flex-1">File</h1>
+        <button *ngIf="canSelectFile" mat-stroked-button type="button" (click)="openFile('')">Select file…</button>
+      </div>
+      <ng-container *ngTemplateOutlet="body"></ng-container>
+    </div>
+  </div>
+</ng-template>
 
-  <!-- Show REAL path -->
-  <div *ngIf="filePath !== ''" class="p-2 bg-gray-100 rounded text-sm">
-    <p><strong>Full Path:</strong></p>
-    <p class="break-all text-blue-600">{{ filePath }}</p>
+<ng-template #body>
+  <p *ngIf="!canSelectFile" class="p-2 rounded bg-amber-50 border border-amber-200 text-amber-800 text-xs mb-2">
+    ⚠ Selecting a file needs the desktop application.
+  </p>
+
+  <div *ngIf="filePath !== ''" class="mb-2">
+    <div class="section-label">Path</div>
+    <div class="text-xs text-gray-500 break-all">{{ filePath }}</div>
   </div>
 
-  <!-- Preview -->
-  <div class="border rounded p-4 flex justify-center items-center min-h-[200px]">
-
+  <div class="rounded-xl border p-4 flex justify-center items-center min-h-[200px] bg-gray-50 border-gray-200">
     <img *ngIf="fileType === 'image'" [src]="fileUrl" class="max-h-[400px]" />
-
     <video *ngIf="fileType === 'video'" [src]="safeUrl" controls class="max-h-[400px]"></video>
-
     <audio *ngIf="fileType === 'audio'" [src]="safeUrl" controls></audio>
-
     <iframe *ngIf="fileType === 'pdf'" [src]="safeUrl" class="w-full h-[500px]"></iframe>
-    <div *ngIf="fileType === 'unknown' && fileUrl !== ''" class="text-gray-500">
-      Unsupported file type
-    </div>
-    <div *ngIf="fileUrl === ''" class="text-gray-500">
-      Waiting for file selection...
-    </div>
-
+    <p *ngIf="fileType === 'unknown' && fileUrl !== ''" class="text-xs text-gray-500 italic">This type of file cannot be previewed.</p>
+    <p *ngIf="fileUrl === ''" class="text-xs text-gray-500 italic">No file selected.</p>
   </div>
-
-  <button
-    *ngIf="isDialogRoot"
-    (click)="closeAndReturn()"
-    class="cursor-pointer px-4 py-2 bg-green-600 text-white rounded"
-  >
-    Validate
-  </button>
-</div>
+</ng-template>

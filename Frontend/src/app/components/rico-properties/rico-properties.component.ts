@@ -1,132 +1,62 @@
-import { Component, Input,Inject, OnInit, OnDestroy,
-  ViewChild, ViewContainerRef, ComponentRef } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import {MatCheckboxModule} from '@angular/material/checkbox';
-import {MatButtonModule} from '@angular/material/button';
-import {MatChipInputEvent, MatChipsModule} from '@angular/material/chips';
-import {MatIconModule} from '@angular/material/icon';
-import {MatBadgeModule} from '@angular/material/badge';
-import { MatRadioModule } from '@angular/material/radio';
-import {MatDividerModule} from '@angular/material/divider';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { Subscription } from 'rxjs';
-
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
-import { GestionRessourcesService } from '../../services/gestion-ressources.service';
-
+/**
+ * "Add property" dialog of the entity editor: the properties the entity's types allow,
+ * filtered by the kind of their value (a literal, or an entity of a given type). Closes with
+ * the chosen property definition.
+ */
 @Component({
   selector: 'app-rico-properties',
   imports: [
-    CommonModule, 
-    FormsModule, 
-    ReactiveFormsModule,
-    MatCheckboxModule,
+    CommonModule,
+    MatDialogModule,
     MatButtonModule,
     MatChipsModule,
-    MatIconModule,
-    MatBadgeModule,
-    MatRadioModule,
-    MatDividerModule
+    MatTooltipModule
   ],
   templateUrl: './rico-properties.component.html',
   styleUrl: './rico-properties.component.scss'
 })
 export class RicoPropertiesComponent implements OnInit {
 
-  private childClosedSub?: Subscription;
-  
-
-  allRanges : any[] = []
-  
-  filters : string[] = [];
-
-  filterByKindValue : string = "";
-
   predicates: any[] = [];
-  hierarchy: any[] = [];
-  removeProperty : string[] = [];
+  removeProperty: string[] = [];
   predefinedRanges: string[] = [];
-  remainingRanges : string[] = [];
+  remainingRanges: string[] = [];
 
+  /** All the proposable properties (those listed in `removeProperty` are left out). */
+  fixedFilteredPredicates: any[] = [];
   filteredPredicates: any[] = [];
-
-  allRangesLabels : any[] = [];
-
-  fixedFilteredPredicates : any[] = [];
+  /** 'literal', a range IRI, or null for no filter. */
+  selectedFilter: string | null = null;
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: any,
-    private ontologyService: GestionRessourcesService,
-    private dialogRef: MatDialogRef<RicoPropertiesComponent>
-  ) {
-    this.predicates = data.predicates;
-    this.predefinedRanges = data.predefinedRanges;
-    this.removeProperty = data.removeProperty;
-    this.hierarchy = data.hierarchy;
+              private dialogRef: MatDialogRef<RicoPropertiesComponent>) {
+    this.predicates = data.predicates ?? [];
+    // configuration.json defines these for some ontologies only
+    this.predefinedRanges = data.predefinedRanges ?? [];
+    this.removeProperty = data.removeProperty ?? [];
   }
 
   ngOnInit() {
-    console.log("Properties to be removed  :", this.removeProperty);
-
-    console.log("Hierarchy ", this.hierarchy);
-
     this.fixedFilteredPredicates = this.predicates.filter((pred: any) =>
       !this.removeProperty.includes(this.getNameOfRicoTypeFromURL(pred.uri))
     );
-
     this.filteredPredicates = this.fixedFilteredPredicates;
-    console.log("All predicates : ", this.filteredPredicates);
-    this.allRanges = [...new Set(
+
+    const allRanges: string[] = [...new Set<string>(
       this.predicates
         .flatMap((predicate: any) => predicate.ranges ?? [])
         .map((range: any) => range.uri)
-        .filter((uri: any) => !!uri) // drop null or undefined
+        .filter((uri: any) => !!uri)
     )];
-    this.allRanges = [...new Set(this.allRanges)];
-    
-    console.log("All possible ranges : ", this.allRanges);
-
-    this.predefinedRanges = this.predefinedRanges.filter((range: string) =>
-      this.allRanges.includes(range)
-    );
-    console.log("All predefined predicates : ", this.predefinedRanges);
-
-    this.remainingRanges = this.allRanges.filter((range: string) =>
-      !this.predefinedRanges.includes(range)
-    );
-
-  }
-
-  onChildClosed(event: any) {
-    if (event === true) {
-      console.log("Child component closed with success");
-    }
-    this.destroySubEntity();
-  }
-
-  private destroySubEntity() {
-    this.childClosedSub?.unsubscribe();
-    // this.subEntityRef?.destroy();
-    // this.subEntityRef = undefined;
-    // this.createSubEntity = false;
-  }
-
-  ngOnDestroy() {
-    this.destroySubEntity();
-  }
-  
-
-  removeFilter(filter: string) {
-    if (filter === 'iri' || filter === 'literal'){
-      const updated = this.filters.filter(
-        item => item !== 'iri' && item !== 'literal'
-      );
-      this.filters = updated;
-      this.filteredPredicates = this.predicates;  
-    }
-    else{
-      this.filters = this.filters.filter(f => !f.startsWith('range :'));
-    }
+    this.predefinedRanges = this.predefinedRanges.filter((range: string) => allRanges.includes(range));
+    this.remainingRanges = allRanges.filter((range: string) => !this.predefinedRanges.includes(range));
   }
 
   getNameOfRicoTypeFromURL(url : string | any) {
@@ -139,57 +69,26 @@ export class RicoPropertiesComponent implements OnInit {
     else return url;
   }
 
-  onRangeChange(event : any) {
-    const filterUrl = (event.target as HTMLSelectElement)?.value;
-    this.addRangeFilter(filterUrl);
-  }
-
-  filterRangesByFilters(): void {
-    for (let filter of this.filters) {
-      if (filter.startsWith("range : ")) {
-        let rangeName = filter.substring('range : '.length).trim();
-        console.log("Filtering only with range : ", rangeName);
-        this.filteredPredicates = this.filteredPredicates.filter(
-          p => (p.ranges ?? []).some((r: any) => r.uri === rangeName)
-        );
-      }
+  /** One filter at a time, always applied to the full list: no value, 'literal', or a range IRI. */
+  onFilterChange(filter: string | null | undefined): void {
+    this.selectedFilter = filter || null;
+    if (!this.selectedFilter) {
+      this.filteredPredicates = this.fixedFilteredPredicates;
+    } else if (this.selectedFilter === 'literal') {
+      this.filteredPredicates = this.fixedFilteredPredicates.filter(p => p.kind === 'DATA_PROPERTY');
+    } else {
+      const range = this.selectedFilter;
+      this.filteredPredicates = this.fixedFilteredPredicates.filter(
+        p => (p.ranges ?? []).some((r: any) => r.uri === range)
+      );
     }
   }
 
-  addRangeFilter(range : any) : void {
-    if (this.filters.some(f => f.startsWith('range :'))) {      
-      this.filters = this.filters.filter(f => !f.startsWith('range :'));    
-    }
-    this.filters.push('range : '+range);
-    this.filteredPredicates = this.fixedFilteredPredicates;
-    this.filterRangesByFilters();
-  }
-
-  filterPropertiesByKindValue(kindValueParam : string) {
-    const kindValue = kindValueParam === 'literal' ? 'DATA_PROPERTY' : 'OBJECT_PROPERTY';
-    this.filterByKindValue = kindValue;
-    const otherKindValue = kindValueParam === 'literal' ? 'iri' : 'literal';
-    if (!this.filters.includes(kindValueParam) && this.filters.includes(otherKindValue)) {
-      const updated = this.filters.filter(item => item !== otherKindValue);
-      this.filters = updated;
-      this.filters.push(kindValueParam);
-      this.filteredPredicates = this.predicates.filter(predicate => predicate.kind === kindValue);
-    }
-    if(!this.filters.includes(kindValueParam) && !this.filters.includes(otherKindValue)) {
-      this.filters.push(kindValueParam);
-      this.filteredPredicates = this.predicates.filter(predicate => predicate.kind === kindValue);
-    }
-    
+  onRangeChange(event: Event) {
+    this.onFilterChange((event.target as HTMLSelectElement)?.value);
   }
 
   onCheckboxChange(prop: any) {
-    console.log("Selected predicate: ", prop);
     this.dialogRef.close(prop);
   }
-
-  confirm() {
-    this.dialogRef.close(this.data.association);
-  }
-
-
 }

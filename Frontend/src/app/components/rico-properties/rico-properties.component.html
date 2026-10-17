@@ -1,113 +1,46 @@
-<div class="p-5 h-full! w-full overflow-y-scroll">
-    <label class="items-center justify-center flex text-xl font-medium text-blue-600 mb-2">Entity Property Selector</label>
+<h2 mat-dialog-title>Add a property</h2>
 
-    <!-- <mat-chip-grid #chipGrid>
-        <mat-chip-row
-            *ngFor="let filter of filters"
-        >
-            {{filter}}
-            <button 
-                matChipRemove [attr.aria-label]="'remove ' + filter"
-                (click)="removeFilter(filter)">
-                <mat-icon>cancel</mat-icon>
-            </button>
-        </mat-chip-row>
-            
-    </mat-chip-grid> -->
+<mat-dialog-content class="text-sm">
+  <div class="section-label mb-1">The value is</div>
+  <mat-chip-listbox aria-label="Kind of value" [value]="selectedFilter" (change)="onFilterChange($event.value)">
+    <mat-chip-option value="literal">a literal</mat-chip-option>
+    <mat-chip-option *ngFor="let predefinedRange of predefinedRanges" [value]="predefinedRange" [matTooltip]="predefinedRange">
+      {{ getNameOfRicoTypeFromURL(predefinedRange) }}
+    </mat-chip-option>
+  </mat-chip-listbox>
 
-    <!-- <div class="flex gap-2">
-        <button
-            (click)="filterPropertiesByKindValue('iri')"
-            [class.bg-blue-600]="filterByKindValue === 'iri'"
-            [class.text-white]="filterByKindValue === 'iri'"
-            [class.bg-white]="filterByKindValue !== 'iri'"
-            [class.text-gray-600]="filterByKindValue !== 'iri'"
-            class="cursor-pointer! flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium">
-            IRI 
-        </button>
-        <button
-            (click)="filterPropertiesByKindValue('literal')"
-            [class.bg-blue-600]="filterByKindValue === 'literal'"
-            [class.text-white]="filterByKindValue === 'literal'"
-            [class.bg-white]="filterByKindValue !== 'literal'"
-            [class.text-gray-600]="filterByKindValue !== 'literal'"
-            class="cursor-pointer! flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium">
-            Literal
-        </button>
-    </div> -->
+  <div *ngIf="remainingRanges.length > 0" class="mt-2 flex items-center gap-2">
+    <span class="text-xs text-gray-500">or an entity of type</span>
+    <select (change)="onRangeChange($event)" class="flex-1 text-sm px-2 py-1 border rounded bg-white cursor-pointer border-gray-200">
+      <option value="" [selected]="!remainingRanges.includes(selectedFilter ?? '')">any other type…</option>
+      <option *ngFor="let remainingRange of remainingRanges" [value]="remainingRange" [selected]="remainingRange === selectedFilter">
+        {{ getNameOfRicoTypeFromURL(remainingRange) }}
+      </option>
+    </select>
+  </div>
 
-    <div class="gap-1 mt-4">  
-        <label class="block text-sm font-medium text-gray-600 mb-1">The object of the property is : </label>
-        <mat-chip-listbox class="flex gap-0.5" aria-label="Range filters">
-        <mat-chip-option
-            (click)="filterPropertiesByKindValue('literal')"
-            (selectionChange)="filterPropertiesByKindValue('literal')">
-            Literal
-        </mat-chip-option>
-        <mat-chip-option
-            *ngFor="let predefinedRange of predefinedRanges"
-            [value]="predefinedRange"
-            (selectionChange)="addRangeFilter(predefinedRange)">
-            {{ getNameOfRicoTypeFromURL(predefinedRange) }}
-        </mat-chip-option>
-        </mat-chip-listbox>
-    </div>
+  <div class="section-label mt-4 mb-1">Property ({{ filteredPredicates.length }})</div>
+  <div class="border rounded-lg divide-y max-h-[40vh] overflow-y-auto border-gray-200 divide-gray-200">
+    <button
+      *ngFor="let prop of filteredPredicates"
+      type="button"
+      (click)="onCheckboxChange(prop)"
+      class="w-full text-left px-3 py-1.5 hover:bg-blue-50 flex items-center gap-2"
+      [matTooltip]="prop.uri"
+    >
+      <span class="flex-1 min-w-0">
+        <span class="font-medium">{{ prop.label || getNameOfRicoTypeFromURL(prop.uri) }}</span>
+        <span class="ml-1 text-xs text-gray-400">{{ getNameOfRicoTypeFromURL(prop.uri) }}</span>
+      </span>
+      <span class="px-1 rounded text-[10px]"
+            [ngClass]="prop.kind === 'OBJECT_PROPERTY' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'">
+        {{ prop.kind === 'OBJECT_PROPERTY' ? 'entity' : 'literal' }}
+      </span>
+    </button>
+    <p *ngIf="!filteredPredicates.length" class="px-3 py-2 text-xs text-gray-500 italic">No property for this filter.</p>
+  </div>
+</mat-dialog-content>
 
-    <mat-divider class="my-4!"></mat-divider>
-
-
-    <div *ngIf="remainingRanges.length > 0" class="mt-4 w-full">
-        <label class="block text-sm font-medium text-gray-600 mb-1">Other types : </label>
-        <select
-        (change)="onRangeChange($event)"
-        class="flex-1 w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400">
-
-        <option value="" disabled selected>Select a type of object...</option>
-
-        <option *ngFor="let remainingRange of remainingRanges" [value]="remainingRange">
-            {{getNameOfRicoTypeFromURL(remainingRange)}}
-        </option>
-
-        </select>
-    </div>
-
-    <mat-divider class="my-4!"></mat-divider>
-
-    <div class="mt-4 w-full">
-        <label class="block text-sm font-medium text-gray-600 mb-1">Select a property towards this type : </label>
-    </div>
-
-    <mat-radio-group class="flex-col gap-1">
-    <div *ngFor="let prop of filteredPredicates" class="list-none p-1.5 m-0">
-
-        <mat-radio-button [value]="prop" (change)="onCheckboxChange(prop)">
-
-            <span>
-                {{ prop.label || prop.p }}
-            </span>
-
-            <span class="iri-badge ml-2!"
-                *ngIf="prop.valueKind === 'iri'"
-                matBadge="iri"
-                matBadgeColor="primary"
-                matBadgeSize="large">
-            </span>
-
-            <span class="literal-badge ml-2!"
-                *ngIf="prop.valueKind === 'literal'"
-                matBadge="literal"
-                matBadgeColor="accent"
-                matBadgeSize="large">
-            </span>
-       
-
-        </mat-radio-button>
-
-   
-
-    </div>
-    </mat-radio-group>
-
-    
-        
-</div>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+</mat-dialog-actions>

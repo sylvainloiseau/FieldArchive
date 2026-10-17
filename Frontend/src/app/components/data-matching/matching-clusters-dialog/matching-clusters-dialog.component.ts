@@ -15,7 +15,7 @@ import { MatchCluster, nodeName } from '../../../models/matching.model';
     <mat-dialog-content class="text-sm">
       <p *ngIf="error" class="text-red-700">{{ error }}</p>
       <p *ngIf="clusters && !clusters.length" class="text-gray-500 italic">No entity is linked across three sources or more.</p>
-      <div *ngFor="let c of clusters" class="mb-3 p-3 border rounded-lg" [ngClass]="c.conflict ? 'border-red-300 bg-red-50' : ''">
+      <div *ngFor="let c of clusters" class="mb-3 p-3 border rounded-lg" [ngClass]="c.conflict ? 'border-red-300 bg-red-50' : 'border-gray-200'">
         <div *ngIf="c.conflict" class="text-xs text-red-700 font-medium mb-1">⚠ Conflict in these links</div>
         <div class="flex flex-wrap gap-2 mb-2">
           <span *ngFor="let n of c.nodes" class="px-2 py-1 rounded bg-gray-100">

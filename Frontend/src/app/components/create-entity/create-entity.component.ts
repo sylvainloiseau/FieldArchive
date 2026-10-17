@@ -4,8 +4,12 @@ import { CommonModule, KeyValue } from '@angular/common';
 import { Entity } from '../../models/ressource';
 
 import { GestionRessourcesService } from '../../services/gestion-ressources.service';
-import {MatButtonToggleModule} from '@angular/material/button-toggle';
-import {MatIconModule} from '@angular/material/icon';
+import {MatButtonModule} from '@angular/material/button';
+import {MatFormFieldModule} from '@angular/material/form-field';
+import {MatInputModule} from '@angular/material/input';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatDialogModule} from '@angular/material/dialog';
+import { SourceBadgeComponent } from '../../shared/ui/source-badge.component';
 
 import { debounceTime } from 'rxjs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -32,9 +36,13 @@ export let ONTOLOGY_LABELS: OntologyLabels = {
     ReactiveFormsModule,
     CommonModule, 
     MatSnackBarModule,
-    MatButtonToggleModule,
     MatChipsModule,
-    MatIconModule
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatTooltipModule,
+    MatDialogModule,
+    SourceBadgeComponent
   ],
   
   templateUrl: './create-entity.component.html',
@@ -115,6 +123,13 @@ export class CreateEntityComponent implements OnInit {
   removeChip(typeName: string) {
     this.listSelectedTypes = this.listSelectedTypes.filter(t => t.label !== typeName);
     this.setSelectedOntology(this.selectedOntology);
+  }
+
+  /** Create is possible once the entity has a name and a type. */
+  get canCreate(): boolean {
+    const name = this.entityForm.get('propertyValue')?.value;
+    const hasName = name != null && String(name).trim() !== '';
+    return hasName && (!!this.data?.fullType || this.listSelectedTypes.length > 0);
   }
 
   getName(ontology: any): string {
@@ -306,16 +321,7 @@ export class CreateEntityComponent implements OnInit {
         next: (res) => {
           console.log('✅ Entity created:', res);
 
-          this.snackBar.open(
-            "✅ Entity created: was successfully created.",
-            'Close',
-            {
-              duration: 5000,
-              horizontalPosition: 'center',
-              verticalPosition: 'top',
-              panelClass: ['snackbar-success']
-            }
-          );
+          this.snackBar.open('Entity created.', 'Close', { duration: 4000 });
 
           // Only close/reset once the entity is actually created: closing
           // eagerly (before the request settles) closed the dialog even on
@@ -326,16 +332,7 @@ export class CreateEntityComponent implements OnInit {
           this.dialogRef?.close(res);
         },
         error: (err) => {
-          this.snackBar.open(
-            "❌ Error creating entity.",
-            'Close',
-            {
-              duration: 5000,
-              horizontalPosition: 'center',
-              verticalPosition: 'top',
-              panelClass: ['snackbar-error']
-            }
-          );
+          this.snackBar.open('Could not create the entity.', 'Close', { duration: 4000 });
         }
       });
     } else {

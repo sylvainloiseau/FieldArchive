@@ -1,774 +1,291 @@
-<div class="flex flex-col overflow-y-auto w-full h-full bg-gray-50/40">
+<div class="flex flex-col w-full h-full bg-gray-50">
 
-  <!-- Header -->
-  <div class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shrink-0">
+  <!-- Header: back, entity name and IRI, close -->
+  <div class="bg-white border-b px-4 py-3 flex items-start gap-2 shrink-0 border-gray-200">
     <button
-      (click)="backToPreviousEntity()"
+      type="button"
+      class="act text-gray-600 mt-0.5"
       [class.invisible]="stack.isEmpty()"
-      class="cursor-pointer text-gray-500 hover:text-gray-900 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors duration-150"
+      (click)="backToPreviousEntity()"
+      matTooltip="Back to the previous entity"
       aria-label="Return to previous entity"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
-    </button>
+    >←</button>
 
-    <h2 class="text-2xl font-semibold text-gray-500 truncate px-4">Entity Details Form</h2>
+    <div class="flex-1 min-w-0">
+      <h2 class="text-lg font-semibold text-gray-900 truncate" [title]="displayName">
+        {{ selectedEntity ? displayName : 'Loading…' }}
+      </h2>
+      <div *ngIf="selectedEntity" class="flex items-center gap-1 min-w-0">
+        <span class="text-xs text-gray-400 truncate" [title]="selectedEntity?.iri">{{ selectedEntity?.iri }}</span>
+        <button
+          type="button"
+          class="act text-gray-500 shrink-0"
+          (click)="copyToClipboard(selectedEntity?.iri)"
+          matTooltip="Copy the IRI"
+          aria-label="Copy the IRI"
+        >⧉</button>
+      </div>
+    </div>
 
     <button
+      type="button"
+      class="act text-gray-500 mt-0.5"
       (click)="closeDetail()"
-      class="cursor-pointer w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+      matTooltip="Close"
       aria-label="Close"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
+    >×</button>
   </div>
 
-
   <!-- Same entity in other data sources (data matching, read-only) -->
-  <div *ngIf="selectedEntity?.sameAs?.length" class="px-4 py-2 flex flex-wrap items-center gap-2 bg-emerald-50/50 border-b border-emerald-100 text-sm">
-    <span class="text-emerald-800 font-medium">Same as</span>
+  <div *ngIf="selectedEntity?.sameAs?.length" class="bg-white border-b px-4 py-2 flex flex-wrap items-center gap-2 text-sm border-gray-200">
+    <span class="section-label w-20 shrink-0">Same as</span>
     <button
       *ngFor="let s of selectedEntity.sameAs"
       type="button"
       (click)="changeSelectedEntity(s.iri)"
-      [title]="s.iri"
-      class="px-2 py-0.5 rounded-full bg-white border border-emerald-200 hover:bg-emerald-100 transition-colors"
+      [matTooltip]="s.iri"
+      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-gray-200 hover:bg-blue-50 transition-colors"
     >
-      {{ s.label || s.iri }}
-      <span *ngFor="let ds of s.datasourceShortNames" class="ml-1 text-xs text-emerald-700">{{ ds }}</span>
+      <span class="text-blue-700">{{ s.label || s.iri }}</span>
+      <app-source-badge *ngFor="let ds of s.datasourceShortNames" source="external" [name]="ds"></app-source-badge>
     </button>
   </div>
 
-  <!-- Type chips -->
-  <div class="px-4 pt-3 pb-2 flex items-center gap-2 bg-blue-50/40 border-b border-blue-100">
-
-    <mat-chip-grid class="w-full flex flex-wrap items-center gap-1.5" #chipGrid>
-      <mat-chip-row
+  <!-- Types -->
+  <div class="bg-white border-b px-4 py-2 flex items-center gap-2 border-gray-200">
+    <span class="section-label w-20 shrink-0">Types</span>
+    <mat-chip-set class="flex-1">
+      <mat-chip
         *ngFor="let type of allEntityTypesChips"
-        class="font-medium! text-sm!"
-        style="--mdc-chip-elevated-container-color: transparent; --mdc-chip-label-text-color: #1e40af;"
+        [matTooltip]="type.iri"
+        [ngClass]="type.source !== 'internal' ? 'opacity-70' : ''"
       >
         {{ type.label }}
-        <button *ngIf="type.source === 'internal'" (click)="removeChip(type.iri)" matChipRemove [attr.aria-label]="'remove '" class="text-blue-500! hover:text-blue-700! transition-colors">
-          <mat-icon>cancel</mat-icon>
-        </button>
-      </mat-chip-row>
-    </mat-chip-grid>
-
-    <button
-      (click)="openCreateEntityDialog()"
-      type="button"
-      class="cursor-pointer grid place-items-center w-8 h-8 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
-      title="Add new type"
-    >
-      <svg
-        class="w-5 h-5"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
-      </svg>
-    </button>
-
+        <app-source-badge *ngIf="type.source !== 'internal'" class="ml-1" [source]="type.source" [name]="type.datasourceShortName"></app-source-badge>
+        <button *ngIf="type.source === 'internal'" (click)="removeChip(type.iri)" matChipRemove [attr.aria-label]="'remove ' + type.label">×</button>
+      </mat-chip>
+    </mat-chip-set>
+    <button mat-stroked-button type="button" (click)="openCreateEntityDialog()">+ Type</button>
   </div>
 
-    <!-- Loading state -->
-  <div *ngIf="!selectedEntity" class="flex flex-col items-center justify-center h-full w-full gap-4 py-20">
-    <div class="animate-spin rounded-full h-14 w-14 border-4 border-blue-100 border-t-blue-600"></div>
-    <p class="text-xl font-bold text-gray-500">Loading entity data...</p>
+  <!-- Loading state -->
+  <div *ngIf="!selectedEntity" class="flex flex-col items-center justify-center flex-1 gap-3 py-16">
+    <mat-spinner diameter="32"></mat-spinner>
+    <p class="text-sm text-gray-500">Loading…</p>
   </div>
 
-  <mat-tab-group *ngIf="selectedEntity" (selectedIndexChange)="onTabChange($event)" mat-align-tabs="start" class="flex-1">
-    <mat-tab [label]="$any(item.value).name" *ngFor="let item of ontologyLabels | keyvalue:ontologyOrderComparator">
+  <mat-tab-group
+    *ngIf="selectedEntity"
+    (selectedIndexChange)="onTabChange($event)"
+    mat-align-tabs="start"
+    class="entity-tabs flex-1 min-h-0"
+  >
+    <mat-tab *ngFor="let item of ontologyLabels | keyvalue:ontologyOrderComparator">
+      <ng-template mat-tab-label>
+        {{ $any(item.value).name }}
+        <span *ngIf="propertyCount(item.value) as count" class="ml-1 text-xs text-gray-400">{{ count }}</span>
+      </ng-template>
 
-      <div class="flex flex-col gap-6 p-4">
+      <div class="p-4">
+        <div class="bg-white rounded-xl border px-4 pt-2 pb-4 border-gray-200">
 
-        <div class="flex flex-col gap-3">
-
-          <!-- Name Field (rico:name, always shown first) -->
-          <div *ngIf="$any(item.value).nameProperty as nameProp">
-
-            <div class="flex justify-center items-center gap-2">
-              <label class="text-lg text-blue-900">Name</label>
-              <label
-                class="text-xs font-medium uppercase tracking-wide"
-                [ngClass]="nameProp.values?.length ? 'text-green-500' : 'text-red-500'"
-              >
-                Required
-              </label>
+          <!-- Name (rico:name, always shown first) -->
+          <ng-container *ngIf="$any(item.value).nameProperty as nameProp">
+            <div class="flex items-center justify-between mt-2 mb-1">
+              <span class="section-label">Name</span>
+              <span
+                class="px-1 rounded text-[10px]"
+                [ngClass]="nameProp.values?.length ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'"
+              >Required</span>
             </div>
-
-            <div class="w-full h-full flex flex-col gap-2 items-center mt-3">
-
-              <div *ngFor="let propValue of nameProp.values" class="w-full flex items-center justify-between gap-1 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-
-                <!-- Literal : lecture -->
-                <a
-                  *ngIf="!propValue.editing"
-                  class="text-gray-900 font-medium bg-transparent focus:outline-none truncate text-sm w-full"
-                  [title]="propValue.value"
-                >
-                  {{ propValue.value }}
-                </a>
-
-                <!-- Literal : edition (of the name property) -->
-                <input
-                  *ngIf="propValue.editing"
-                  type="text"
-                  [(ngModel)]="propValue.value"
-                  (keydown.enter)="saveLiteralEdit(propValue)"
-                  (keydown.escape)="propValue.editing = false"
-                  class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
-                />
-
-                <div class="flex items-center gap-1 shrink-0" *ngIf="propValue.source === 'internal'">
-                  <button
-                    (click)="toggleLiteralEdit(propValue)"
-                    class="cursor-pointer p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                    [attr.aria-label]="propValue.editing ? 'Confirm' : 'Edit'"
-                  >
-                    <svg *ngIf="!propValue.editing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                    </svg>
-                    <svg *ngIf="propValue.editing" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                  </button>
-
-                  <button
-                    (click)="onRangeDeleted(propValue, nameProp)"
-                    class="cursor-pointer p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                    aria-label="Delete"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                  </button>
-                </div>
-                <div
-                  class="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs"
-                  *ngIf="propValue.source !== 'internal'"
-                  [attr.title]="propValue.datasourceShortName ? ('From external source: ' + propValue.datasourceShortName) : 'Read-only (external source)'"
-                >
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span>{{ propValue.datasourceShortName || 'external' }}</span>
-                </div>
-
+            <div class="grid grid-cols-[12rem_1fr] gap-3 py-2 border-t border-gray-100">
+              <div class="text-sm font-medium text-gray-800">Name</div>
+              <div class="min-w-0 space-y-1">
+                <ng-container *ngTemplateOutlet="valueList; context: { $implicit: nameProp, allowAdd: false }"></ng-container>
               </div>
-
             </div>
-
-          </div>
-
-          <!-- Main Property Fields -->
-          <div *ngIf="MainPropertiesisNotEmpty($any(item.value).main_Properties)">
-
-            <div class="flex justify-center items-center">
-              <label class="text-lg text-blue-900">Main Properties</label>
-            </div>
-
-            <!-- First all : we fetch all main properties -->
-            <ng-container *ngFor="let mainProp of $any(item.value).main_Properties | keyvalue">
-
-              <ng-container *ngFor="let property of $any(mainProp).value">
-
-                <div class="flex flex-col gap-3 text-xs font-medium text-gray-500 tracking-wide mb-3">
-
-                  <label class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide mt-5">
-                    {{ property.schema?.label }}
-
-                    <button *ngIf="property.key === 'identifier' && isFilePath(property.schema.value)"
-                      (click)="openFileViewer(property, property.schema.value)"
-                      class="text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label="View file"
-                    >
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                      </svg>
-                    </button>
-                  </label>
-
-                  <span class="flex items-center gap-6">
-
-                    <label *ngIf="property.schema?.cardinality?.min"
-                      [ngClass]="property.values?.length >= property.schema?.cardinality?.min ? 'text-green-500' : 'text-red-500'"
-                    >
-                      Min cardinality is : {{ property.schema?.cardinality?.min ?? 0 }}
-                    </label>
-                    <label *ngIf="property.schema?.cardinality?.max"
-                      [ngClass]="property.values?.length <= property.schema?.cardinality?.max ? 'text-green-500' : 'text-red-500'"
-                    >
-                      Max cardinality is : {{ property.schema?.cardinality?.max ?? 0 }}
-                    </label>
-                  </span>
-
-
-                  <div class="flex flex-col gap-2" *ngIf="property.kind === 'iri'">
-
-                    <span>{{property.schema.rangeLocalName || 'Cannot find range name'}}</span>
-                    <div *ngIf="property.values?.length" class="mt-2 flex gap-3 items-center">
-                      <ul class="flex flex-col gap-2">
-                        <li
-                          *ngFor="let propValue of property.values; let i = index"
-                          class="flex items-center justify-between gap-3 p-1 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all"
-                        >
-                          <!-- LEFT CONTENT -->
-                          <div class="flex items-center gap-2 min-w-0">
-                            <!-- Bullet -->
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-
-                            <!-- Link -->
-                            <a
-                              *ngIf="propValue.name && propValue.name !== ''"
-                              (click)="changeSelectedEntity(propValue.value)"
-                              class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
-                              [title]="propValue.name"
-                            >
-                              {{ propValue.name }}
-                            </a>
-                          </div>
-
-                          <!-- DELETE BUTTON -->
-                          <button
-                            *ngIf="propValue.source === 'internal'"
-                            (click)="onRangeDeleted(propValue, property); $event.stopPropagation()"
-                            class="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition"
-                            title="Delete"
-                          >
-                            ✕
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div class="flex gap-1 items-center">
-
-                      <select
-                        (click)="getEntitiesByType(property.schema.rangeUri)"
-                        (change)="onRangeSelected($event, property)"
-                        class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-                        <option value="" selected disabled>Add new range value</option>
-                        <optgroup *ngFor="let g of groupedRanges" [label]="g.typeLabel">
-                          <option *ngFor="let t of g.entities; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
-                        </optgroup>
-                      </select>
-                        <button
-                          (click)="openCreateEntityDialogForRange(property.schema)"
-                          type="button"
-                          class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
-                                rounded-full bg-blue-600 text-white
-                                shadow-sm hover:bg-blue-700 hover:shadow-md
-                                active:scale-95
-                                focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
-                                transition-all duration-150"
-                          title="Create type"
-                        >
-                          Create
-                        </button>
-
-                    </div>
-
-
-                  </div>
-
-                  <div *ngIf="property.kind === 'literal'" class="w-full h-full flex flex-col gap-2 items-center ">
-
-                    <div *ngFor="let propValue of property.values" class="w-full flex items-center justify-between gap-1 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-
-                      <!-- Literal : lecture -->
-                      <a
-                        *ngIf="!propValue.editing"
-                        class="text-gray-900 font-medium bg-transparent focus:outline-none truncate text-sm w-full"
-                        [title]="property.value"
-                      >
-                        {{ propValue.value }}
-                      </a>
-
-                      <!-- Literal : edition -->
-                      <input
-                        *ngIf="propValue.editing || property.value === null"
-                        type="text"
-                        [(ngModel)]="propValue.value"
-                        (keydown.enter)="saveLiteralEdit(propValue)"
-                        (keydown.escape)="propValue.editing = false"
-                        class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
-                      />
-
-                      <div class="flex items-center gap-1 shrink-0" *ngIf="propValue.source === 'internal'">
-                        <button
-                          (click)="toggleLiteralEdit(propValue)"
-                          class="cursor-pointer p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                          [attr.aria-label]="propValue.editing ? 'Confirm' : 'Edit'"
-                        >
-                          <svg *ngIf="!propValue.editing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                          </svg>
-                          <svg *ngIf="propValue.editing" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                          </svg>
-                        </button>
-
-                        <button
-                          (click)="onRangeDeleted(propValue, property)"
-                          class="cursor-pointer p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                          aria-label="Delete"
-                        >
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                          </svg>
-                        </button>
-                      </div>
-                      <div
-                        class="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs"
-                        *ngIf="propValue.source !== 'internal'"
-                        [attr.title]="propValue.datasourceShortName ? ('From external source: ' + propValue.datasourceShortName) : 'Read-only (external source)'"
-                      >
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        <span>{{ propValue.datasourceShortName || 'external' }}</span>
-                      </div>
-
-                    </div>
-
-                    <button
-                        (click)="addNewDataType(property)"
-                        *ngIf="addNewDataTypeAuthorized(property)"
-                        type="button"
-                        class="cursor-pointer grid place-items-center w-6 h-6 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
-                        title="Add new data type"
-                      >
-                        <svg
-                          class="w-5 h-5"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2.5"
-                        >
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
-                        </svg>
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </ng-container>
-
-            </ng-container>
-
-          </div>
-
-          <!-- Other Properties Fields -->
-          <div class="flex p-3 justify-center">
-              <label class="text-lg text-blue-900">
-                <span *ngIf="MainPropertiesisNotEmpty($any(item.value).main_Properties)">Other </span><span>Properties</span></label>
-          </div>
-
-          <ng-container *ngFor="let property of $any(item.value).entities">
-
-            <div class="flex flex-col gap-3 text-xs font-medium text-gray-500 tracking-wide mb-3">
-
-              <label class="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                {{ property.label || property.key }}
-
-                <button
-                  (click)="openFileViewer(property, property.value)"
-                  *ngIf="property.key === 'identifier' && isFilePath(property.value)"
-                  class="text-gray-400 hover:text-gray-600 transition-colors"
-                  aria-label="View file"
-                >
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                </button>
-              </label>
-
-              <span class="flex items-center gap-6">
-
-                <label *ngIf="property.schema?.cardinality?.min"
-                  [ngClass]="property.values?.length >= property.schema?.cardinality?.min ? 'text-green-500' : 'text-red-500'"
-                >
-                  Min cardinality is : {{ property.schema?.cardinality?.min ?? 0 }}
-                </label>
-                <label *ngIf="property.schema?.cardinality?.max"
-                  [ngClass]="property.values?.length <= property.schema?.cardinality?.max ? 'text-green-500' : 'text-red-500'"
-                >
-                  Max cardinality is : {{ property.schema?.cardinality?.max ?? 0 }}
-                </label>
-              </span>
-
-
-
-              <!-- List of all ranges names -->
-              <div class="flex flex-col gap-2" *ngIf="property.values?.length && property.kind === 'iri'">
-
-                <div *ngIf="property.values?.length" class="mt-2 flex gap-3 items-center">
-
-                  <span>{{property.rangeLocalName || 'Cannot find range name'}}</span>
-
-                  <ul class="flex flex-col gap-2">
-                    <ng-container *ngFor="let propValue of property.values; let i = index">
-                      <li
-                        *ngIf="propValue.name && propValue.name !== ''"
-                        class="flex items-center justify-between gap-3 p-1 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all"
-                      >
-                        <!-- LEFT CONTENT -->
-                        <div class="flex items-center gap-2 min-w-0">
-                          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                          <a
-                            (click)="changeSelectedEntity(propValue.iri)"
-                            class="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline truncate font-mono"
-                            [title]="propValue.name"
-                          >
-                            {{ propValue.name }}
-                          </a>
-                        </div>
-
-                        <!-- DELETE Range Value -->
-                        <button
-                          *ngIf="propValue.source === 'internal'"
-                          (click)="onRangeDeleted(propValue, property)"
-                          class="text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full p-1.5 transition"
-                          title="Delete"
-                        >
-                          ✕
-                        </button>
-                      </li>
-                    </ng-container>
-                  </ul>
-
-                </div>
-
-                <div class="flex gap-1 items-center">
-
-                  <select
-                    *ngIf="property.rangeUri?.length"
-                    (click)="getEntitiesByTypes(property.rangeUri)"
-                    (change)="onRangeSelected($event, property)"
-                    class="flex! cursor-pointer! w-full! h-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all">
-                    <option value="" selected disabled>Add new range value</option>
-                    <optgroup *ngFor="let g of groupedRanges" [label]="g.typeLabel">
-                      <option *ngFor="let t of g.entities; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
-                    </optgroup>
-                  </select>
-                  <button
-                    (click)="openCreateEntityDialogForRange(property)"
-                    type="button"
-                    class="inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium
-                          rounded-full bg-blue-600 text-white
-                          shadow-sm hover:bg-blue-700 hover:shadow-md
-                          active:scale-95
-                          focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
-                          transition-all duration-150"
-                    title="Create type"
-                  >
-                    Create
-                  </button>
-
-                </div>
-
-
-              </div>
-
-              <div *ngIf="property.kind === 'literal'" class="w-full h-full flex flex-col gap-1 items-center ">
-
-                <div *ngFor="let propValue of property.values" class="w-full flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-
-                  <!-- Literal : lecture -->
-                  <a
-                    *ngIf="!propValue.editing"
-                    class="text-gray-900 font-medium bg-transparent focus:outline-none truncate text-sm w-full"
-                    [title]="property.value"
-                  >
-                    {{ propValue.value }}
-                  </a>
-
-                  <!-- Literal : edition -->
-                  <input
-                    *ngIf="propValue.editing || property.value === null"
-                    type="text"
-                    [(ngModel)]="propValue.value"
-                    (keydown.enter)="saveLiteralEdit(propValue)"
-                    (keydown.escape)="propValue.editing = false"
-                    class="text-sm text-gray-900 font-medium w-full bg-transparent focus:outline-none"
-                  />
-
-                  <div class="flex items-center gap-1 shrink-0" *ngIf="propValue.source === 'internal'">
-                    <button
-                      (click)="toggleLiteralEdit(propValue)"
-                      class="cursor-pointer p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                      [attr.aria-label]="propValue.editing ? 'Confirm' : 'Edit'"
-                    >
-                      <svg *ngIf="!propValue.editing" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                      </svg>
-                      <svg *ngIf="propValue.editing" class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                      </svg>
-                    </button>
-
-                    <button
-                      (click)="onRangeDeleted(propValue, property)"
-                      class="cursor-pointer p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                      aria-label="Delete"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div
-                    class="flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs"
-                    *ngIf="propValue.source !== 'internal'"
-                    [attr.title]="propValue.datasourceShortName ? ('From external source: ' + propValue.datasourceShortName) : 'Read-only (external source)'"
-                  >
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <span>{{ propValue.datasourceShortName || 'external' }}</span>
-                  </div>
-
-                </div>
-
-                <button
-                    (click)="addNewDataType(property)"
-                    *ngIf="addNewDataTypeAuthorized(property)"
-                    type="button"
-                    class="cursor-pointer grid place-items-center w-6 h-6 shrink-0 rounded-full bg-blue-600 text-white shadow-sm hover:bg-blue-700 hover:shadow-md active:scale-95 transition-all duration-150 leading-none"
-                    title="Add new type"
-                  >
-                    <svg
-                      class="w-5 h-5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                    >
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12M6 12h12"/>
-                    </svg>
-                </button>
-
-              </div>
-
-
-            </div>
-
           </ng-container>
-        </div>
 
-        <!-- Add property -->
-        <div class="flex flex-col gap-2">
-          <div class="flex justify-center">
-            <button
-              *ngIf="!newAssociation"
-              (click)="addAssociation()"
-              class="cursor-pointer flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              Add property
-            </button>
-          </div>
-
-          <!-- Inline form -->
-          <div *ngIf="newAssociation" class="p-4 border border-blue-200 bg-blue-50/60 rounded-xl flex flex-col gap-3.5">
-
-            <!-- Step 1 : mode selection -->
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Predicate source</label>
-              <div class="flex gap-2">
-                <button
-                  (click)="newAssociation.mode = 'existing'"
-                  [class.bg-blue-600]="newAssociation.mode === 'existing'"
-                  [class.text-white]="newAssociation.mode === 'existing'"
-                  [class.bg-white]="newAssociation.mode !== 'existing'"
-                  [class.text-gray-600]="newAssociation.mode !== 'existing'"
-                  class="cursor-pointer flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium"
-                >
-                  Existing predicate
-                </button>
-                <button
-                  (click)="newAssociation.mode = 'new'"
-                  [class.bg-blue-600]="newAssociation.mode === 'new'"
-                  [class.text-white]="newAssociation.mode === 'new'"
-                  [class.bg-white]="newAssociation.mode !== 'new'"
-                  [class.text-gray-600]="newAssociation.mode !== 'new'"
-                  class="cursor-pointer flex-1 text-sm py-1.5 rounded-md border border-gray-300 transition-colors font-medium"
-                >
-                  New predicate
-                </button>
-              </div>
-            </div>
-
-            <!-- Mode: existing predicate -->
-            <div *ngIf="newAssociation.mode === 'existing'">
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Predicate</label>
-              <select
-                [(ngModel)]="newAssociation.predicate"
-                class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="" disabled>Select a predicate...</option>
-                <option *ngFor="let prop of entityPropertiesDict" [value]="prop.predicate">
-                  {{ prop.key }} — <span class="text-gray-400 font-mono text-xs">{{ prop.predicate }}</span>
-                </option>
-              </select>
-            </div>
-
-            <!-- Mode: new predicate -->
-            <ng-container *ngIf="newAssociation.mode === 'new'">
-
-              <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Ontology namespace</label>
-                <select
-                  [(ngModel)]="newAssociation.ontologyUrl"
-                  class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                >
-                  <option value="" disabled>Select an ontology...</option>
-                  <option *ngFor="let onto of ontologyLabels | keyvalue" [value]="">
-                    {{ onto.key }} — <span class="font-mono text-xs text-gray-400">{{ onto.key }}</span>
-                  </option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Predicate name</label>
-                <div class="flex items-center gap-1 border border-gray-300 rounded-md bg-white px-2 py-1.5 focus-within:ring-2 focus-within:ring-blue-400">
-                  <span *ngIf="newAssociation.ontologyUrl" class="text-xs text-gray-400 font-mono truncate max-w-[120px] shrink-0">
-                    {{ newAssociation.ontologyUrl }}
-                  </span>
-                  <input
-                    type="text"
-                    [(ngModel)]="newAssociation.customPredicate"
-                    placeholder="myPredicate"
-                    class="text-sm text-gray-900 w-full bg-transparent focus:outline-none"
-                  />
-                </div>
-                <p *ngIf="newAssociation.ontologyUrl && newAssociation.customPredicate"
-                   class="mt-1 text-xs text-gray-400 font-mono truncate">
-                  → {{ newAssociation.ontologyUrl }}{{ newAssociation.customPredicate }}
-                </p>
-              </div>
-
+          <!-- Main properties -->
+          <ng-container *ngIf="MainPropertiesisNotEmpty($any(item.value).main_Properties)">
+            <div class="section-label mt-5 mb-1">Main properties</div>
+            <ng-container *ngFor="let mainProp of $any(item.value).main_Properties | keyvalue">
+              <ng-container *ngFor="let property of $any(mainProp).value">
+                <ng-container *ngTemplateOutlet="propertyRow; context: {
+                  $implicit: property,
+                  label: property.schema?.label,
+                  rangeName: property.schema?.rangeLocalName,
+                  alwaysShowIri: true
+                }"></ng-container>
+              </ng-container>
             </ng-container>
+          </ng-container>
 
-            <!-- Kind toggle -->
-            <div *ngIf="newAssociation.mode">
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Type</label>
-              <div class="flex gap-2">
-                <button
-                  (click)="newAssociation.kind = 'literal'"
-                  [class.bg-blue-600]="newAssociation.kind === 'literal'"
-                  [class.text-white]="newAssociation.kind === 'literal'"
-                  [class.bg-white]="newAssociation.kind !== 'literal'"
-                  [class.text-gray-600]="newAssociation.kind !== 'literal'"
-                  class="cursor-pointer flex-1 text-sm py-1 rounded-md border border-gray-300 transition-colors font-medium"
-                >
-                  Literal
-                </button>
-                <button
-                  (click)="newAssociation.kind = 'iri'"
-                  [class.bg-blue-600]="newAssociation.kind === 'iri'"
-                  [class.text-white]="newAssociation.kind === 'iri'"
-                  [class.bg-white]="newAssociation.kind !== 'iri'"
-                  [class.text-gray-600]="newAssociation.kind !== 'iri'"
-                  class="cursor-pointer flex-1 text-sm py-1 rounded-md border border-gray-300 transition-colors font-medium"
-                >
-                  IRI
-                </button>
-              </div>
-            </div>
-
-            <!-- Value -->
-            <div *ngIf="newAssociation.mode">
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Value</label>
-              <input
-                type="text"
-                [(ngModel)]="newAssociation.value"
-                [placeholder]="newAssociation.kind === 'iri' ? 'https://...' : 'Enter a value'"
-                class="w-full text-sm border border-gray-300 rounded-md px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-              />
-            </div>
-
-            <!-- Confirm / Cancel -->
-            <div class="flex gap-2 pt-1">
-              <button
-                (click)="confirmAddAssociation()"
-                [disabled]="
-                  !newAssociation.mode || !newAssociation.value ||
-                  (newAssociation.mode === 'existing' && !newAssociation.predicate) ||
-                  (newAssociation.mode === 'new' && (!newAssociation.ontologyUrl || !newAssociation.customPredicate))
-                "
-                class="cursor-pointer flex-1 text-sm py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium"
-              >
-                Confirm
-              </button>
-              <button
-                (click)="cancelAddAssociation()"
-                class="cursor-pointer flex-1 text-sm py-1.5 border border-gray-300 text-gray-600 rounded-md hover:bg-gray-100 transition-colors font-medium"
-              >
-                Cancel
-              </button>
-            </div>
-
+          <!-- Other properties -->
+          <div class="section-label mt-5 mb-1">
+            <span *ngIf="MainPropertiesisNotEmpty($any(item.value).main_Properties)">Other </span><span>Properties</span>
           </div>
-        </div>
+          <ng-container *ngFor="let property of $any(item.value).entities">
+            <ng-container *ngTemplateOutlet="propertyRow; context: {
+              $implicit: property,
+              label: property.label || property.key,
+              rangeName: property.rangeLocalName,
+              alwaysShowIri: false
+            }"></ng-container>
+          </ng-container>
+          <p *ngIf="!$any(item.value).entities?.length" class="text-xs text-gray-500 italic py-2 border-t border-gray-100">
+            No other property.
+          </p>
 
-        <!-- Entity IRI -->
-        <div class="flex flex-col gap-1.5">
-          <label class="text-xs font-medium text-gray-500 uppercase tracking-wide">Entity IRI</label>
-          <div class="flex items-center justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <span class="text-xs text-gray-600 font-mono truncate" [title]="selectedEntity?.iri">
-              {{ selectedEntity?.iri }}
+          <div class="flex justify-end mt-3">
+            <span [matTooltip]="hasTypeInOntology(item.key) ? '' : 'Give the entity a type of this ontology first'">
+              <button mat-stroked-button type="button" [disabled]="!hasTypeInOntology(item.key)" (click)="addAssociation()">+ Add property</button>
             </span>
-            <button
-              (click)="copyToClipboard(selectedEntity?.iri)"
-              class="cursor-pointer p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors shrink-0"
-              aria-label="Copier l'ID"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-              </svg>
-            </button>
           </div>
         </div>
 
         <!-- Danger zone -->
-        <div class="pt-2 border-t border-gray-100">
-          <button
-            (click)="deleteEntity()"
-            class="w-full cursor-pointer px-4 py-2.5 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors text-sm font-medium"
-          >
-            Delete
-          </button>
+        <div class="flex justify-end mt-4">
+          <button mat-stroked-button color="warn" type="button" (click)="deleteEntity()">Delete entity</button>
         </div>
-
       </div>
-
     </mat-tab>
   </mat-tab-group>
 
 </div>
+
+<!-- One property: label column (name, range, cardinality) and its values -->
+<ng-template #propertyRow let-property let-label="label" let-rangeName="rangeName" let-alwaysShowIri="alwaysShowIri">
+  <div class="grid grid-cols-[12rem_1fr] gap-3 py-2 border-t border-gray-100">
+    <div class="min-w-0">
+      <div class="text-sm font-medium text-gray-800 break-words">{{ label }}</div>
+      <div *ngIf="property.kind === 'iri'" class="text-xs text-gray-400 truncate" [title]="rangeName">
+        {{ rangeName || 'Cannot find range name' }}
+      </div>
+      <div *ngIf="property.schema?.cardinality?.min || property.schema?.cardinality?.max" class="text-[11px] text-gray-500">
+        <span *ngIf="property.schema?.cardinality?.min"
+              [ngClass]="property.values?.length >= property.schema?.cardinality?.min ? 'text-emerald-700' : 'text-red-600'"
+        >min {{ property.schema?.cardinality?.min ?? 0 }}</span>
+        <span *ngIf="property.schema?.cardinality?.min && property.schema?.cardinality?.max"> · </span>
+        <span *ngIf="property.schema?.cardinality?.max"
+              [ngClass]="property.values?.length <= property.schema?.cardinality?.max ? 'text-emerald-700' : 'text-red-600'"
+        >max {{ property.schema?.cardinality?.max ?? 0 }}</span>
+      </div>
+    </div>
+
+    <div class="min-w-0 space-y-1">
+      <!-- IRI property: links, then the drop-down to add one -->
+      <ng-container *ngIf="property.kind === 'iri' && (alwaysShowIri || property.values?.length)">
+        <ng-container *ngTemplateOutlet="valueList; context: { $implicit: property, allowAdd: false }"></ng-container>
+        <div *ngIf="rangeUrisOf(property).length" class="flex items-center gap-2">
+          <select
+            (focus)="loadRangeOptions(property)"
+            (change)="onRangeSelected($event, property)"
+            class="flex-1 min-w-0 text-sm px-2 py-1 border rounded bg-white cursor-pointer border-gray-200"
+          >
+            <option value="" selected disabled>Add a value…</option>
+            <option *ngIf="rangeOptionsOf(property)?.loading" value="" disabled>Loading…</option>
+            <optgroup *ngFor="let g of rangeOptionsOf(property)?.groups ?? []" [label]="g.typeLabel">
+              <option *ngFor="let t of g.entities; trackBy: trackByIri" [value]="t.iri">{{ t.label }}</option>
+            </optgroup>
+          </select>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="openCreateEntityDialogForRange(property)"
+            matTooltip="Create a new entity of this type and link it"
+          >Create</button>
+        </div>
+      </ng-container>
+
+      <!-- Literal property -->
+      <ng-container *ngIf="property.kind === 'literal'">
+        <ng-container *ngTemplateOutlet="valueList; context: { $implicit: property, allowAdd: true }"></ng-container>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<!-- The values of one property (name, main or other property): a single definition -->
+<ng-template #valueList let-property let-allowAdd="allowAdd">
+  <ng-container *ngFor="let propValue of property.values">
+
+    <!-- IRI value: link to the entity (its name, else its IRI) -->
+    <div *ngIf="property.kind === 'iri' && propValue.value" class="group flex items-center gap-2 min-w-0">
+      <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+      <a
+        (click)="changeSelectedEntity(propValue.value)"
+        class="cursor-pointer text-sm text-blue-700 hover:underline truncate"
+        [ngClass]="propValue.name ? '' : 'italic text-gray-500'"
+        [title]="propValue.value"
+      >{{ propValue.name || propValue.value }}</a>
+      <app-source-badge *ngIf="propValue.source !== 'internal'" [source]="propValue.source" [name]="propValue.datasourceShortName"></app-source-badge>
+      <span class="flex-1"></span>
+      <button
+        *ngIf="propValue.source === 'internal'"
+        type="button"
+        class="act text-red-600 opacity-0 group-hover:opacity-100 focus:opacity-100"
+        (click)="onRangeDeleted(propValue, property); $event.stopPropagation()"
+        matTooltip="Delete"
+        aria-label="Delete"
+      >×</button>
+    </div>
+
+    <!-- Literal value -->
+    <div *ngIf="property.kind !== 'iri'" class="group flex items-center gap-2 min-w-0">
+      <span
+        *ngIf="!propValue.editing"
+        class="text-sm text-gray-900 truncate flex-1 min-w-0"
+        [title]="propValue.value"
+      >{{ propValue.value }}</span>
+
+      <input
+        *ngIf="propValue.editing"
+        type="text"
+        [(ngModel)]="propValue.value"
+        (keydown.enter)="saveLiteralEdit(propValue, property)"
+        (keydown.escape)="propValue.editing = false"
+        class="flex-1 min-w-0 text-sm px-2 py-1 border rounded bg-white border-gray-200"
+        placeholder="Enter a value"
+      />
+
+      <button
+        *ngIf="isFilePath(propValue.value)"
+        type="button"
+        class="act text-gray-600"
+        (click)="openFileViewer(propValue, propValue.value)"
+        matTooltip="View the file"
+        aria-label="View file"
+      >👁</button>
+
+      <ng-container *ngIf="propValue.source === 'internal'">
+        <button
+          type="button"
+          class="act"
+          [ngClass]="propValue.editing ? 'text-emerald-700' : 'text-gray-600 opacity-0 group-hover:opacity-100 focus:opacity-100'"
+          (click)="toggleLiteralEdit(propValue, property)"
+          [matTooltip]="propValue.editing ? 'Save' : 'Edit'"
+          [attr.aria-label]="propValue.editing ? 'Confirm' : 'Edit'"
+        >{{ propValue.editing ? '✓' : '✎' }}</button>
+        <button
+          type="button"
+          class="act text-red-600 opacity-0 group-hover:opacity-100 focus:opacity-100"
+          (click)="onRangeDeleted(propValue, property)"
+          matTooltip="Delete"
+          aria-label="Delete"
+        >×</button>
+      </ng-container>
+      <app-source-badge *ngIf="propValue.source !== 'internal'" [source]="propValue.source" [name]="propValue.datasourceShortName"></app-source-badge>
+    </div>
+
+  </ng-container>
+
+  <button
+    *ngIf="allowAdd && addNewDataTypeAuthorized(property)"
+    type="button"
+    class="act text-blue-700"
+    (click)="addNewDataType(property)"
+    matTooltip="Add a value"
+    aria-label="Add a value"
+  >+</button>
+</ng-template>

@@ -6,11 +6,12 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 type FileType = 'image' | 'video' | 'audio' | 'pdf' | 'unknown';
 
-import {MAT_DIALOG_DATA, MatDialogRef} from '@angular/material/dialog';
+import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
+import {MatButtonModule} from '@angular/material/button';
 
 @Component({
   selector: 'app-file-viewer',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatDialogModule, MatButtonModule],
   templateUrl: './file-viewer.component.html',
   styleUrl: './file-viewer.component.scss'
 })
@@ -21,6 +22,10 @@ export class FileViewerComponent implements OnInit {
   public data: any = inject(MAT_DIALOG_DATA, { optional: true });
   private dialogRef: MatDialogRef<FileViewerComponent> | null = inject(MatDialogRef, { optional: true });
   public isDialogRoot: boolean = false;
+  /** Opened on a value the user cannot change (external source): no "Use this file". */
+  public readOnly: boolean = false;
+  /** Picking a file needs the Electron bridge (desktop application). */
+  public canSelectFile: boolean = !!window.electronAPI?.selectFile;
 
   @Output() filePathChange = new EventEmitter<string>();
 
@@ -39,7 +44,10 @@ export class FileViewerComponent implements OnInit {
     this.isDialogRoot = this.dialogRef?.componentInstance === this; 
 
     if (this.isDialogRoot) {
-      this.openFile(this.data);
+      // the editor passes { path, readOnly }; a plain path is still accepted
+      const path = typeof this.data === 'string' ? this.data : (this.data?.path ?? '');
+      this.readOnly = typeof this.data === 'object' && !!this.data?.readOnly;
+      this.openFile(path);
     }
   }
 
@@ -49,8 +57,8 @@ export class FileViewerComponent implements OnInit {
     if (!ext) return 'unknown';
 
     if (['png','jpg','jpeg','gif','webp'].includes(ext)) return 'image';
-    if (['mp4','webm','ogg'].includes(ext)) return 'video';
-    if (['mp3','wav','ogg'].includes(ext)) return 'audio';
+    if (['mp4','webm','ogv'].includes(ext)) return 'video';
+    if (['mp3','wav','ogg','oga'].includes(ext)) return 'audio';
     if (ext === 'pdf') return 'pdf';
 
     return 'unknown';
@@ -58,6 +66,7 @@ export class FileViewerComponent implements OnInit {
 
   async openFile(pathParam: string) {
 
+    if (pathParam === '' && !this.canSelectFile) return;
     let path = pathParam !== '' ? pathParam : await window.electronAPI?.selectFile();
 
     if (path) {
