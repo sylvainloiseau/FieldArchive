@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Session>
+  <id type="string">SessionID3</id>
+  <title type="string">Going to town</title>
+  <languages type="string">tww</languages>
+  <workingLanguages type="string">en</workingLanguages>
+  <genre type="string">narrative</genre>
+  <status type="string">Finished</status>
+  <date>2021-09-16</date>
+  <keyword type="string">monologue,unstagged</keyword>
+  <topic type="string">travel</topic>
+  <participants>WD;</participants>
+  <contributions type="xml">
+    <contributor>
+      <name>WD</name>
+      <role>participant</role>
+      <date>0001-01-01</date>
+    </contributor>
+  </contributions>
+</Session>

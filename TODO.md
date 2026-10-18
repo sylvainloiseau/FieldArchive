@@ -1,4 +1,33 @@
+## Sparql
 
+restyle the sparql page
+record query with description, etc.
+
+## relation entity
+
+The RIC-O ontology offer a type of entity that are equivalent to a relation between two entities.
+
+For instance, instead of using the objectproperty "xxx" between 1 and 1, we can use an intermediate
+entity between 1 and 2, linked with the 
+
+## On an entity-detail page, also display the triple where the entity is the object
+
+For instance: in which event participate an individual, etc.
+
+## File viewer
+
+## better variable name
+
+## Redesign the Entity page
+
+A setting page for defining the display of entities.
+Use the same categorisation that for data matching algorithm parameter page:
+ - person
+ - etc
+For each of this group, allows to define type from the existing ontology; subtype, etc.
+For each of this group, define a strategy of representation: name, etc.
+
+## Others
 
 - `SparqlService` classifies queries by substring-matching lowercased text, so a SELECT whose variable or IRI contains e.g. "create" is rejected.
 - `OntologyService`'s `schemaCache` and the config map are loaded once at construction; ontology files and `configuration.json` changes require a backend restart.
@@ -12,22 +41,26 @@
   - `isFileLoading` is set at component `:106` and never reset to `false`.
   - `exportAsCSV()` lists a `Tool` header but omits the value, so CSV columns are off by one.
 - Both import paths hardcode `RDFFormat.TURTLE`; `.rdf`/`.owl` exports will not parse.
-- shacl
-  date picker
-  validation
 
-- ajouter un import de lameta à partir du répertoire : reprendre le code python
 
-# files and folders view
+## shacl validation
 
-# relation object
+## date picker
 
-The RIC-O ontology offer a type of entity that are equivalent to a relation between two entities.
 
-For instance, instead of using the objectproperty "xxx" between 1 and 1, we can use an intermediate
-entity between 1 and 2, linked with the 
+## Record view
 
-# A new map page
+
+## files and folders view
+
+repartir du ticket github.
+
+Ajouter des folders. Pour un folder, filtrer les fichiers
+
+Vue agrégée. Pour un fichier, lier à un object instantiation ou en créer un. dans le fenêtre, lier à un objet Record ou en créer un. Lier à un Event ou en créer un
+lier à d'autres objets instanciation
+
+## A new map page
 
 Could you add a new page to the application, thanks to a new angular component.
 
@@ -70,8 +103,14 @@ Data access: a dedicated backend endpoint doing one SPARQL query, rather than ra
 
 # Done
 
+## Varia
+
 - In the table showing the various data source (in the Datasources page), please add a column displaying the number of RDF triples in the corresponding graph.
 - pourquoi le bouton "importer" ouvre un file chooser mêem si l'url est là et valide
+
+## restyle entity-detail
+
+Please could you make a plan for updating the style and the GUI components used in the "entity-detail" angular component. There is nothing to change in the GUI logic and the code (however please report bugs that you may find), but I would like to use the same component and style used in the data matching and data-matching setting pages (cf the "data-matching" angular component).
 
 ## data reconciliation algorithm
 
@@ -96,3 +135,33 @@ The main step of the algorith is to :
 You will then design a new page "data matching", that can be accessed through a button on the datasource page. It will connect to the backend algorithm with new REST contact point. It will contains a graphical interface allowing the user to select each pairs of data source and to validate or reject the matching-proposal from the algorithm, and allowing him or her to define manually a matching. Status (accepted, rejected, manually set) will also be stored in the same json file in the project folder.
 
 Please ask any question regarding this plan, do not hesitate to suggest improvements in the algorithm and the GUI, try to elaborate a very clean and future-proof design for both the algorithm and the GUI.
+
+## An import system for lameta
+
+I would like you to make a plan for the following functionality. It impacts both the frontend and the backend. Please make a deep analysis of this instruction; take care to offer a clean and future-proof design; ask as many question as needed and offer suggestion of other functionalities or better ones if you can think of some.
+
+I have defined a plugin system for creating importers for FieldArchive. Importer will take care of the data of a specific app and convert it into RDF in order to import or re-import it into an external data source.
+
+The plugin source code is defined in the ../ricImporterPluginof directory. It defines a service `fr.cnrs.lacito.lameta2rdf.Lameta2RdfConverterProvider`. It is deployed on the local .m2 maven repository, and also available with the coordinate `io.github.sylvainloiseau:ricimporterplugin:0.1.0-SNAPSHOT` on the following directory:
+
+```
+  <repositories>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/sylvainloiseau/*</url>
+    </repository>
+  </repositories>
+```
+
+You will add a dependency to this plugin definition to the pom.
+
+An implementation of this plugin exist for the lameta software, that can provide data for an external data source. This implementation is in the ../lemeta2rico directory; its maven coordinate is io.github.sylvainloiseau:lameta2rico:0.1.0-SNAPSHOT, it is in the same repository as the previous one mentioned above.
+
+I want you to add to the pom the instruction to download this maven plugin and put it in a ricImporterPlugins directory during the build, and then to include this directory during the building of the backend. I would like to add to the backend startup a mechanism for searching plugins declaring `fr.cnrs.lacito.lameta2rico.Lameta2RdfConverterProvider` in both the `ricImporterPlugins` directory shipped within the application and also into an `ricImporterPlugins` directory inside the parameter directory of the application in the user filesystem, in which is also the projects triple store for instance. You will use URLClassLoader for loading the plugins.
+
+In the data source page, the column "Source" display the source of the external entity, for instance "Lameta", "Gramps"... However the corresponding field does not exist any more when editing the data source. I think it has been commented out. I would you to reintroduce this button as a drop down in the data source editing pannel. In order to populate the drop down, you will list by their name the plugins that were found, and add at the end an "sync with an rdf file". For now, then, the drop down will contain only two values: one for the lameta importer, the other for the syncing with an rdf file. If a data source has a value that do not match the name of one of the loaded plugins, you will grayed the dropdown, display the value below it with the following message "No plugin for this data source: <name found>." Please put the plugin in your the FieldArchive configuration directory or turn the value to raw rdf". Besides, two buttons "open the plugin directory" and "turn the value to raw rdf". The first one open the plugin directory; the second replace the value found by the value "sync with an rdf file".
+
+When the drop-down has the value "sync with an rdf file" and that the user select the `import` button, the behavior stay as today: the file at the the given filepath is read and its content replace the content of the named graph.
+
+By contrast, when another value than "sync with an rdf file" is selected, the corresponding plugin is called and the filepath or directory path argument is transmitted to it. The result provided by the plugin through its interface is used to replace the triples of the named graph, with the context name defined in the Data source.

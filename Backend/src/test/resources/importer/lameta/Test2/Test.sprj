@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Title>Test</Title>
+  <ProjectDescription>Description</ProjectDescription>
+  <VernacularISO3CodeAndName>tww : Tuwari</VernacularISO3CodeAndName>
+  <AnalysisISO3CodeAndName>en : English</AnalysisISO3CodeAndName>
+  <Location>emplacement/Adresse</Location>
+  <Region>Region</Region>
+  <Country>Papua New Guinea</Country>
+  <Continent>Oceania</Continent>
+  <grantId>GrandID</grantId>
+  <FundingProjectTitle>FundingProjectTitle</FundingProjectTitle>
+  <AccessProtocol>PARADISEC</AccessProtocol>
+  <Depositor>Déposant</Depositor>
+  <ContactPerson>contact Person</ContactPerson>
+  <DateAvailable>2021-09-09</DateAvailable>
+  <contributions type="xml"></contributions>
+</Project>

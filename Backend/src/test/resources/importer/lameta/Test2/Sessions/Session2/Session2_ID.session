@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Session>
+  <id type="string">Session2_ID</id>
+  <title type="string">How to wash the marita</title>
+  <languages type="string">tww</languages>
+  <workingLanguages type="string">en</workingLanguages>
+  <status type="string">Incoming</status>
+  <date>2021-09-07</date>
+  <participants>JD;WD;</participants>
+  <contributions type="xml">
+    <contributor>
+      <name>JD</name>
+      <role>participant</role>
+      <date>0001-01-01</date>
+    </contributor>
+    <contributor>
+      <name>WD</name>
+      <role>participant</role>
+      <date>0001-01-01</date>
+    </contributor>
+  </contributions>
+</Session>

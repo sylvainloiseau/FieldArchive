@@ -34,7 +34,14 @@ Two different types of sources are supported:
 
 A data source corresponds to a named graph in the RDF4J triplestore.
 
-On the data source management page, you can create a new External data source, give it a name and specify the location of the file to import. After modifying the data in the corresponding application, you can export it as an RDF file and re-import it into FieldArchive. Previous data from that External data source will be replaced by the newly imported data.
+On the data source management page, you can create a new External data source, give it a name and choose how it is imported (**Import with**):
+
+- **Sync with an RDF file**: give the location of an RDF file (Turtle, RDF/XML, N-Triples, TriG, JSON-LD…; the format is recognised from the file extension). After modifying the data in the corresponding application, export it again as an RDF file and re-import it.
+- **An importer plugin**, such as **lameta**: the plugin reads the application's own data directly — for lameta, the project folder — and converts it to RDF, without any intermediate file. Choose the folder, then **Import**. The **Importer options** let you set the plugin's options (for lameta: whether to include people's contact information, and what to do with fields that have no RiC-O equivalent) and the *base IRI* under which the plugin names the imported entities. Keep the base IRI once the source has been imported: re-imports then give the same identifiers, which the links made with the data matching rely on.
+
+Each import replaces the previous data of that External data source. If it fails, the previous data is kept. The number of imported triples and the plugin's warnings (for instance metadata files that were empty) are shown after the import, and in the source's detail panel.
+
+Importer plugins are found when the application starts in two `ricImporterPlugins` folders: the one shipped with the application, and the one in the configuration directory (see above), where you can add plugins yourself. If a data source refers to an importer that is not installed (for instance a source created by an older version of the application with "Tropy" or "Gramps" as its tool), its edit panel says so and offers to open the plugin folder, to look for plugins again (**Rescan**) after adding one, or to turn the source into a plain RDF file source.
 
 In the application, all triples coming from the various sources are shown together. For instance, all triples describing the same entity are shown on the entity editing page. However, the origin (the data source it comes from) of each triple is indicated with a badge.
 

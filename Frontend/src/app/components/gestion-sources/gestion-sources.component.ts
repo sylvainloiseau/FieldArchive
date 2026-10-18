@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
  
 import { DataSourceHttpService } from '../../services/data-source-http.service';
-import { DataSource, CreateInternalDataSourceRequest, CreateExternalDataSourceRequest } from '../../models/data-source.model';
+import { DataSource, CreateInternalDataSourceRequest, CreateExternalDataSourceRequest, ImporterSettings } from '../../models/data-source.model';
+import { ImporterHttpService } from '../../services/importer-http.service';
+import { Importer, ImporterOption, Importers, ImportResult, PluginProblem, RDF_FILE_IMPORTER } from '../../models/importer.model';
  
 // Angular Material Imports
 import { MatButtonModule } from '@angular/material/button';
@@ -72,6 +74,18 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   // The source awaiting a file for re-import, set while the picker is open.
   private pendingReimport: DataSource | null = null;
 
+  /** Accepted by the RDF file pickers: every format the backend parses, chosen by extension. */
+  readonly rdfFileAccept = '.ttl,.turtle,.rdf,.xml,.owl,.nt,.nq,.trig,.trix,.n3,.jsonld,.rj,.brf';
+
+  // Importers (GET /importers): "Sync with an RDF file" and the plugins
+  importers: Importers | null = null;
+  /** The edited source's stored importer when no plugin has it (the drop-down is then disabled). */
+  missingImporter: string | null = null;
+  /** The last import run from the open form, with its warnings. */
+  lastResult: ImportResult | null = null;
+  showResultWarnings = false;
+  readonly canUseElectronDialogs = !!window.electronAPI;
+
   // Three distinct hidden inputs: a single #fileInput ref used to resolve to whichever
   // came first in the template (the .json one), so the wrong picker opened.
   @ViewChild('rdfFileInput') rdfFileInput!: ElementRef<HTMLInputElement>;
@@ -80,6 +94,7 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
 
   constructor(
     private dataSourceService: DataSourceHttpService,
+    private importerService: ImporterHttpService,
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
@@ -94,8 +109,189 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       name: ['', Validators.required],
       description: [''],
       sourceType: ['INTERNAL', Validators.required],
-      url: ['']
+      url: [''],
+      importer: [RDF_FILE_IMPORTER],
+      importBaseIri: [''],
+      importerOptions: new FormGroup<Record<string, FormControl>>({})
     });
+    this.dataSourceForm.get('importer')!.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(id => this.buildOptionControls(id));
+  }
+
+  // ===== Importers =====
+
+  private loadImporters(): void {
+    this.importerService.load().pipe(takeUntil(this.destroy$)).subscribe({
+      next: importers => {
+        this.importers = importers;
+        this.buildOptionControls(this.dataSourceForm.get('importer')!.value);
+      },
+      error: err => console.error('Cannot load the importers', err)
+    });
+  }
+
+  /** The importers offered in the drop-down: the plugins, then "Sync with an RDF file". */
+  importerChoices(): Importer[] {
+    return this.importers?.importers ?? [];
+  }
+
+  /** The importer selected in the form (undefined while the stored one has no plugin). */
+  currentImporter(): Importer | undefined {
+    const id = this.dataSourceForm.get('importer')?.value;
+    return this.importerChoices().find(i => i.id === id);
+  }
+
+  isPlugin(): boolean {
+    const importer = this.currentImporter();
+    return !!importer && importer.id !== RDF_FILE_IMPORTER;
+  }
+
+  pathLabel(): string {
+    switch (this.currentImporter()?.inputKind) {
+      case 'DIRECTORY': return 'Directory path (on the machine running FieldArchive)';
+      case 'FILE_OR_DIRECTORY': return 'File or directory path (on the machine running FieldArchive)';
+      default: return 'File path (on the machine running FieldArchive)';
+    }
+  }
+
+  acceptsDirectory(): boolean {
+    const kind = this.currentImporter()?.inputKind;
+    return kind === 'DIRECTORY' || kind === 'FILE_OR_DIRECTORY';
+  }
+
+  acceptsFile(): boolean {
+    return this.currentImporter()?.inputKind !== 'DIRECTORY';
+  }
+
+  get optionsGroup(): FormGroup {
+    return this.dataSourceForm.get('importerOptions') as FormGroup;
+  }
+
+  /** Options whose default is true/false are shown as checkboxes. */
+  isBooleanOption(option: ImporterOption): boolean {
+    return option.defaultValue === 'true' || option.defaultValue === 'false';
+  }
+
+  /** One control per option of the selected plugin, filled with the edited source's values. */
+  private buildOptionControls(importerId: string): void {
+    const group = this.optionsGroup;
+    Object.keys(group.controls).forEach(name => group.removeControl(name));
+    const importer = this.importerChoices().find(i => i.id === importerId);
+    if (!importer) return;
+    const edited = this.editedSource();
+    const stored = edited && edited.importer === importerId ? edited.importerOptions ?? {} : {};
+    for (const option of importer.options) {
+      const value = stored[option.name];
+      group.addControl(option.name, new FormControl(this.isBooleanOption(option)
+        ? (value ?? option.defaultValue) === 'true'
+        : value ?? ''));
+    }
+  }
+
+  /** The importer part of the form, for the backend. */
+  importerSettings(): ImporterSettings {
+    const importer = this.missingImporter ?? this.dataSourceForm.get('importer')!.value ?? RDF_FILE_IMPORTER;
+    if (!this.isPlugin()) {
+      return { importer };
+    }
+    const options: Record<string, string> = {};
+    for (const option of this.currentImporter()!.options) {
+      const value = this.optionsGroup.get(option.name)?.value;
+      if (typeof value === 'boolean') options[option.name] = String(value);
+      else if (value != null && String(value).trim() !== '') options[option.name] = String(value).trim();
+    }
+    return {
+      importer,
+      importerOptions: options,
+      importBaseIri: (this.dataSourceForm.get('importBaseIri')!.value || '').trim()
+    };
+  }
+
+  /** The base IRI the plugin would use if the form were imported now. */
+  effectiveBaseIri(): string {
+    const typed = (this.dataSourceForm.get('importBaseIri')?.value || '').trim();
+    return typed || this.editedSource()?.importBaseIri || this.editedSource()?.importBaseIriDefault || '';
+  }
+
+  /** True when an already imported source would get another base IRI: every entity would be renamed. */
+  baseIriChanges(): boolean {
+    const source = this.editedSource();
+    if (!source?.lastImport || !source.importBaseIri || !this.isPlugin()) return false;
+    const typed = (this.dataSourceForm.get('importBaseIri')?.value || '').trim();
+    return typed !== '' && typed !== source.importBaseIri;
+  }
+
+  pluginDirectory(): string | null {
+    return this.importers?.directories.user ?? null;
+  }
+
+  pluginErrors(): PluginProblem[] {
+    return (this.importers?.problems ?? []).filter(p => p.error);
+  }
+
+  fileName(path: string): string {
+    return path.split(/[\\/]/).pop() || path;
+  }
+
+  async openPluginDirectory(): Promise<void> {
+    const dir = this.pluginDirectory();
+    if (!dir) {
+      this.showNotification('The plugin directory is unknown (FIELD_ARCHIVE_DATA is not set).', 'error');
+      return;
+    }
+    const open = window.electronAPI?.openDirectory;
+    if (!open) {
+      this.copyToClipboard(dir);
+      this.showNotification(`Plugin directory (copied): ${dir}`, 'info');
+      return;
+    }
+    const error = await open(dir);
+    if (error) this.showNotification(error, 'error');
+  }
+
+  /** Scans the plugin directories again; a plugin dropped there becomes available. */
+  rescanPlugins(): void {
+    this.importerService.rescan().pipe(takeUntil(this.destroy$)).subscribe({
+      next: importers => {
+        this.importers = importers;
+        const found = this.missingImporter
+          ? importers.importers.find(i => i.id.toLowerCase() === this.missingImporter!.toLowerCase())
+          : undefined;
+        if (found) {
+          this.missingImporter = null;
+          const control = this.dataSourceForm.get('importer')!;
+          control.enable();
+          control.setValue(found.id);
+          this.showNotification(`Plugin "${found.id}" found.`, 'success');
+        } else {
+          this.buildOptionControls(this.dataSourceForm.get('importer')!.value);
+          this.showNotification(`${importers.importers.length - 1} plugin(s) loaded.`, 'info');
+        }
+        this.loadDataSources();
+      },
+      error: err => this.showNotification(`Error: ${err.message}`, 'error')
+    });
+  }
+
+  /** Replaces the stored importer without plugin by "Sync with an RDF file" (saved by Update or Import). */
+  turnToRawRdf(): void {
+    this.missingImporter = null;
+    const control = this.dataSourceForm.get('importer')!;
+    control.enable();
+    control.setValue(RDF_FILE_IMPORTER);
+  }
+
+  /** Picks the path a plugin reads (Electron dialogs); when editing, offers to import it right away. */
+  async choosePath(kind: 'file' | 'directory'): Promise<void> {
+    const api = window.electronAPI;
+    const path = kind === 'directory' ? await api?.selectDirectory?.() : await api?.selectFile();
+    if (!path) return;
+    this.dataSourceForm.patchValue({ url: path });
+    const source = this.editedSource();
+    if (source && confirm(`Re-import "${source.name}" from ${path}? Its current data will be replaced.`)) {
+      this.syncSource(source, undefined, path, this.importerSettings());
+    }
   }
 
   /**
@@ -104,11 +300,21 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
    * re-imported right away when editing).
    */
   onImportFile(): void {
+    if (this.missingImporter) return;
     const source = this.editedSource();
     const path = (this.dataSourceForm.get('url')?.value || '').trim();
     if (source && path) {
       if (confirm(`Re-import "${source.name}" from ${path}? Its current data will be replaced.`)) {
-        this.syncSource(source, undefined, path);
+        this.syncSource(source, undefined, path, this.importerSettings());
+      }
+      return;
+    }
+    if (this.isPlugin()) {
+      // A plugin reads a path: choose it (desktop app), or type it
+      if (this.canUseElectronDialogs) {
+        this.choosePath(this.acceptsDirectory() ? 'directory' : 'file');
+      } else {
+        this.showNotification(`Type the path of the ${this.acceptsDirectory() ? 'directory' : 'file'} to import.`, 'info');
       }
       return;
     }
@@ -117,7 +323,7 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   }
 
   /** The external source open in the edit form, if any. */
-  private editedSource(): DataSource | null {
+  editedSource(): DataSource | null {
     if (!this.isEditing || !this.currentEditId || !this.isExternal()) return null;
     return this.dataSources.find(d => d.id === this.currentEditId) ?? null;
   }
@@ -144,7 +350,7 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     if (source) {
       this.isFileLoading = false;
       if (confirm(`Re-import "${source.name}" from ${file.name}? Its current data will be replaced.`)) {
-        this.syncSource(source, file, path);
+        this.syncSource(source, file, path, this.importerSettings());
       }
     }
   }
@@ -165,7 +371,8 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     // this.setupConditionalValidation();
     
     this.loadDataSources();
-    
+    this.loadImporters();
+
     this.dataSourceService.dataSources$
       .pipe(takeUntil(this.destroy$))
       .subscribe(sources => {
@@ -230,13 +437,14 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     this.isEditing = false;
     this.currentEditId = null;
     this.selectedDataSource = null;
+    this.resetImporterState();
  
     // Détermine le type par défaut selon la contrainte
     if (!this.canCreateInternalSource()) {
-      this.dataSourceForm.reset({ sourceType: 'EXTERNAL' });
+      this.dataSourceForm.reset({ sourceType: 'EXTERNAL', importer: RDF_FILE_IMPORTER });
       console.log('⚠️ Source INTERNAL existe → Formulaire en mode EXTERNAL');
     } else {
-      this.dataSourceForm.reset({ sourceType: 'INTERNAL' });
+      this.dataSourceForm.reset({ sourceType: 'INTERNAL', importer: RDF_FILE_IMPORTER });
       console.log('✅ Aucune source INTERNAL → Formulaire en mode INTERNAL');
     }
   }
@@ -254,21 +462,38 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     this.showForm = true;
     this.isEditing = true;
     this.currentEditId = dataSource.id || null;
-    
+    this.resetImporterState();
+
+    // A stored importer without plugin: shown as is, drop-down disabled until a plugin is found
+    // or the value is turned to raw RDF.
+    this.missingImporter = dataSource.importerStatus === 'MISSING' ? dataSource.importer ?? null : null;
     this.dataSourceForm.patchValue({
       shortName: dataSource.shortName,
       name: dataSource.name,
       description: dataSource.description,
       sourceType: dataSource.sourceType,
-      url: dataSource.url || ''
+      url: dataSource.url || '',
+      importer: dataSource.importer || RDF_FILE_IMPORTER,
+      importBaseIri: dataSource.importBaseIri || ''
     });
+    const importerControl = this.dataSourceForm.get('importer')!;
+    if (this.missingImporter) importerControl.disable(); else importerControl.enable();
+  }
+
+  private resetImporterState(): void {
+    this.missingImporter = null;
+    this.lastResult = null;
+    this.showResultWarnings = false;
+    this.selectedFile = null;
+    this.dataSourceForm.get('importer')?.enable();
   }
  
   cancelForm(): void {
     this.showForm = false;
     this.isEditing = false;
     this.currentEditId = null;
-    this.dataSourceForm.reset({ sourceType: 'INTERNAL' });
+    this.resetImporterState();
+    this.dataSourceForm.reset({ sourceType: 'INTERNAL', importer: RDF_FILE_IMPORTER });
   }
  
   onSubmit(): void {
@@ -288,7 +513,8 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
       // alone. Without a path it simply is not syncable in one click (see reimportSource).
 
       if (this.isEditing && this.currentEditId) {
-        this.updateDataSource(this.currentEditId, formValue);
+        this.updateDataSource(this.currentEditId, formValue,
+          formValue.sourceType === 'EXTERNAL' ? this.importerSettings() : undefined);
       } else {
         this.createDataSource(formValue);
       }
@@ -317,55 +543,67 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
 
   createDataSource(data: any): void {
 
-    let createObservable;
-
     if (data.sourceType === 'INTERNAL') {
 
-      createObservable = this.dataSourceService.createInternalSource(data);
+      const createObservable = this.dataSourceService.createInternalSource(data);
 
-    } else {
-
-      if (!this.selectedFile) {
-        this.showNotification(
-          'Please select a file for the external data source.',
-          'error'
-        );
-        return;
-      }
-
-      const externalData: CreateExternalDataSourceRequest = {
-        dataSource: data,
-        file: this.selectedFile
-      };
-
-      console.log('External data:', externalData);
-
-      createObservable = this.dataSourceService.createExternalSource(externalData);
+      createObservable
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (created) => {
+            this.showNotification(`Source created: ${created.graphIRI}`, 'success');
+            this.cancelForm();
+          },
+          error: (error) => {
+            this.showNotification(`Error: ${error.message}`, 'error');
+            console.error('Error:', error);
+          }
+        });
+      return;
     }
 
+    // External: imported from the uploaded file, else from the path (a plugin always reads a path)
+    const path = (data.url || '').trim();
+    const file = this.isPlugin() ? null : this.selectedFile;
+    if (!file && !path) {
+      this.showNotification(this.isPlugin()
+        ? `Give the path of the ${this.acceptsDirectory() ? 'directory' : 'file'} to import.`
+        : 'Select the RDF file, or give its path.', 'error');
+      return;
+    }
+    const externalData: CreateExternalDataSourceRequest = {
+      dataSource: data,
+      file,
+      settings: this.importerSettings()
+    };
 
-    createObservable
+    this.dataSourceService.createExternalSource(externalData)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (created) => {
-          this.showNotification(
-            `Source created: ${created.graphIRI}`, 
-            'success'
-          );
+        next: (result) => {
+          this.showNotification(result
+            ? `Source created: ${this.describeImport(result)}`
+            : 'Source created', 'success');
           this.cancelForm();
         },
         error: (error) => {
-          this.showNotification(
-            `Error: ${error.message}`, 
-            'error'
-          );
+          // The source may exist, empty, when only its first import failed
+          this.loadDataSources();
+          this.showNotification(`Error: ${error.message}`, 'error');
           console.error('Error:', error);
         }
       });
   }
+
+  /** "1,234 statements imported (3 warnings)". */
+  describeImport(result: ImportResult): string {
+    const warnings = result.warnings?.length ?? 0;
+    return `${result.tripleCount.toLocaleString()} statements imported`
+      + (warnings ? ` (${warnings} warning${warnings > 1 ? 's' : ''})` : '');
+  }
  
-  updateDataSource(shortName: string, data: Partial<DataSource>): void {
-    this.dataSourceService.updateDataSource(shortName, data)
+  updateDataSource(shortName: string, data: Partial<DataSource>, settings?: ImporterSettings): void {
+    this.dataSourceService.updateDataSource(shortName, data, settings)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (updated) => {
@@ -405,10 +643,22 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   }
  
   reimportSource(dataSource: DataSource): void {
+    if (dataSource.importerStatus === 'MISSING') {
+      this.showNotification(`No plugin for this data source: "${dataSource.importer}".`, 'error');
+      this.openEditForm(dataSource);
+      return;
+    }
     if (dataSource.url) {
       if (confirm(`Re-import "${dataSource.name}" from ${dataSource.url}?`)) {
         this.syncSource(dataSource);
       }
+      return;
+    }
+
+    // A plugin reads a path: set it in the form
+    if (dataSource.importerStatus === 'PLUGIN') {
+      this.showNotification(`No path is recorded for "${dataSource.name}": set it, then Import.`, 'info');
+      this.openEditForm(dataSource);
       return;
     }
 
@@ -418,16 +668,25 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
     }
   }
 
-  private syncSource(dataSource: DataSource, file?: File, sourceLocation?: string): void {
-    this.dataSourceService.syncExternalSource(dataSource.shortName, file, sourceLocation)
+  /**
+   * Re-imports a source. From the form, `settings` are the form's importer, options and base IRI
+   * (recorded once the import succeeds); from the list, the recorded ones are used.
+   */
+  private syncSource(dataSource: DataSource, file?: File, sourceLocation?: string, settings?: ImporterSettings): void {
+    this.dataSourceService.syncExternalSource(dataSource.shortName, file, sourceLocation, settings)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: () => {
-          this.showNotification('Data re-imported', 'success');
+        next: (result) => {
+          this.showNotification(`Data re-imported: ${this.describeImport(result)}`, 'success');
+          if (this.editedSource()?.shortName === dataSource.shortName) {
+            this.lastResult = result;
+            this.showResultWarnings = false;
+          }
         },
         error: (error) => {
-          // The recorded path is unusable — offer the picker rather than dead-ending.
-          if (!file && this.isMissingFileError(error)) {
+          // The recorded path is unusable — offer the picker rather than dead-ending (RDF files only).
+          const rdfFile = (settings?.importer ?? dataSource.importer ?? RDF_FILE_IMPORTER) === RDF_FILE_IMPORTER;
+          if (!file && rdfFile && this.isMissingFileError(error)) {
             if (confirm(`${error.message}\n\nSelect the RDF file to re-import now?`)) {
               this.pickFileForReimport(dataSource);
               return;
@@ -442,7 +701,7 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
   private isMissingFileError(error: any): boolean {
     const message = String(error?.message ?? '');
     return error?.status === 400 && (
-      message.includes('No file location recorded') ||
+      message.includes('No location recorded') ||
       message.includes('RDF file not found')
     );
   }

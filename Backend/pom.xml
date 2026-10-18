@@ -31,7 +31,20 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <!-- Importer plugin API, and the importer plugins shipped with the application -->
+        <ricimporterplugin.version>0.1.0-SNAPSHOT</ricimporterplugin.version>
+        <lameta2rico.version>0.1.0-SNAPSHOT</lameta2rico.version>
+        <importer.plugins.dir>${project.build.directory}/ricImporterPlugins</importer.plugins.dir>
     </properties>
+    <!-- ricimporterplugin and lameta2rico are published on GitHub Packages, which needs a token
+         with read:packages in ~/.m2/settings.xml (server id "github"), even for public packages. -->
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/sylvainloiseau/*</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -74,10 +87,46 @@
             <artifactId>openai-java</artifactId>
             <version>4.71.0</version>
         </dependency>
+        <!-- The plugin API is loaded by the backend's class loader, so that the plugins and the
+             backend share the RdfConverterProvider interface (services/importer/). -->
+        <dependency>
+            <groupId>io.github.sylvainloiseau</groupId>
+            <artifactId>ricimporterplugin</artifactId>
+            <version>${ricimporterplugin.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Bundled importer plugins: copied (plain jars, without their dependencies, which the
+                 backend provides) into target/ricImporterPlugins, next to the Spring Boot jar and
+                 not inside it. Bound to process-resources so that spring-boot:run has them too.
+                 electron-builder ships the directory (package.json, extraResources). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-importer-plugins</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>io.github.sylvainloiseau</groupId>
+                                    <artifactId>lameta2rico</artifactId>
+                                    <version>${lameta2rico.version}</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${importer.plugins.dir}</outputDirectory>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

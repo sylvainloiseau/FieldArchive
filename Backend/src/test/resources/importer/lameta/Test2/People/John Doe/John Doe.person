@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Person>
+  <name type="string">John Doe</name>
+  <nickName type="string">John</nickName>
+  <code type="string">JD</code>
+  <primaryLanguage type="string">Tuwari</primaryLanguage>
+  <primaryLanguageLearnedIn type="string">father and mother primary language, as stated</primaryLanguageLearnedIn>
+  <otherLanguage0 type="string">tpi</otherLanguage0>
+  <otherLanguage1 type="string">en</otherLanguage1>
+  <fathersLanguage type="string">en</fathersLanguage>
+  <mothersLanguage type="string">tpi</mothersLanguage>
+  <education type="string">Formation</education>
+  <birthYear type="string">1977</birthYear>
+  <gender type="string">Male</gender>
+  <howToContact type="string">HowToContact</howToContact>
+  <ethnicGroup type="string">EthnicGroup</ethnicGroup>
+  <primaryOccupation type="string">PrimaryOccupation</primaryOccupation>
+  <description type="string">Description</description>
+  <notes type="string">Notes</notes>
+  <contributions type="xml"></contributions>
+  <CustomFields type="xml">
+    <CustomField1 type="string">CustomField1Value</CustomField1>
+  </CustomFields>
+</Person>

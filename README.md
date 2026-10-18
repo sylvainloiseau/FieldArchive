@@ -73,6 +73,22 @@ Running the project from sources requires:
 - Node.js 18 or later and npm
 - Angular CLI: `npm install -g @angular/cli`
 - Maven 3.8 or later
+- A GitHub token with the `read:packages` scope, declared in `~/.m2/settings.xml`: the build downloads
+  the importer plugin API (`io.github.sylvainloiseau:ricimporterplugin`) and the bundled importer plugins
+  (`io.github.sylvainloiseau:lameta2rico`) from GitHub Packages, which requires authentication even for
+  public packages:
+
+  ```xml
+  <settings>
+    <servers>
+      <server>
+        <id>github</id>
+        <username>YOUR_GITHUB_USER</username>
+        <password>YOUR_TOKEN</password>
+      </server>
+    </servers>
+  </settings>
+  ```
 
 ### Clone the project
 

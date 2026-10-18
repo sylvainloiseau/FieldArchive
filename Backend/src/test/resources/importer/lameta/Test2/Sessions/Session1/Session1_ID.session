@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Session>
+  <id type="string">Session1_ID</id>
+  <title type="string">Session 1 Title</title>
+  <languages type="string">tww</languages>
+  <workingLanguages type="string">en</workingLanguages>
+  <genre type="string">singing</genre>
+  <Sub-Genre type="string">Chant solo</Sub-Genre>
+  <location type="string">emplacement</location>
+  <access type="string">O</access>
+  <accessDescription type="string">open</accessDescription>
+  <synopsis type="string">Session 1 Description</synopsis>
+  <status type="string">In_Progress</status>
+  <date>2021-09-09</date>
+  <keyword type="string">Keyword1, keyword2</keyword>
+  <topic type="string">Topic</topic>
+  <notes type="string">Notes</notes>
+  <participants>JD;JD;</participants>
+  <contributions type="xml">
+    <contributor>
+      <name>JD</name>
+      <role>participant</role>
+      <date>0001-01-01</date>
+      <comments>Com</comments>
+    </contributor>
+    <contributor>
+      <name>JD</name>
+      <role>consultant</role>
+      <date>0001-01-01</date>
+    </contributor>
+  </contributions>
+  <AdditionalFields type="xml">
+    <Involvement type="string">elicited</Involvement>
+    <Location_Region type="string">oceania</Location_Region>
+    <Location_Country type="string">Papua New Guinea</Location_Country>
+    <Location_Continent type="string">Oceania</Location_Continent>
+    <Planning_Type type="string">semi-spontaneous</Planning_Type>
+    <Social_Context type="string">family</Social_Context>
+  </AdditionalFields>
+  <CustomFields type="xml">
+    <CustomField1 type="string">CustomField1Value</CustomField1>
+    <CustomFieldB type="string">CustomFieldBValue</CustomFieldB>
+  </CustomFields>
+</Session>

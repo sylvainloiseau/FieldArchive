@@ -32,6 +32,10 @@
       {
         "from": "Backend/target/Backend-0.0.1-SNAPSHOT.jar",
         "to": "Backend-0.0.1-SNAPSHOT.jar"
+      },
+      {
+        "from": "Backend/target/ricImporterPlugins",
+        "to": "ricImporterPlugins"
       }
     ],
     "win": {

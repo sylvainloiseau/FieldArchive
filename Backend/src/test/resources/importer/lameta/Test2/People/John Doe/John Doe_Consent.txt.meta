@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Meta>
+  <notes>Notes</notes>
+  <contributions type="xml">
+    <contributor>
+      <name>JD</name>
+      <role>author</role>
+      <date>0001-01-01</date>
+      <comments>G</comments>
+    </contributor>
+  </contributions>
+  <CustomFields type="xml">
+    <CustomField1 type="string">CustomField1Value</CustomField1>
+  </CustomFields>
+</Meta>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Person>
+  <name type="string">Wilema Doe</name>
+  <nickName type="string">Wily</nickName>
+  <code type="string">WD</code>
+  <contributions type="xml"></contributions>
+</Person>

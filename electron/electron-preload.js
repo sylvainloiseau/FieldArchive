@@ -23,6 +23,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // ✅ NEW FEATURE
   selectFile: () => ipcRenderer.invoke('select-file'),
+
+  // Directory chooser; resolves to the absolute path, or null when cancelled.
+  selectDirectory: () => ipcRenderer.invoke('select-directory'),
+
+  // Shows a directory in the OS file manager; resolves to '' on success, else an error message.
+  openDirectory: (dirPath) => ipcRenderer.invoke('open-directory', dirPath),
   
   saveFile: (data, suggestedName) => ipcRenderer.invoke('save-file', data, suggestedName),
 

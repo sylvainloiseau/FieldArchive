@@ -3,6 +3,7 @@ const { app, BrowserWindow, shell, ipcMain, dialog } = require('electron');
 const { spawn, execSync } = require('child_process');
 const findProcess = require('find-process').default;
 const path = require('path');
+const fs = require('fs');
 const http = require('http');
 
 let mainWindow;
@@ -51,7 +52,12 @@ async function startBackend() {
 
   console.log('[Electron] Backend cwd :', backendCwd);
 
-  backendProcess = spawn('java', ['-jar', jarPath], {
+  // Importer plugins shipped with the application (Backend/target/ricImporterPlugins in development)
+  const bundledPluginsDir = app.isPackaged
+    ? path.join(process.resourcesPath, 'ricImporterPlugins')
+    : path.join(projectRoot, 'Backend', 'target', 'ricImporterPlugins');
+
+  backendProcess = spawn('java', ['-jar', jarPath, `--fieldarchive.importers.bundled-dir=${bundledPluginsDir}`], {
     cwd: backendCwd,
     stdio: 'pipe',
     env: { ...process.env, FIELD_ARCHIVE_DATA: userDataPath }
@@ -163,6 +169,27 @@ ipcMain.handle('select-file', async () => {
   }
 
   return result.filePaths[0];
+});
+
+// Directory chooser (importer plugins reading a project folder, e.g. lameta)
+ipcMain.handle('select-directory', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return null;
+  }
+
+  return result.filePaths[0];
+});
+
+// Shows a directory in the OS file manager (the importer plugin directory). Directories only.
+ipcMain.handle('open-directory', async (event, dirPath) => {
+  if (typeof dirPath !== 'string' || !fs.existsSync(dirPath) || !fs.statSync(dirPath).isDirectory()) {
+    return 'Not a directory: ' + dirPath;
+  }
+  return shell.openPath(dirPath); // '' on success, else an error message
 });
 
 // ─────────────────────────────────────────────

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Session>
+  <id type="string">Session4</id>
+  <title type="string">public discussion about to young people misconduct</title>
+  <languages type="string">tww</languages>
+  <workingLanguages type="string">en</workingLanguages>
+  <genre type="string">oratory</genre>
+  <access type="string">C</access>
+  <status type="string">Incoming</status>
+  <date>2021-09-23</date>
+  <participants>JD</participants>
+  <contributions type="xml">
+    <contributor>
+      <name>JD</name>
+      <role>participant</role>
+      <date>0001-01-01</date>
+    </contributor>
+  </contributions>
+</Session>

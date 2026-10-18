@@ -25,6 +25,11 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(409).body(Map.of("error", ex.getMessage()));
     }
 
+    @ExceptionHandler(ServerErrorException.class)
+    public ResponseEntity<?> serverError(ServerErrorException ex) {
+        return ResponseEntity.status(500).body(Map.of("error", ex.getMessage()));
+    }
+
     @ExceptionHandler(InvalidConfigurationException.class)
     public ResponseEntity<?> invalidConfiguration(InvalidConfigurationException ex) {
         Map<String, Object> body = new LinkedHashMap<>();

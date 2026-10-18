@@ -4,7 +4,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, map, tap, switchMap } from 'rxjs/operators';
-import { DataSource, CreateInternalDataSourceRequest, CreateExternalDataSourceRequest } from '../models/data-source.model';
+import { DataSource, CreateInternalDataSourceRequest, CreateExternalDataSourceRequest, ImporterSettings } from '../models/data-source.model';
+import { ImportResult, RDF_FILE_IMPORTER } from '../models/importer.model';
 
 @Injectable({
   providedIn: 'root'
@@ -61,9 +62,11 @@ export class DataSourceHttpService {
 
 
   /**
-  * POST /datasources/external - Crée une source externe avec son fichier
+  * POST /datasources/external - Crée une source externe et l'importe : le fichier envoyé, sinon
+  * le chemin (un fichier RDF, ou le dossier lu par un plugin). Answers the import result, or null
+  * when there was nothing to import.
   */
-  createExternalSource(data: CreateExternalDataSourceRequest): Observable<DataSource> {
+  createExternalSource(data: CreateExternalDataSourceRequest): Observable<ImportResult | null> {
     console.log('📡 POST /datasources/external', data);
 
     const formData = new FormData();
@@ -74,7 +77,8 @@ export class DataSourceHttpService {
       shortName: data.dataSource.shortName,
       name: data.dataSource.name,
       description: data.dataSource.description || '',
-      sourceLocation: data.dataSource.url || ''
+      sourceLocation: data.dataSource.url || '',
+      ...data.settings
     };
 
     // Datasource metadata
@@ -86,14 +90,16 @@ export class DataSourceHttpService {
       )
     );
 
-    // File to import
-    formData.append('file', data.file, data.file.name);
+    // File to import, if any
+    if (data.file) {
+      formData.append('file', data.file, data.file.name);
+    }
 
     return this.http.post<any>(
       `${this.apiUrl}/external`,
       formData
     ).pipe(
-      map(source => this.mapSingleBackendToFrontend(source)),
+      map(body => (body?.import ?? null) as ImportResult | null),
       tap(created => {
         console.log('✅ External source created:', created);
         this.refreshDataSources();
@@ -105,14 +111,15 @@ export class DataSourceHttpService {
   /**
    * PUT /datasources/{shortName} - Modifie les métadonnées
    */
-  updateDataSource(shortName: string, data: Partial<DataSource>): Observable<DataSource> {
+  updateDataSource(shortName: string, data: Partial<DataSource>, settings?: ImporterSettings): Observable<DataSource> {
     console.log(`📡 PUT /datasources/${shortName}`, data);
 
     const payload = {
       //name: data.name,
       longName: data.name,
       description: data.description,
-      sourceLocation: data.url
+      sourceLocation: data.url,
+      ...(settings ?? {})
     };
     //Debug
     console.log('Payload envoyé:', payload);  
@@ -149,25 +156,33 @@ export class DataSourceHttpService {
    * it imports the uploaded bytes instead — which also works when no path is known, or
    * when the backend runs on another machine.
    */
-  syncExternalSource(shortName: string, file?: File, sourceLocation?: string): Observable<void> {
+  syncExternalSource(shortName: string, file?: File, sourceLocation?: string,
+                     settings?: ImporterSettings): Observable<ImportResult> {
     console.log(`📡 POST /datasources/${shortName}/sync`, file?.name ?? '(no file)');
 
     // With a file: its bytes (and its path, to remember). Without: the path for the backend to
-    // read, or nothing to re-read the recorded one.
+    // read, or nothing to re-read the recorded one. The importer settings, when given, are the
+    // form's (recorded by the backend once the import succeeds).
+    const fields: Record<string, string> = {};
+    if (sourceLocation) fields['sourceLocation'] = sourceLocation;
+    if (settings) {
+      fields['importer'] = settings.importer;
+      if (settings.importerOptions) fields['importerOptions'] = JSON.stringify(settings.importerOptions);
+      if (settings.importBaseIri != null) fields['importBaseIri'] = settings.importBaseIri;
+    }
+
     let body: FormData | {} = {};
     let params = new HttpParams();
     if (file) {
       const formData = new FormData();
       formData.append('file', file, file.name);
-      if (sourceLocation) {
-        formData.append('sourceLocation', sourceLocation);
-      }
+      Object.entries(fields).forEach(([k, v]) => formData.append(k, v));
       body = formData;
-    } else if (sourceLocation) {
-      params = params.set('sourceLocation', sourceLocation);
+    } else {
+      Object.entries(fields).forEach(([k, v]) => params = params.set(k, v));
     }
 
-    return this.http.post<void>(`${this.apiUrl}/${shortName}/sync`, body, { params }).pipe(
+    return this.http.post<ImportResult>(`${this.apiUrl}/${shortName}/sync`, body, { params }).pipe(
       tap(() => {
         console.log('✅ Source synchronized');
         this.refreshDataSources();
@@ -207,7 +222,13 @@ export class DataSourceHttpService {
       graphIRI: source.graphIri || source.graphIRI || source.graphUri || `urn:datasource:${source.shortName}`,
       editable: source.editable !== false,
       url: source.sourceLocation || source.location || source.url,
-      tool: source.sourceTool || source.tool,
+      tool: this.importerLabel(source),
+      importer: source.importer,
+      importerStatus: source.importerStatus,
+      importerOptions: source.importerOptions || {},
+      importBaseIri: source.importBaseIri,
+      importBaseIriDefault: source.importBaseIriDefault,
+      lastImport: source.lastImport,
       lastSyncDate: source.lastSync || source.lastSyncDate ? 
         new Date(source.lastSync || source.lastSyncDate) : undefined,
       previousImportDates: source.previousSyncs ? 
@@ -221,6 +242,12 @@ export class DataSourceHttpService {
     console.log('✅ Mapped to frontend:', mapped);
     
     return mapped;
+  }
+
+  /** What the "Source" column shows: the plugin name, "RDF file", or the stored value without plugin. */
+  private importerLabel(source: any): string | undefined {
+    if (!source.importer) return source.sourceTool || undefined;
+    return source.importer === RDF_FILE_IMPORTER ? 'RDF file' : source.importer;
   }
 
   /**

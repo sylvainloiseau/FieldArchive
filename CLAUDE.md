@@ -10,7 +10,7 @@ FieldArchive is a desktop application for describing linguistic fieldwork archiv
 |---|---|
 | `Backend/` | Spring Boot 4 REST API (Java 17), owns all RDF logic and the RDF4J triplestore |
 | `Frontend/` | Angular 19 standalone app (Angular Material + Tailwind), the whole UI |
-| `electron/` | Electron main process: spawns the backend JAR, loads the Angular build, file dialogs |
+| `electron/` | Electron main process: spawns the backend JAR, loads the Angular build, file and folder dialogs |
 | `Backend/src/main/resources/ontologies/` | The OWL/RDFS files of the *DefinedOntologies* + `configuration.json` |
 | `samples/`, `Backend/data/`, `Doc/` | Sample RDF exports, scratch data, design notes |
 | `RDF_Back/`, `Backend/src/.../example/`, `utils/CsvFileHandler.java` | Leftovers, not wired into the running app |
@@ -24,8 +24,10 @@ Run backend and frontend in two terminals; Electron is only needed when testing 
 cd Backend && FIELD_ARCHIVE_DATA=~/Library/Application\ Support/field_archive mvn spring-boot:run
 # optional, for the natural-language agents: ANTHROPIC_API_KEY / OPENAI_API_KEY (or keys saved from the dialog);
 # the local agent needs Ollama running with the model of fieldarchive.nlquery.local.model
-cd Backend && mvn clean package -DskipTests      # produces target/Backend-0.0.1-SNAPSHOT.jar
-cd Backend && mvn test -Dtest='*Test'            # the data matching tests (in-memory store, no FIELD_ARCHIVE_DATA needed);
+# The build fetches the importer plugin API and the bundled plugins from GitHub Packages: it needs a token
+# with read:packages in ~/.m2/settings.xml (server id "github"), even for public packages
+cd Backend && mvn clean package -DskipTests      # produces target/Backend-0.0.1-SNAPSHOT.jar and target/ricImporterPlugins/
+cd Backend && mvn test -Dtest='*Test'            # the data matching and importer tests (in-memory store, no FIELD_ARCHIVE_DATA needed);
                                                  # RdfBackApplicationTests.contextLoads needs FIELD_ARCHIVE_DATA
 cd Backend && mvn test -Dtest=RdfBackApplicationTests#contextLoads   # single test
 
@@ -60,12 +62,13 @@ Electron main (electron/main.js)
 
 ### REST endpoints (mounted at the root, *not* under `/api`)
 
-`@RequestMapping` values are `/projects`, `/datasources`, `/rdf`, `/ontology`, `/sparql`, `/nlquery`, `/matching`, `/matching/configuration`. The `/api/...` prefix used in `README.md` (and in Electron's `waitForBackend` probe) does not exist — the probe only works because any response below HTTP 500, including the 404, is treated as "backend up". The Angular services hardcode `http://localhost:8080/<area>` individually; there is no `environment.ts` and no shared API-base constant.
+`@RequestMapping` values are `/projects`, `/datasources`, `/importers`, `/rdf`, `/ontology`, `/sparql`, `/nlquery`, `/matching`, `/matching/configuration`. The `/api/...` prefix used in `README.md` (and in Electron's `waitForBackend` probe) does not exist — the probe only works because any response below HTTP 500, including the 404, is treated as "backend up". The Angular services hardcode `http://localhost:8080/<area>` individually; there is no `environment.ts` and no shared API-base constant.
 
 | Controller | Path | Notes |
 |---|---|---|
 | `ProjectController` | `/projects` | `open`, `create`, `current`, `close`, `list/details`, `PUT /{old}` (rename), `DELETE /{name}`, `import`, `import-backup`, `export/internal`, `export/backup` |
-| `DataSourceController` | `/datasources` | CRUD by `shortName`; `POST /external` is multipart (`dataSource` JSON part + `file`); `POST /{shortName}/sync` re-imports |
+| `DataSourceController` | `/datasources` | CRUD by `shortName`; `POST /external` is multipart (`dataSource` JSON part + optional `file`) and imports the new source (the file, else `sourceLocation`); `POST /{shortName}/sync` re-imports (`file`, `sourceLocation`, `importer`, `importerOptions` as JSON, `importBaseIri`, all optional) and answers an `ImportResult` with the plugin's warnings |
+| `ImporterController` | `/importers` | `GET` (importers, plugin problems, plugin directories; no project needed), `POST /rescan` |
 | `RdfEntityController` | `/rdf` | `GET /entities?type=` (omit `type` → entities with no `rdf:type`), `GET|PUT|DELETE /entity?key=<full IRI>`, `POST /entities` |
 | `OntologyController` | `/ontology` | `types` (type navigator payload), `schema?namespace=`, `labels` CRUD, `known*` (RiC-O loaded in-store) |
 | `SparqlController` | `/sparql` | `select` and `update`, body `SparqlRequest {query, nl?}`; operations are classified with RDF4J's parser. When `nl` is present the run is recorded in the question history. Every update also gets the bookkeeping triples (see below) |
@@ -81,7 +84,7 @@ Everything the app knows about a project lives in the project's own store, split
 |---|---|---|
 | `urn:datasource:<projectName>_internal` | `DataSourceService.createInternalDataSource` | The *InternalDataSource*: all user-created/editable triples |
 | `urn:datasource:<shortName>` | idem, for each external source | One *ExternalDataSource*: read-only imported triples |
-| `http://cnrs.lacito/app#/context/metadata` (`RdfContexts.CTX_META`) | `DataSourceService`, `OntologyService`, `BuiltinOntologyService` | Data-source descriptors (`app:shortName`, `app:graph`, `app:sourceType`, `app:editable`, `app:lastSync`, `app:sourceLocation`…) and declared ontology namespaces |
+| `http://cnrs.lacito/app#/context/metadata` (`RdfContexts.CTX_META`) | `DataSourceService`, `OntologyService`, `BuiltinOntologyService` | Data-source descriptors (`app:shortName`, `app:graph`, `app:sourceType`, `app:editable`, `app:lastSync`, `app:sourceLocation`, and for external sources the importer: `app:sourceTool`, `app:importerOptions` and `app:lastImport` as JSON, `app:importBaseIri`) and declared ontology namespaces |
 | `http://cnrs.lacito/app#/projects#<name>/metadata` | `ProjectService.upsertProjectMetadata` | The project itself: `rdfs:label`, `dcterms:created/modified/description`, `app:prefix` |
 | `http://cnrs.lacito/app#/context/ontology/rico` (`CTX_ONTO_RICO`) | `BuiltinOntologyService.ensureRicoLoaded` | The full RiC-O OWL file, loaded into every project at open/create |
 | `http://cnrs.lacito/app#/context/matching` (`CTX_MATCHING`) | `SameAsGraphWriter` (data matching) | `owl:sameAs` in both directions between every two IRIs of a cluster of matched entities. Derived from `data_matching.json`, rewritten after every link change and at project open; never edit it by hand |
@@ -125,7 +128,8 @@ Controllers (thin)
         │                    └─▶ DataSourceService.createInternalDataSource()
         ├──▶ FileImportService ──▶ DataSourceService.getGraphIri()  (+ ProjectService.initEmptyProjectRepository for backups)
         └──▶ FileExportService ──▶ DataSourceService / ProjectService (graph IRIs)
-  DataSourceController ─▶ DataSourceService ──▶ FileImportService (external source import)
+  DataSourceController ─▶ DataSourceService ──▶ ImporterRegistry (external source import, services/importer/)
+  ImporterController ──▶ ImporterRegistry
   RdfEntityController ──▶ RdfEntityService ──▶ ProjectService (prefix, name)
                                              ├─▶ DataSourceService (internal graph, graph→shortName)
                                              └─▶ OntologyService (property schema)
@@ -145,7 +149,16 @@ A question typed in the header field (or the `nl-query-dialog`) is translated in
 - `NlQueryHistoryService`: `<project dir>/natural_language_query_history.json`, recorded by `SparqlController` after a successful run, included in backups by `FileExportService` / `FileImportService`.
 - `ApiKeyStore`: `ANTHROPIC_API_KEY` / `OPENAI_API_KEY`, else `$FIELD_ARCHIVE_DATA/settings/llm-keys.json` (saved from the dialog). Models and limits are in `application.properties` (`fieldarchive.nlquery.*`).
 
-`ProjectService ↔ DataSourceService` and `DataSourceService ↔ FileImportService` are cyclic and broken with `@Lazy` on the constructor parameter — keep that annotation if you touch those constructors. Exceptions thrown by services (`BadRequestException`, `NotFoundException`, `ConflictException` in `exception/`) are mapped by `exception/ApiExceptionHandler`; the separate `exceptions/ImportException` package is a parallel, older one.
+`ProjectService ↔ DataSourceService` is cyclic and broken with `@Lazy` on `ProjectService`'s constructor parameter — keep that annotation if you touch those constructors. Exceptions thrown by services (`BadRequestException`, `NotFoundException`, `ConflictException` in `exception/`) are mapped by `exception/ApiExceptionHandler`; the separate `exceptions/ImportException` package is a parallel, older one.
+
+### Importers of external data sources (`services/importer/`)
+
+An external source is filled by an *importer*; the design is in `.claude/plans/importer-plugins.md`.
+
+- `Importer` (`emit(ImportInput, ImportSettings, RDFHandler)`): the built-in `RdfFileImporter` (id `rdf-file`, "Sync with an RDF file", any RDF format chosen from the file name, path or upload) and `PluginImporter`, which wraps a `fr.cnrs.lacito.ricimporterplugin.RdfConverterProvider` (API `io.github.sylvainloiseau:ricimporterplugin`, a backend dependency so that the interface is shared).
+- Plugins are jars in two `ricImporterPlugins` directories: the bundled one (`fieldarchive.importers.bundled-dir`, passed by Electron, else the one next to the running jar or `target/classes`, i.e. `Backend/target/ricImporterPlugins`, filled by `maven-dependency-plugin` with `lameta2rico`) and `$FIELD_ARCHIVE_DATA/ricImporterPlugins`. `ImporterPluginScanner`: each jar, or each subdirectory of jars, gets its own `URLClassLoader` (parent-first); failures become `PluginProblem`s; the user directory wins on a name clash. `ImporterRegistry` scans at startup and on rescan (read/write lock so a rescan never closes a loader in use), and resolves stored values (absent / `Other` → RDF file, plugin names ignoring case, anything else → MISSING).
+- `DataSourceService.importIntoSource` (creation and sync): one transaction — clear the graph, stream the importer's statements through `GraphReplacingSink` (`RDFInserter` with the source's graph enforced; **no file, no intermediate model**), then `app:lastSync`, `app:sourceLocation`, `app:sourceTool`, `app:importerOptions`, `app:importBaseIri`, `app:lastImport`; rollback on any failure. `ImportWarningCollector` captures the WARN logs of the importing thread (the plugin API has no warning channel).
+- Tests: `ImporterPluginScannerTest` (jars built from `testplugins/`, hidden from the parent loader) and `DataSourceImportTest` (the real lameta jar on `src/test/resources/importer/lameta/Test2`).
 
 ### Data matching (`services/matching/`)
 
@@ -162,7 +175,7 @@ Finds, reviews and remembers the IRIs of different data sources that denote the 
 Routes (`app.routes.ts`): `/gestion-projets` (default), `/gestion-sources`, `/gestion-ressources`, `/sparql`, `/data-matching`, `/data-matching/settings` (guarded against leaving with unsaved changes), `/files`. All components are standalone; dialogs are opened with `MatDialog`, not routed.
 
 - **`gestion-projets`** — project management page: list/create/open/rename/delete, import a backup, export the internal source (Turtle) or a full backup (zip). Talks to `GestionProjetService`, which also holds the app-wide `activeProject$` `BehaviorSubject`.
-- **`gestion-sources`** — *ExternalDataSource* management (create with file, edit, delete, re-sync) via `DataSourceHttpService`.
+- **`gestion-sources`** — *ExternalDataSource* management (create, edit, delete, re-sync) via `DataSourceHttpService`. The form's "Import with" drop-down lists the importers (`ImporterHttpService`, `models/importer.model.ts`): the plugins, then "Sync with an RDF file". A plugin gets a folder or file chooser by its `inputKind` (Electron `selectDirectory`/`selectFile`), an "Importer options" block (base IRI + the plugin's options) and sends a path, never an upload. A stored importer without plugin disables the drop-down and offers "Open the plugin directory" (Electron `openDirectory`), "Rescan" and "Turn the value to raw RDF".
 - **`gestion-ressources`** — the main workspace. Left: the **TypeNavigator**, built from `GET /ontology/types`, grouping types by ontology (RiC-O forced first, and the only one expanded at first) into main types / used types / terminologies, as a compact collapsible list, plus "Not typed". Right: `liste-entites` for the selected type, plus the `sparql` view. Opens `entity-details` as a dialog.
 - **`liste-entites`** — sortable/filterable table of `RdfEntitySummaryDto`; entry point for creating an entity of the selected type and for opening one.
 - **`entity-details`** (largest component, ~1100 lines) — the entity editor, a dialog. Header with the entity's name (`displayName`) and IRI; "Same as" and type chips (one chip per type, also outside the configured ontologies: `editEntity` sends the internal chips back as the complete list of internal types); one tab per configured ontology (label with the number of properties having a value). Each tab is a property sheet: rico:name, then the configured `mainProperties` (reshaped into `main_Properties` keyed by type), then the "Other properties". The value list is **one** `ng-template` (`#valueList`) used by the three sections; IRI properties get a native `select` whose options are cached per set of ranges (`rangeOptions`, preloaded for the visible tab) and a "Create" button that creates an entity of the range and links it. Property widgets are driven by the `schema` attached to each property. Adding a property is only possible in a tab whose ontology is *defined* **and** in which the entity declares a type. Delegates to `create-entity` (types / new entity; at most one type per ontology), `rico-properties` (choose a property, filtered by the kind of value), `range-selection-dialog`, the shared `confirm-dialog`, and `file-viewer`.

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Person>
+  <name type="string">Joshua Kelekele</name>
+  <code type="string">JK</code>
+  <primaryLanguage type="string">tww</primaryLanguage>
+  <birthYear type="string">1950</birthYear>
+  <gender type="string">Male</gender>
+  <primaryOccupation type="string">Farmer</primaryOccupation>
+  <notes type="string">Father of six.</notes>
+  <contributions type="xml"></contributions>
+</Person>
