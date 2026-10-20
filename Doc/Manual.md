@@ -23,11 +23,11 @@ The home page provides access to the project management page, where you can crea
 
 You can export a project into a zipped archive in order to back it up, share it with others, or reinstall it on a different machine.
 
-![Project management page](Doc/img/Project.png)
+![Project management page](img/Project.png)
 
 ### Data sources management
 
-![Data source management page](Doc/img/DataSource.png)
+![Data source management page](img/DataSource.png)
 
 Re-importing ("syncing") data annotated in a third-party app is a core feature: the user can export data from a third-party tool (such as [Tropy](https://tropy.org), [Lameta](https://www.lameta.org/home), [Gramps](https://gramps-project.org)) and re-import it into FieldArchive when necessary, replacing the previously imported data.
 
@@ -51,7 +51,7 @@ In the application, all triples coming from the various sources are shown togeth
 
 ### Data matching
 
-![Data matching page](Doc/img/DataMatching.png)
+![Data matching page](img/DataMatching.png)
 
 The same person, place or document is often described in several data sources under different IRIs: a speaker recorded in Gramps and photographed in Tropy, for instance. The **Data matching** page (button on the data sources page) finds these entities, lets you confirm or reject each proposal, and remembers your decisions.
 
@@ -66,7 +66,7 @@ The same person, place or document is often described in several data sources un
 
 **Matching settings** (button on the data sources page, or ⚙ on the matching page) decide what is compared:
 
-![Data matching settings page](Doc/img/MatchingSettings.png)
+![Data matching settings page](img/MatchingSettings.png)
 
 - *Type groups* gather equivalent classes from different vocabularies (e.g. `foaf:Person` and `rico:Person`). Only entities of the same group are compared; subclasses are included.
 - In each group, *concepts* list the properties expressing the same information (e.g. `foaf:name`, `rico:name`), how to compare them (text, name, date, exact value…), and their weight in the score. A *required* concept must be comparable for a pair to be proposed; the *minimum evidence* prevents a match on a single minor property.
@@ -76,7 +76,7 @@ The same person, place or document is often described in several data sources un
 
 ### Resources page
 
-![Entities page](Doc/img/Entities.png)
+![Entities page](img/Entities.png)
 
 The Resources page allows you to visualize, filter, edit and navigate through the RDF entities of the active project.
 
@@ -88,7 +88,7 @@ For each ontology, the Type navigator first shows the main types for that ontolo
 
 When you click on an entity in the table on the right, you can open the **Edit entity page**. This page allows you to see and edit the entity's RDF types, as well as its properties.
 
-![Entity detail page](Doc/img/EntityDetail.png)
+![Entity detail page](img/EntityDetail.png)
 
 The first line in the form shows the entity type. You can declare one type for each of the declared ontologies. Below there is one tab per declared ontology, showing the entity's properties in that ontology and allowing you to create/edit them.
 
@@ -106,7 +106,7 @@ When an UPDATE creates or modifies entities in the project's own data, the appli
 
 ## Asking questions in natural language
 
-![IA assistant page](Doc/img/IAAssistant.png)
+![IA assistant page](img/IAAssistant.png)
 
 The field in the middle of the header ("Ask about this project…", shortcut Ctrl+K / ⌘K) lets you ask a question or give an instruction in plain French or English: *list all persons*, *which recordings were made in 2019?*, *rename Marie Dupond to Marie Durand*, *add the gender "masculine" to Jean Dupond*…
 
