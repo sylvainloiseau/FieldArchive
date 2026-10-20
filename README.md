@@ -2,6 +2,8 @@
 
 Manage and describe linguistic fieldwork archives using RDF.
 
+![Editing entity](Doc/img/EntityDetail.png)
+
 ## Features
 
 - Create and manage projects.
@@ -10,6 +12,8 @@ Manage and describe linguistic fieldwork archives using RDF.
 - Extend the application with additional RDF ontologies (for complex biographical information, detailed proper-name descriptions, etc.): the ontologies are loaded by the application at startup, and the types and properties they define become available in every editing form.
 - Create and edit entities (person, place, document, event, etc.) within the app.
 - Query the data with SPARQL.
+
+See the [manual](Doc/Manual.md)
 
 ## Installation
 
