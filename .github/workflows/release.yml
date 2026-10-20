@@ -7,6 +7,9 @@ on:
 
 permissions:
   contents: write
+  # Maven reads ricimporterplugin and lameta2rico from GitHub Packages, which needs a token
+  # even for public packages.
+  packages: read
 
 concurrency:
   group: release-${{ github.ref }}
@@ -38,6 +41,11 @@ jobs:
           distribution: temurin
           java-version: '25'
           cache: maven
+          # Writes ~/.m2/settings.xml with the server "github" of Backend/pom.xml, its username
+          # and password read from the GITHUB_ACTOR and GITHUB_TOKEN environment variables.
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
 
       - name: Install Maven 3.9.9
         shell: bash
@@ -60,6 +68,8 @@ jobs:
 
       - name: generate App
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm run dist
 
       - name: Publish artifacts on the GitHub release
