@@ -1,7 +1,52 @@
+## Create a gramps converter
+
+Reading the rml file.
+
+## Create a directory converter
+
+Convert the python script
+
+## Create a spreadsheet converter
+
+Convert the python script
+
+## Create a tropy converter
+
+- Either from the db: https://github.com/tropy/tropy/blob/main/db/schema/project.sql
+- Or from the export (jsld)
+
+## OWL and ontology definition
+
+overloaded in project definition
+
+## better variable name
+
+Please audit the codebase and look for better variable and method/function names.
+
+Please use the concepts of the application:
+- "internal data source",
+- "external data source", 
+- "project ontologies", 
+- "project property graph": the named graph in the triple store of a project that stores application data about the project (description, named queries, external data source...); 
+- DefinedOntologies : ontologies pour lesquelles, dans le répertoire de configuration de l'application, il y a le fichier OWL définissant l'ontologie ET il y a une section correspondante dans le fichier JSON de configuration de l'application. Pour simplifier, disons qu'une ontologie pour laquelle il n'y a que l'un ou l'autre mais pas les deux est ignorée (n'est pas comptée dans la liste des defined ontologies)
+- ProjectOntologies : all ontologies used in a project; it could be an ontology type (object of a rdf:type property), or a property present through one of its property. Project ontologies may be larger than the DefinedOntologies: a external data source in particular can contain any ontologies.
+- UsedOnlyOntologies : ontologie rencontrée dans le projet mais qui n'est pas dans les DefinedOntology
+- CreateDialogue
+- TypeSelectorDialog : boite de dialogue pour ajouter des types à une entité. Cette boîte de dialogue affiche les types présent dans les DefinedOntology, pas les types qui sont dans les UsedOnlyOntology : cette boîte de dialogue offre les types dont on connait les ontologies. Si un utilisateur veut pouvoir ajouter des types appartenant à une autre ontologie, il doit d'abord éditer le fichier JSON et ajouter la définition OWL dans un répertoire.
+- PropertySelectorDialog
+- OntologiesParameters Paramètres d'une ontologie définie pour l'application LinguisticFieldArchive. Les OntologiesParameters sont lues par l'application LinguisticFieldArchive et permettent de déclarer (1) les ontologies avec lesquelles on peut éditer les données dans l'application et (2) de paramètres comment ces ontologies s'affichent (cf. mainType et mainProperty).
+- mainType : énumère les types les plus importants d'une ontologie, pour les rendre plus accessible à l'utilisateur. Défini dans les OntologiesParameters.
+- mainProperties : pour certains types d'une ontologie, définit des propriétés principale. Permet de définir une sorte de formulaire pour chaque type. Défini dans les OntologiesParameters.
+- NavigateurDeType : hiérarchie affichée à gauche dans la page d'édition des entités regroupant les entités par types. Cet arbre vise à permettre la navigation dans les entités existantes dans le projet : affiche les types effectivement trouvés dans le projet, pas les types définis dans des ontologies mais pas utilisés.
+
+If you can think of other concepts that can be extracted from the application behavior please mention them in a glossary and use them as variable / method name.
+
 ## Sparql
 
-restyle the sparql page
-record query with description, etc.
+Could you make a plan for restyling the sparql page. Please ask any question regarding how it could be restyle and new usefull functionalities be added. This could include:
+
+- Query history (including query runned via the "Ask about this project" Dialog for AI-assisted query generation)
+- link for inserting PREFIX declaration for the ontologies used in the project.
 
 ## relation entity
 
@@ -15,8 +60,6 @@ entity between 1 and 2, linked with the
 For instance: in which event participate an individual, etc.
 
 ## File viewer
-
-## better variable name
 
 ## Redesign the Entity page
 
