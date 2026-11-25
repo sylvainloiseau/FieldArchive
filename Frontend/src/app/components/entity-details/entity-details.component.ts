@@ -226,13 +226,13 @@ export class EntityDetailsComponent implements OnInit {
       datasourceShortName: 'internal'
     };
 
-    // 🔍 Cherche si la propriété existe déjà dans selectedEntity
+    // The predicate may already be in the entity (then it is the object on screen)
     const existingProperty = this.selectedEntity.properties.find(
       (p: any) => p.predicate === property.predicate
     );
 
     if (existingProperty) {
-      // ✅ éviter doublon de valeur
+      // no duplicate value
       const alreadyExists = existingProperty.values.some(
         (v: any) => v.value === newValue.value
       );
@@ -241,13 +241,12 @@ export class EntityDetailsComponent implements OnInit {
         existingProperty.values.push(newValue);
       }
     } else {
-      // ✅ créer UNE SEULE propriété
-      this.selectedEntity.properties.push({
-        predicate: property.predicate,
-        kind: property.kind,
-        values: [newValue]
-      });
+      // An empty main property is a placeholder built by cleanProperties(): adopt it, so that the
+      // object on screen is the one saved by editEntity() and later rebuilds keep it.
+      property.values = [...(property.values ?? []), newValue];
+      this.selectedEntity.properties.push(property);
     }
+    this.cdr.markForCheck();
   }
 
   onRangeDeleted(range: any, property: any): void {
