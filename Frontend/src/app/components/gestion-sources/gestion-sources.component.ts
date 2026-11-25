@@ -587,8 +587,7 @@ export class GestionSourcesComponent implements OnInit, OnDestroy {
           this.cancelForm();
         },
         error: (error) => {
-          // The source may exist, empty, when only its first import failed
-          this.loadDataSources();
+          // Nothing was created: the form stays open to fix the input and submit again
           this.showNotification(`Error: ${error.message}`, 'error');
           console.error('Error:', error);
         }

@@ -438,20 +438,20 @@ public class DataSourceService {
                 ctxGraph = (obj instanceof IRI) ? (IRI) obj : null;
             }
 
-            conn.begin();
-
-            // supprimer tout le contenu du graphe (si existe)
-            if (ctxGraph != null) {
-                conn.clear(ctxGraph);
-            }
-
-            // supprimer toutes les métadonnées de la source
-            conn.remove(ds, null, null, ctxMeta);
-            conn.remove((Resource) null, null, ds, ctxMeta); // au cas où la source est objet
-
-            conn.commit();
+            removeSource(conn, ds, ctxGraph, ctxMeta);
         }
         publishDataChanged();
+    }
+
+    /** Removes a source in one transaction: the content of its graph (if any) and all its metadata. */
+    private void removeSource(RepositoryConnection conn, IRI ds, IRI ctxGraph, IRI ctxMeta) {
+        conn.begin();
+        if (ctxGraph != null) {
+            conn.clear(ctxGraph);
+        }
+        conn.remove(ds, null, null, ctxMeta);
+        conn.remove((Resource) null, null, ds, ctxMeta); // in case the source is an object
+        conn.commit();
     }
 
     private IRI typeExternalDataSource() {
@@ -461,7 +461,8 @@ public class DataSourceService {
     /**
      * Creates an external source, then fills it: from the uploaded file, else from
      * {@code sourceLocation} (a file, or the directory a plugin reads). The metadata is committed
-     * first, so a failed first import leaves the source in place, empty, and the error is thrown.
+     * first (the import reads it); if the first import fails, the source is removed again and the
+     * error is thrown, so nothing is created.
      *
      * @return the import result, or null when there was nothing to import yet
      */
@@ -516,7 +517,17 @@ public class DataSourceService {
         }
 
         if ((file != null && !file.isEmpty()) || sourceLocation != null) {
-            return importIntoSource(req.getShortName(), new ImportRequest(null, null, null, null, file));
+            try {
+                return importIntoSource(req.getShortName(), new ImportRequest(null, null, null, null, file));
+            } catch (RuntimeException e) {
+                // A failed first import creates nothing: the short name stays free for a new attempt.
+                try (RepositoryConnection conn = ProjectContext.getRepository().getConnection()) {
+                    removeSource(conn, ds, ctxGraph, ctxMeta);
+                } catch (RuntimeException cleanup) {
+                    e.addSuppressed(cleanup);
+                }
+                throw e;
+            }
         }
         return null;
     }

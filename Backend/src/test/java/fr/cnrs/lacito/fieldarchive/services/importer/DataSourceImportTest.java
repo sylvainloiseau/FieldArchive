@@ -10,6 +10,7 @@ import fr.cnrs.lacito.fieldarchive.dtos.ImportResult;
 import fr.cnrs.lacito.fieldarchive.dtos.UpdateDataSourceRequest;
 import fr.cnrs.lacito.fieldarchive.exception.BadRequestException;
 import fr.cnrs.lacito.fieldarchive.exception.ConflictException;
+import fr.cnrs.lacito.fieldarchive.exception.NotFoundException;
 import fr.cnrs.lacito.fieldarchive.services.DataSourceService;
 import fr.cnrs.lacito.fieldarchive.services.DataSourceService.ImportRequest;
 import fr.cnrs.lacito.fieldarchive.services.ProjectService;
@@ -161,6 +162,28 @@ class DataSourceImportTest {
         assertThat(size(graph)).isEqualTo(ds.tripleCount);
         // the location of the failed import is not recorded
         assertThat(service.getDataSource("lameta-src").sourceLocation).isEqualTo(lametaProject().toString());
+    }
+
+    @Test
+    void aFailedFirstImportCreatesNoSource() throws Exception {
+        Path notALametaProject = Files.createDirectories(tmp.resolve("empty"));
+
+        assertThatThrownBy(() -> createLameta("lameta-src", notALametaProject))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Import with lameta failed for " + notALametaProject);
+
+        assertThatThrownBy(() -> service.getDataSource("lameta-src")).isInstanceOf(NotFoundException.class);
+        IRI ds = vf.createIRI(RdfNamespaces.APP + "/datasource/lameta-src");
+        try (RepositoryConnection conn = repo.getConnection()) {
+            IRI meta = vf.createIRI(RdfContexts.CTX_META);
+            assertThat(conn.hasStatement(ds, null, null, false, meta)).isFalse();
+            assertThat(conn.hasStatement(null, null, ds, false, meta)).isFalse();
+        }
+
+        // the short name is free again
+        DataSourceDto ds2 = createLameta("lameta-src", lametaProject());
+        assertThat(ds2.tripleCount).isPositive();
+        assertThat(size(vf.createIRI(ds2.graphIri))).isEqualTo(ds2.tripleCount);
     }
 
     @Test
