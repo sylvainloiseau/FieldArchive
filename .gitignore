@@ -1,4 +1,3 @@
-
 # Default ignored files 
 /shelf/
 /workspace.xml
@@ -29,3 +28,8 @@ node_modules/
 
 Backend/projects/
 Extra/Discussions/
+
+TODO.md
+.claude
+CLAUDE.md
+
