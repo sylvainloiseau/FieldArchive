@@ -112,6 +112,23 @@ export class GestionRessourcesComponent implements OnInit, OnDestroy {
       .filter(section => section.value?.length);
   }
 
+  private readonly typeCollator = new Intl.Collator(undefined, { sensitivity: 'base', numeric: true });
+
+  /** Sorts the types of each tree section (main / used / terminologies) by their local name, once at load. */
+  private sortOntologySections(data: any): any {
+    for (const ontology of Object.values<any>(data ?? {})) {
+      for (const key of ['mainTypes', 'usedTypes', 'mainTerminologies']) {
+        const section = ontology?.[key];
+        const list = Array.isArray(section) ? section : section?.value;
+        if (!Array.isArray(list)) continue;
+        const sorted = [...list].sort((a, b) =>
+          this.typeCollator.compare(this.extractEntityTypeFromIRI(a), this.extractEntityTypeFromIRI(b)));
+        ontology[key] = Array.isArray(section) ? sorted : { ...section, value: sorted };
+      }
+    }
+    return data;
+  }
+
   extractEntityTypeFromIRI(iri : any ) : string {
     if (iri === null ) return "" ;
     if (iri.includes('#')) return iri.substring(iri.lastIndexOf('#') + 1)
@@ -168,7 +185,7 @@ export class GestionRessourcesComponent implements OnInit, OnDestroy {
     this.ontologyService.getTypes().subscribe({
       next: (data) => {
         console.log("Ontology Config and Data ", data);
-        this.ontologyLabels = data;
+        this.ontologyLabels = this.sortOntologySections(data);
         this.loaded = true;
         this.cdr.markForCheck();
       }
