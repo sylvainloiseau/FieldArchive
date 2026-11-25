@@ -281,7 +281,14 @@ public class OntologyService {
             merged.remove("file");
 
             List<String> used = grouped.getOrDefault(normalizedPrefix, List.of());
-            merged.put("usedTypes", Map.of("name", "Used Types", "value", used));
+
+            // Types already offered under "Main Types" or "Main Terminologies" are not repeated under "Used Types".
+            Set<String> configuredIris = new HashSet<>(extractConfiguredIris(ontologyData, "mainTypes"));
+            configuredIris.addAll(extractConfiguredIris(ontologyData, "mainTerminologies"));
+            List<String> usedNotConfigured = used.stream()
+                    .filter(t -> !configuredIris.contains(t))
+                    .collect(Collectors.toList());
+            merged.put("usedTypes", Map.of("name", "Used Types", "value", usedNotConfigured));
 
             Set<String> alreadyCovered = new HashSet<>();
             used.forEach(u -> alreadyCovered.add(extractType(u)));
@@ -317,13 +324,15 @@ public class OntologyService {
         return data;
     }
 
-    @SuppressWarnings("unchecked")
     private Set<String> extractConfiguredNames(Map<String, Object> ontologyData, String sectionKey) {
-        Object section = ontologyData.get(sectionKey);
-        if (section == null) {
-            return Set.of();
-        }
+        return extractConfiguredIris(ontologyData, sectionKey).stream()
+                .map(OntologyService::extractType)
+                .collect(Collectors.toSet());
+    }
 
+    /** The IRIs listed in a configuration section (a bare list, or a {name, value} block). */
+    private Set<String> extractConfiguredIris(Map<String, Object> ontologyData, String sectionKey) {
+        Object section = ontologyData.get(sectionKey);
         List<?> rawValues;
         if (section instanceof List<?> list) {
             rawValues = list;
@@ -335,7 +344,6 @@ public class OntologyService {
 
         return rawValues.stream()
                 .map(String::valueOf)
-                .map(OntologyService::extractType)
                 .collect(Collectors.toSet());
     }
 
